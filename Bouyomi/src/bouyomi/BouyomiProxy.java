@@ -184,7 +184,7 @@ public class BouyomiProxy implements Runnable{
 			String em=null;
 			if(len>=200||(text!=null&&text.length()>=200)){//長文省略基準200文字以上
 				em="長文省略";
-				System.out.println("長文省略("+len+"文字)");
+				System.out.println("長文省略("+(text==null?len:text.length())+"文字)");
 			}else if(text!=null) {//文字データが取得できた時
 				//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 				if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
