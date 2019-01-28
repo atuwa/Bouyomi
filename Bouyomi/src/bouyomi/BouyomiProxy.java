@@ -182,7 +182,7 @@ public class BouyomiProxy implements Runnable{
 			}
 			//System.out.println("len="+len);
 			String em=null;
-			if(len>=200){//長文省略基準200文字以上
+			if(len>=200||(text!=null&&text.length()>=200)){//長文省略基準200文字以上
 				em="長文省略";
 				System.out.println("長文省略("+len+"文字)");
 			}else if(text!=null) {//文字データが取得できた時
