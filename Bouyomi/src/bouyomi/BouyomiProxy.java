@@ -312,7 +312,8 @@ public class BouyomiProxy implements Runnable{
 			int ei=text.indexOf('=');
 			if(ei<0)ei=text.indexOf('＝');
 			int ki=text.lastIndexOf(')');
-			if(ki<0)ki=text.lastIndexOf('）');
+			int zi=text.lastIndexOf('）');
+			if(ki<zi)ki=zi;
 			if(ei>0&&ki>1) {
 				String key=text.substring(3,ei);
 				String val=text.substring(ei+1,ki);
@@ -323,7 +324,8 @@ public class BouyomiProxy implements Runnable{
 		}else if(text.indexOf("応答破棄(")==0||text.indexOf("応答破棄（")==0) {//BOT教育機能を使う時
 			//System.out.println(text);//ログに残す
 			int ei=text.lastIndexOf(')');
-			if(ei<0)ei=text.lastIndexOf('）');
+			int zi=text.lastIndexOf('）');
+			if(ei<zi)ei=zi;
 			if(ei>5) {
 				String key=text.substring(5,ei);
 				em=key+" には応答を返しません";
