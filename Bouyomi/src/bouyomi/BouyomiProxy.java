@@ -15,6 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class BouyomiProxy implements Runnable{
 	public static HashMap<String,String> Study=new HashMap<String,String>();
 	/**自動応答辞書*/
 	public static HashMap<String,String> BOT=new HashMap<String,String>();
+	public static int VOL=30;
 	static {
 		FW.put("０","0");FW.put("１","1");FW.put("２","2");FW.put("３","3");FW.put("４","4");
 		FW.put("５","5");FW.put("６","6");FW.put("７","7");FW.put("８","8");FW.put("９","9");
@@ -182,10 +184,11 @@ public class BouyomiProxy implements Runnable{
 			}
 			//System.out.println("len="+len);
 			String em=null;
-			if(text!=null?text.length()>=70:len>=200){//長文省略基準70文字以上
+			if(text!=null)em=bot(text);
+			if(em==null&&text!=null?text.length()>=90:len>=200){//長文省略基準90文字以上
 				em="長文省略";
 				System.out.println("長文省略("+(text==null?len:text.length())+"文字)");
-			}else if(text!=null) {//文字データが取得できた時
+			}else if(text!=null&&em!=null) {//文字データが取得できた時
 				//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 				if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
 					System.out.println(text);//ログに残す
@@ -208,7 +211,7 @@ public class BouyomiProxy implements Runnable{
 						e.printStackTrace();
 						addTask="要望リストに記録できませんでした";//残した事を追加で言う
 					}
-				}else em=bot(text);
+				}
 				/*
 				else if(text.toUpperCase().indexOf("YAMA(")>=0||text.indexOf("やまびこ(")>=0) {
 					int index=text.indexOf("やまびこ(");
@@ -332,11 +335,111 @@ public class BouyomiProxy implements Runnable{
 				System.out.println("応答破棄（"+key+")");//ログに残す
 				BOT.remove(key);
 			}
+		}else if(video_host!=null) {
+			em=video(text);
 		}
 		return em;
 	}
+	public String video(String text) {
+		String em=null;
+		if(text.indexOf("動画再生(")==0||text.indexOf("動画再生（")==0) {//BOT教育機能を使う時
+			//System.out.println(text);//ログに残す
+			int ki=text.lastIndexOf(')');
+			int zi=text.lastIndexOf('）');
+			if(ki<zi)ki=zi;
+			if(ki==5) {
+				try{
+					URL url=new URL("http://"+video_host+"/operation.html?play");
+					url.openStream().close();
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}if(ki>5) {
+				String key=text.substring(5,ki);
+				System.out.println("動画再生（"+key+")");//ログに残す
+				if(play(key)) {
+					em="動画を再生します";
+				}
+			}
+		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//BOT教育機能を使う時
+			System.out.println("動画停止");//ログに残す
+			try{
+				URL url=new URL("http://"+video_host+"/operation.html?stop");
+				url.openStream().close();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+			em="動画を停止します";
+		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//BOT教育機能を使う時
+			System.out.println("動画停止");//ログに残す
+			try{
+				URL url=new URL("http://"+video_host+"/operation.html?stop");
+				url.openStream().close();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+			em="動画を停止します";
+		}else if(text.indexOf("動画音量(")==0||text.indexOf("動画音量（")==0) {//BOT教育機能を使う時
+			int ki=text.lastIndexOf(')');
+			int zi=text.lastIndexOf('）');
+			if(ki<zi)ki=zi;
+			if(ki==5) {
+
+			}if(ki>5) {
+				String volS=text.substring(5,ki);
+				if(volS!=null) {
+					int radix=10;
+					if(volS.indexOf("0x")==0) {
+						radix=16;
+						volS=volS.substring(2);
+					}
+					try{
+						int vol=Integer.parseInt(volS,radix);
+						System.out.println("動画音量"+vol);//ログに残す
+						VOL=vol;
+						try{
+							URL url=new URL("http://"+video_host+"/operation.html?vol="+vol);
+							url.openStream().close();
+						}catch(IOException e){
+							e.printStackTrace();
+						}
+						em="音量を"+vol+"にします";
+					}catch(NumberFormatException e) {
+
+					}
+				}
+			}
+		}
+		return em;
+	}
+	public static boolean play(String url) {
+		if(url.indexOf("https://www.youtube.com/watch?")==0) {
+			int Vindex=url.indexOf("?v=");
+			if(Vindex<0)Vindex=url.indexOf("&v=");
+			if(Vindex<0)return false;
+			String ss=url.substring(Vindex+3);
+			int end=ss.indexOf("&");
+			if(end<0)end=ss.length();
+			return playTube(ss.substring(0,end));
+		}else if(url.indexOf("https://youtu.be/")==0) {
+			return playTube(url.substring(17));
+		}
+		return false;
+	}
+	public static boolean playTube(String videoID) {
+		try{
+			URL url=new URL("http://"+video_host+"/operation.html?v="+videoID+"&vol="+VOL);
+			url.openStream().close();
+			return true;
+		}catch(IOException e){
+			System.err.println(e.getMessage());
+			//e.printStackTrace();
+		}
+		return true;
+	}
 	private static String command;//コンソールに入力されたテキスト
 	public static int bouyomi_port,proxy_port;//棒読みちゃんのポート(サーバはlocalhost固定)
+	public static String video_host=null;
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
 		InputStreamReader isr=new InputStreamReader(System.in);
@@ -364,7 +467,14 @@ public class BouyomiProxy implements Runnable{
 		}
 		//0文字だったらデフォルト、それ以外だったらそれ
 		final String BOTpath=command.isEmpty()?"BOT.dic":command;//相対パス
-		System.out.println("応答辞書の場所"+BOTpath);
+		if(args.length>3&&!args[3].equals("-"))command=args[3];
+		else {
+			System.out.println("動画サーバのアドレス");
+			command=br.readLine();//1行取得する
+		}
+		//0文字だったら無し、それ以外だったらそれ
+		if(!command.isEmpty())video_host=command;
+		System.out.println("動画サーバ"+(video_host==null?"無し":video_host));
 		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
 		new Thread(){

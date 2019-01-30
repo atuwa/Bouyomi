@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**時報通知*/
 public class Zihou{
 	private static String command;
 	public static boolean ON;
