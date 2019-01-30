@@ -174,6 +174,7 @@ public class BouyomiProxy implements Runnable{
 			if(d[7]==0)text=baos2.toString("utf-8");//UTF-8でデコード
 			else if(d[7]==1)text=baos2.toString("utf-16");//UTF-16でデコード
 			//この時点で受信は終わってる
+			lastComment=System.currentTimeMillis();
 			if(fb=='/'||fb=='\\'){//最初の文字がスラッシュの時は終了
 				//System.out.println("スラッシュで始まる");
 				if(text!=null) {
@@ -364,6 +365,7 @@ public class BouyomiProxy implements Runnable{
 		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//BOT教育機能を使う時
 			System.out.println("動画停止");//ログに残す
 			try{
+				nowPlayVideo=false;
 				URL url=new URL("http://"+video_host+"/operation.html?stop");
 				url.openStream().close();
 			}catch(IOException e){
@@ -428,6 +430,7 @@ public class BouyomiProxy implements Runnable{
 	}
 	public static boolean playTube(String videoID) {
 		try{
+			nowPlayVideo=true;
 			URL url=new URL("http://"+video_host+"/operation.html?v="+videoID+"&vol="+VOL);
 			url.openStream().close();
 			return true;
@@ -440,6 +443,8 @@ public class BouyomiProxy implements Runnable{
 	private static String command;//コンソールに入力されたテキスト
 	public static int bouyomi_port,proxy_port;//棒読みちゃんのポート(サーバはlocalhost固定)
 	public static String video_host=null;
+	public static long lastComment=System.currentTimeMillis();
+	public static boolean nowPlayVideo;
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
 		InputStreamReader isr=new InputStreamReader(System.in);
@@ -522,6 +527,18 @@ public class BouyomiProxy implements Runnable{
 				}
 			}
 		});
+		if(video_host!=null)new Thread("AutoVideoStop") {
+			public void run() {
+				try{
+					Thread.sleep(60000);
+					if(nowPlayVideo&&System.currentTimeMillis()-lastComment>8*60000) {
+						talk(proxy_port,"/動画停止()");
+					}
+				}catch(InterruptedException e){
+					e.printStackTrace();
+				}
+			}
+		}.start();
 		try{
 			load(BOTpath);
 		}catch(IOException e){
