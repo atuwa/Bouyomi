@@ -343,11 +343,11 @@ public class BouyomiProxy implements Runnable{
 	}
 	public String video(String text) {
 		String em=null;
+		int ki=text.lastIndexOf(')');
+		int zi=text.lastIndexOf('）');
+		if(ki<zi)ki=zi;
 		if(text.indexOf("動画再生(")==0||text.indexOf("動画再生（")==0) {//BOT教育機能を使う時
 			//System.out.println(text);//ログに残す
-			int ki=text.lastIndexOf(')');
-			int zi=text.lastIndexOf('）');
-			if(ki<zi)ki=zi;
 			if(ki==5) {
 				try{
 					URL url=new URL("http://"+video_host+"/operation.html?play");
@@ -360,7 +360,7 @@ public class BouyomiProxy implements Runnable{
 				System.out.println("動画再生（"+key+")");//ログに残す
 				if(play(key)) {
 					em="動画を再生します";
-				}
+				}else em="動画を再生できませんでした";
 			}
 		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//BOT教育機能を使う時
 			System.out.println("動画停止");//ログに残す
@@ -382,11 +382,23 @@ public class BouyomiProxy implements Runnable{
 			}
 			em="動画を停止します";
 		}else if(text.indexOf("動画音量(")==0||text.indexOf("動画音量（")==0) {//BOT教育機能を使う時
-			int ki=text.lastIndexOf(')');
-			int zi=text.lastIndexOf('）');
-			if(ki<zi)ki=zi;
 			if(ki==5) {
-
+				BufferedReader br=null;
+				try{
+					URL url=new URL("http://"+video_host+"/operation.html?GETvolume");
+					InputStream is=url.openStream();
+					InputStreamReader isr=new InputStreamReader(is);
+					br=new BufferedReader(isr);//1行ずつ取得する
+					em="音量は"+br.readLine()+"です";
+				}catch(IOException e){
+					e.printStackTrace();
+				}finally {
+					try{
+						br.close();
+					}catch(IOException e){
+						e.printStackTrace();
+					}
+				}
 			}if(ki>5) {
 				String volS=text.substring(5,ki);
 				if(volS!=null) {
@@ -415,23 +427,27 @@ public class BouyomiProxy implements Runnable{
 		return em;
 	}
 	public static boolean play(String url) {
-		if(url.indexOf("https://www.youtube.com/watch?")==0) {
+		if(url.indexOf("https://www.youtube.com/watch?")==0||
+				url.indexOf("https://m.youtube.com/watch?")==0||
+				url.indexOf("https://youtube.com/watch?")==0) {
 			int Vindex=url.indexOf("?v=");
 			if(Vindex<0)Vindex=url.indexOf("&v=");
 			if(Vindex<0)return false;
 			String ss=url.substring(Vindex+3);
 			int end=ss.indexOf("&");
 			if(end<0)end=ss.length();
-			return playTube(ss.substring(0,end));
+			return playTube("v="+ss.substring(0,end));
 		}else if(url.indexOf("https://youtu.be/")==0) {
-			return playTube(url.substring(17));
+			return playTube("v="+url.substring(17));
+		}else if(url.indexOf("v=")==0) {
+			return playTube(url);
 		}
 		return false;
 	}
 	public static boolean playTube(String videoID) {
 		try{
 			nowPlayVideo=true;
-			URL url=new URL("http://"+video_host+"/operation.html?v="+videoID+"&vol="+VOL);
+			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
 			url.openStream().close();
 			return true;
 		}catch(IOException e){
