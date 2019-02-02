@@ -56,7 +56,7 @@ public class BouyomiConection implements Runnable{
 		baos.write(ch2);
 		byte[] d=new byte[8];
 		int len=is.read(d);//この段階では変数lenは読み込みバイト数
-		int type=is.read();//文字コード読み込み
+		type=is.read();//文字コード読み込み
 		if(len!=8||type<0){//読み込みバイト数が足りない時
 			System.out.println("notLen9");
 			throw new IOException();
@@ -72,7 +72,7 @@ public class BouyomiConection implements Runnable{
 		}
 		//ここで変数lenは文字数になる
 		len=((ch1<<0)+(ch2<<8)+(ch3<<16)+(ch4<<24));//文字数データから数値に
-		byte fb=(byte) is.read();//最初の文字を取得
+		fb=(char) is.read();//最初の文字を取得
 		baos2=new ByteArrayOutputStream();//メッセージバイナリ書き込み先
 		baos2.write(fb);//最初の文字をメッセージバイナリバッファに
 		this.len=len;
@@ -89,7 +89,7 @@ public class BouyomiConection implements Runnable{
 	}
 	private void replace() {
 		//System.out.println("len="+len);
-		if(text!=null)em=bot(text);
+		if(text!=null)bot(text);
 		if(em==null) {
 			text=text.replaceAll("https?://[\\x00-\\x7F]++","URL省略");
 		}
@@ -222,7 +222,6 @@ public class BouyomiConection implements Runnable{
 		}
 	}
 	public String bot(String text) {
-		String em=null;
 		if(text.indexOf("応答(")==0||text.indexOf("応答（")==0) {//BOT教育機能を使う時
 			//System.out.println(text);//ログに残す
 			int ei=text.indexOf('=');
@@ -249,18 +248,19 @@ public class BouyomiConection implements Runnable{
 				BOT.remove(key);
 			}
 		}else if(video_host!=null) {//再生サーバが設定されている時
-			em=video(text);
+			video(text);
 		}
-		return em;
+		return null;
 	}
 	public String video(String text) {
-		String em=null;
 		int ki=text.lastIndexOf(')');
 		int zi=text.lastIndexOf('）');
 		if(ki<zi)ki=zi;
-		if(text.indexOf("動画再生(")==0||text.indexOf("動画再生（")==0) {//動画再生
+		int index=text.indexOf("動画再生(");
+		if(index<0)text.indexOf("動画再生（");
+		if(index>=0) {//動画再生
 			//System.out.println(text);//ログに残す
-			if(ki==5) {
+			if(ki==index+5) {
 				try{
 					URL url=new URL("http://"+video_host+"/operation.html?play");
 					url.openStream().close();
@@ -270,8 +270,8 @@ public class BouyomiConection implements Runnable{
 				}catch(IOException e){
 					e.printStackTrace();
 				}
-			}if(ki>5) {
-				String key=text.substring(5,ki);
+			}else if(ki>index+5) {
+				String key=text.substring(index+5,ki);
 				System.out.println("動画再生（"+key+")");//ログに残す
 				if(play(key)) {
 					em="動画を再生します。";
@@ -279,7 +279,11 @@ public class BouyomiConection implements Runnable{
 					if(vol>=0)em+="音量は"+vol+"です";
 				}else em="動画を再生できませんでした";
 			}
-		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//動画停止
+			return null;
+		}
+		index=text.indexOf("動画停止()");
+		if(index<0)text.indexOf("動画停止（）");
+		if(index>=0) {//動画停止
 			System.out.println("動画停止");//ログに残す
 			try{
 				URL url=new URL("http://"+video_host+"/operation.html?stop");
@@ -288,27 +292,32 @@ public class BouyomiConection implements Runnable{
 				e.printStackTrace();
 			}
 			em="動画を停止します";
-		}else if(text.indexOf("動画音量(")==0||text.indexOf("動画音量（")==0) {//動画音量
-			if(ki==5) {
+			return null;
+		}
+		index=text.indexOf("動画音量(");
+		if(index<0)index=text.indexOf("動画音量（");
+		if(index>=0) {//動画音量
+			if(ki==index+5) {
 				int vol=getVol();
 				if(vol<0)em="音量を取得できません";
 				else em="音量は"+vol+"です";
 				System.out.println(em);
-			}if(ki>5) {
-				String volS=text.substring(5,ki);
+			}else if(ki>index+5) {
+				String volS=text.substring(index+5,ki);
 				if(volS!=null) {
-					char fc=volS.charAt(0);
 					int radix=10;
+					char fc;
 					if(volS.indexOf("0x")==0) {
 						radix=16;
+						fc=volS.charAt(0);
 						volS=volS.substring(2);
-					}
+					}else fc=volS.charAt(0);
 					try{
 						int Nvol=-1;
 						if(fc=='+')Nvol=getVol();
 						else if(fc=='-')Nvol=getVol();
 						int vol=Integer.parseInt(volS,radix);
-						if(Nvol>=0)vol+=Nvol;
+						if(Nvol>=0)vol=Nvol+vol;
 						System.out.println("動画音量"+vol);//ログに残す
 						if(vol<0)vol=0;
 						VOL=vol;
@@ -324,8 +333,9 @@ public class BouyomiConection implements Runnable{
 					}
 				}
 			}
+			return null;
 		}
-		return em;
+		return null;
 	}
 	private int getVol(){
 		BufferedReader br=null;
@@ -365,7 +375,10 @@ public class BouyomiConection implements Runnable{
 			return playTube("v="+url.substring(17));
 		}else if(url.indexOf("v=")==0) {
 			return playTube(url);
-		}else System.out.println("URL解析失敗"+url);
+		}else{
+			em="URLを解析できませんでした";
+			System.out.println("URL解析失敗"+url);
+		}
 		return false;
 	}
 }
