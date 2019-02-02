@@ -57,6 +57,15 @@ public class BouyomiProxy implements Runnable{
 		FW.put("ｐ","P");FW.put("ｑ","Q");FW.put("ｒ","R");FW.put("ｓ","S");FW.put("ｔ","T");
 		FW.put("ｕ","U");FW.put("ｖ","V");FW.put("ｗ","W");FW.put("ｘ","X");
 		FW.put("ｙ","Y");FW.put("ｚ","Z");
+		FW.put("ｱ","ア");FW.put("ｲ","イ");FW.put("ｳ","ウ");FW.put("ｴ","エ");FW.put("ｵ","オ");
+		FW.put("ｶ","カ");FW.put("ｷ","キ");FW.put("ｸ","ク");FW.put("ｹ","ケ");FW.put("ｺ","コ");
+		FW.put("ｻ","サ");FW.put("ｼ","シ");FW.put("ｽ","ス");FW.put("ｾ","セ");FW.put("ｿ","ソ");
+		FW.put("ﾀ","タ");FW.put("ﾁ","チ");FW.put("ﾂ","ツ");FW.put("ﾃ","テ");FW.put("ﾄ","ト");
+		FW.put("ﾅ","ナ");FW.put("ﾆ","ニ");FW.put("ﾇ","ヌ");FW.put("ﾈ","ネ");FW.put("ﾉ","ノ");
+		FW.put("ﾊ","ハ");FW.put("ﾋ","ヒ");FW.put("ﾌ","フ");FW.put("ﾍ","ヘ");FW.put("ﾎ","ホ");
+		FW.put("ﾏ","マ");FW.put("ﾐ","ミ");FW.put("ﾑ","ム");FW.put("ﾒ","メ");FW.put("ﾓ","モ");
+		FW.put("ﾔ","ヤ");FW.put("ﾕ","ユ");FW.put("ﾖ","ヨ");
+		FW.put("ﾜ","ワ");FW.put("ｦ","ヲ");FW.put("ﾝ","ン");
 		BOT.put("ちくわ大明神","b) 誰だいまの");//デフォルトの自動応答
 	}
 	//ReplaceStudy.dic
@@ -359,20 +368,12 @@ public class BouyomiProxy implements Runnable{
 				String key=text.substring(5,ki);
 				System.out.println("動画再生（"+key+")");//ログに残す
 				if(play(key)) {
-					em="動画を再生します";
+					em="動画を再生します。";
+					int vol=getVol();
+					if(vol>=0)em+="音量は"+vol+"です";
 				}else em="動画を再生できませんでした";
 			}
-		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//BOT教育機能を使う時
-			System.out.println("動画停止");//ログに残す
-			try{
-				nowPlayVideo=false;
-				URL url=new URL("http://"+video_host+"/operation.html?stop");
-				url.openStream().close();
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-			em="動画を停止します";
-		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//BOT教育機能を使う時
+		}else if(text.indexOf("動画停止()")==0||text.indexOf("動画停止（）")==0) {//動画停止
 			System.out.println("動画停止");//ログに残す
 			try{
 				URL url=new URL("http://"+video_host+"/operation.html?stop");
@@ -381,35 +382,29 @@ public class BouyomiProxy implements Runnable{
 				e.printStackTrace();
 			}
 			em="動画を停止します";
-		}else if(text.indexOf("動画音量(")==0||text.indexOf("動画音量（")==0) {//BOT教育機能を使う時
+		}else if(text.indexOf("動画音量(")==0||text.indexOf("動画音量（")==0) {//動画音量
 			if(ki==5) {
-				BufferedReader br=null;
-				try{
-					URL url=new URL("http://"+video_host+"/operation.html?GETvolume");
-					InputStream is=url.openStream();
-					InputStreamReader isr=new InputStreamReader(is);
-					br=new BufferedReader(isr);//1行ずつ取得する
-					em="音量は"+br.readLine()+"です";
-				}catch(IOException e){
-					e.printStackTrace();
-				}finally {
-					try{
-						br.close();
-					}catch(IOException e){
-						e.printStackTrace();
-					}
-				}
+				int vol=getVol();
+				if(vol<0)em="音量を取得できません";
+				else em="音量は"+vol+"です";
+				System.out.println(em);
 			}if(ki>5) {
 				String volS=text.substring(5,ki);
 				if(volS!=null) {
+					char fc=volS.charAt(0);
 					int radix=10;
 					if(volS.indexOf("0x")==0) {
 						radix=16;
 						volS=volS.substring(2);
 					}
 					try{
+						int Nvol=-1;
+						if(fc=='+')Nvol=getVol();
+						else if(fc=='-')Nvol=getVol();
 						int vol=Integer.parseInt(volS,radix);
+						if(Nvol>=0)vol+=Nvol;
 						System.out.println("動画音量"+vol);//ログに残す
+						if(vol<0)vol=0;
 						VOL=vol;
 						try{
 							URL url=new URL("http://"+video_host+"/operation.html?vol="+vol);
@@ -426,10 +421,33 @@ public class BouyomiProxy implements Runnable{
 		}
 		return em;
 	}
+	private int getVol(){
+		BufferedReader br=null;
+		try{
+			URL url=new URL("http://"+video_host+"/operation.html?GETvolume");
+			InputStream is=url.openStream();
+			InputStreamReader isr=new InputStreamReader(is);
+			br=new BufferedReader(isr);//1行ずつ取得する
+			int vol=Integer.parseInt(br.readLine());
+			return vol;
+		}catch(NumberFormatException|IOException e){
+			e.printStackTrace();
+		}finally {
+			try{
+				br.close();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+		return -1;
+	}
 	public static boolean play(String url) {
 		if(url.indexOf("https://www.youtube.com/watch?")==0||
 				url.indexOf("https://m.youtube.com/watch?")==0||
-				url.indexOf("https://youtube.com/watch?")==0) {
+				url.indexOf("https://youtube.com/watch?")==0||
+				url.indexOf("http://www.youtube.com/watch?")==0||
+				url.indexOf("http://m.youtube.com/watch?")==0||
+				url.indexOf("http://youtube.com/watch?")==0) {
 			int Vindex=url.indexOf("?v=");
 			if(Vindex<0)Vindex=url.indexOf("&v=");
 			if(Vindex<0)return false;
@@ -437,11 +455,11 @@ public class BouyomiProxy implements Runnable{
 			int end=ss.indexOf("&");
 			if(end<0)end=ss.length();
 			return playTube("v="+ss.substring(0,end));
-		}else if(url.indexOf("https://youtu.be/")==0) {
+		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
 			return playTube("v="+url.substring(17));
 		}else if(url.indexOf("v=")==0) {
 			return playTube(url);
-		}
+		}else System.out.println("URL解析失敗"+url);
 		return false;
 	}
 	public static boolean playTube(String videoID) {
@@ -449,6 +467,16 @@ public class BouyomiProxy implements Runnable{
 			nowPlayVideo=true;
 			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
 			url.openStream().close();
+			try{
+				FileOutputStream fos=new FileOutputStream("play.txt",true);//追加モードでファイルを開く
+				try{
+					fos.write((videoID+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
+				}finally {
+					fos.close();
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
 			return true;
 		}catch(IOException e){
 			System.err.println(e.getMessage());
