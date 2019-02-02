@@ -190,12 +190,17 @@ public class BouyomiProxy implements Runnable{
 					text=text.substring(1);
 					bot(text);
 				}
+				//text=text.replaceAll("https?://[\\x00-\\x7F]++","URL省略");
+				//System.out.println(text);
 				return;
 			}
 			//System.out.println("len="+len);
 			String em=null;
 			if(text!=null)em=bot(text);
-			if(em==null&&text!=null?text.length()>=90:len>=200){//長文省略基準90文字以上
+			if(em==null) {
+				text=text.replaceAll("https?://[\\x00-\\x7F]++","URL省略");
+			}
+			if(em==null&&text!=null?(text.length()>=100||len>=400):len>=250){//長文省略基準100文字以上
 				em="長文省略";
 				System.out.println("長文省略("+(text==null?len:text.length())+"文字)");
 			}else if(text!=null&&em!=null) {//文字データが取得できた時
@@ -361,6 +366,9 @@ public class BouyomiProxy implements Runnable{
 				try{
 					URL url=new URL("http://"+video_host+"/operation.html?play");
 					url.openStream().close();
+					em="つづきを再生します。";
+					int vol=getVol();
+					if(vol>=0)em+="音量は"+vol+"です";
 				}catch(IOException e){
 					e.printStackTrace();
 				}
@@ -551,7 +559,7 @@ public class BouyomiProxy implements Runnable{
 									System.out.println("key="+key+" val="+val);
 								}
 							});
-						}else if(!"exit".equals(command)) talk(proxy_port,command);//「exit」以外だったら読む(このプロキシを通さない)
+						}else if(!"exit".equals(command)) talk(proxy_port,command);//「exit」以外だったら読む
 						else{
 							ss.close();//サーバ終了
 							System.exit(0);//プログラム終了
