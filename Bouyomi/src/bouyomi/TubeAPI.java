@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class TubeAPI{
 
@@ -18,7 +20,8 @@ public class TubeAPI{
 			try{
 				FileOutputStream fos=new FileOutputStream("play.txt",true);//追加モードでファイルを開く
 				try{
-					fos.write((videoID+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
+					String d=new SimpleDateFormat("yyyy/MM/dd HH時mm分ss秒").format(new Date());
+					fos.write((videoID+"\t再生時刻"+d+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
 				}finally {
 					fos.close();
 				}
@@ -30,7 +33,7 @@ public class TubeAPI{
 			System.err.println(e.getMessage());
 			//e.printStackTrace();
 		}
-		return true;
+		return false;
 	}
 	public static void setAutoStop(){
 		if(video_host!=null)new Thread("AutoVideoStop") {
@@ -38,7 +41,7 @@ public class TubeAPI{
 				try{
 					Thread.sleep(60000);
 					if(nowPlayVideo&&System.currentTimeMillis()-BouyomiProxy.lastComment>8*60000) {
-						BouyomiProxy.talk(BouyomiProxy.proxy_port,"/動画停止()");
+						BouyomiProxy.talk(BouyomiProxy.proxy_port,"動画停止()");
 					}
 				}catch(InterruptedException e){
 					e.printStackTrace();

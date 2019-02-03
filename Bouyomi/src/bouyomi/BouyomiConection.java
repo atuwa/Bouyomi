@@ -70,7 +70,7 @@ public class BouyomiConection implements Runnable{
 			System.out.println("DataLen");
 			throw new IOException("DataLen");//例外を出して終了
 		}
-		//ここで変数lenは文字数になる
+		//ここで変数lenはバイト数になる
 		len=((ch1<<0)+(ch2<<8)+(ch3<<16)+(ch4<<24));//文字数データから数値に
 		fb=(char) is.read();//最初の文字を取得
 		baos2=new ByteArrayOutputStream();//メッセージバイナリ書き込み先
@@ -89,57 +89,56 @@ public class BouyomiConection implements Runnable{
 	}
 	private void replace() {
 		//System.out.println("len="+len);
-		if(text!=null)bot(text);
-		if(em==null) {
-			text=text.replaceAll("https?://[\\x00-\\x7F]++","URL省略");
-		}
-		if(em==null&&text!=null?(text.length()>=100||len>=400):len>=250){//長文省略基準100文字以上
+		bot(text);
+		if(em!=null)return;
+		text=text.replaceAll("https?://[\\x00-\\x7F]++","URL省略");
+		if(text.length()>=90||len>=320){//長文省略基準100文字以上
 			em="長文省略";
 			System.out.println("長文省略("+(text==null?len:text.length())+"文字)");
-		}else if(text!=null&&em!=null) {//文字データが取得できた時
-			//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
-			if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
-				System.out.println(text);//ログに残す
-				em="b)現在忘却機能は使えません";//代わりに「使えない」と言う
-			}else if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
-				System.out.println(text);//ログに残す
-			}else if(text.indexOf("機能要望")>=0){//「機能要望」が含まれる時
-				System.out.println(text);//ログに残す
-				addTask="要望リストに記録しました";//残した事を追加で言う
+			return;
+		}
+		//文字データが取得できた時
+		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
+		if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
+			System.out.println(text);//ログに残す
+			em="b)現在忘却機能は使えません";//代わりに「使えない」と言う
+		}else if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
+			System.out.println(text);//ログに残す
+		}else if(text.indexOf("機能要望")>=0){//「機能要望」が含まれる時
+			System.out.println(text);//ログに残す
+			addTask="要望リストに記録しました";//残した事を追加で言う
+			try{
+				FileOutputStream fos=new FileOutputStream("Req.txt",true);//追加モードでファイルを開く
 				try{
-					FileOutputStream fos=new FileOutputStream("Req.txt",true);//追加モードでファイルを開く
-					try{
-						fos.write((text+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
-					}catch(IOException e) {
-						e.printStackTrace();
-					}finally {
-						fos.close();
-					}
+					fos.write((text+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
 				}catch(IOException e) {
 					e.printStackTrace();
-					addTask="要望リストに記録できませんでした";//失敗した事を追加で言う
+				}finally {
+					fos.close();
 				}
+			}catch(IOException e) {
+				e.printStackTrace();
+				addTask="要望リストに記録できませんでした";//失敗した事を追加で言う
 			}
-			final String FT=text;
-			BOT.forEach(new BiConsumer<String,String>(){
-				@Override
-				public void accept(String key,String val){
-					if(addTask!=null)return;
-					int bi=key.indexOf("部分一致:");
-					if(bi!=0)bi=key.indexOf("部分一致：");
-					if(bi==0&&key.length()>5) {
-						key=key.substring(5);
-						if(FT.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
-							System.out.println("BOT応答キー =部分一致："+key);//ログに残す
-							addTask=val;//追加で言う
-						}
-					}else 	if(FT.equals(key)) {//読み上げテキストがキーに一致した時
-						System.out.println("BOT応答キー ="+key);//ログに残す
+		}
+		BOT.forEach(new BiConsumer<String,String>(){
+			@Override
+			public void accept(String key,String val){
+				if(addTask!=null)return;
+				int bi=key.indexOf("部分一致:");
+				if(bi!=0)bi=key.indexOf("部分一致：");
+				if(bi==0&&key.length()>5) {
+					key=key.substring(5);
+					if(text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
+						System.out.println("BOT応答キー =部分一致："+key);//ログに残す
 						addTask=val;//追加で言う
 					}
+				}else 	if(text.equals(key)) {//読み上げテキストがキーに一致した時
+					System.out.println("BOT応答キー ="+key);//ログに残す
+					addTask=val;//追加で言う
 				}
-			});
-		}
+			}
+		});
 	}
 	/**連続短縮*/
 	private void ContinuationOmitted() throws IOException {
@@ -184,7 +183,8 @@ public class BouyomiConection implements Runnable{
 				}
 				return;
 			}
-			replace();
+			if(text!=null)replace();
+			else if(len>=250)em="長文省略";
 			if(text!=null&&em==null)ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 			if(em!=null) {//メッセージが書き換えられていた時
 				type=0;//文字コードをUTF-8に設定
@@ -222,7 +222,7 @@ public class BouyomiConection implements Runnable{
 		}
 	}
 	public String bot(String text) {
-		if(text.indexOf("応答(")==0||text.indexOf("応答（")==0) {//BOT教育機能を使う時
+		if(text.indexOf("応答(")==0||text.indexOf("応答（")==0) {//自動応答機能を使う時
 			//System.out.println(text);//ログに残す
 			int ei=text.indexOf('=');
 			if(ei<0)ei=text.indexOf('＝');
@@ -236,7 +236,7 @@ public class BouyomiConection implements Runnable{
 				System.out.println("応答登録（"+key+"="+val+")");//ログに残す
 				BOT.put(key,val);
 			}
-		}else if(text.indexOf("応答破棄(")==0||text.indexOf("応答破棄（")==0) {//BOT教育機能を使う時
+		}else if(text.indexOf("応答破棄(")==0||text.indexOf("応答破棄（")==0) {//自動応答機能を使う時
 			//System.out.println(text);//ログに残す
 			int ei=text.lastIndexOf(')');
 			int zi=text.lastIndexOf('）');
@@ -253,11 +253,11 @@ public class BouyomiConection implements Runnable{
 		return null;
 	}
 	public String video(String text) {
-		int ki=text.lastIndexOf(')');
-		int zi=text.lastIndexOf('）');
+		int ki=text.indexOf(')');
+		int zi=text.indexOf('）');
 		if(ki<zi)ki=zi;
 		int index=text.indexOf("動画再生(");
-		if(index<0)text.indexOf("動画再生（");
+		if(index<0)index=text.indexOf("動画再生（");
 		if(index>=0) {//動画再生
 			//System.out.println(text);//ログに残す
 			if(ki==index+5) {
@@ -271,7 +271,7 @@ public class BouyomiConection implements Runnable{
 					e.printStackTrace();
 				}
 			}else if(ki>index+5) {
-				String key=text.substring(index+5,ki);
+				String key=text.substring(index+5,ki).trim();
 				System.out.println("動画再生（"+key+")");//ログに残す
 				if(play(key)) {
 					em="動画を再生します。";
@@ -279,10 +279,11 @@ public class BouyomiConection implements Runnable{
 					if(vol>=0)em+="音量は"+vol+"です";
 				}else em="動画を再生できませんでした";
 			}
-			return null;
+			if(text.length()>ki)text=text.substring(ki+1);
+			else return null;
 		}
 		index=text.indexOf("動画停止()");
-		if(index<0)text.indexOf("動画停止（）");
+		if(index<0)index=text.indexOf("動画停止（）");
 		if(index>=0) {//動画停止
 			System.out.println("動画停止");//ログに残す
 			try{
@@ -294,6 +295,9 @@ public class BouyomiConection implements Runnable{
 			em="動画を停止します";
 			return null;
 		}
+		ki=text.indexOf(')');
+		zi=text.indexOf('）');
+		if(ki<zi)ki=zi;
 		index=text.indexOf("動画音量(");
 		if(index<0)index=text.indexOf("動画音量（");
 		if(index>=0) {//動画音量
@@ -303,34 +307,33 @@ public class BouyomiConection implements Runnable{
 				else em="音量は"+vol+"です";
 				System.out.println(em);
 			}else if(ki>index+5) {
-				String volS=text.substring(index+5,ki);
-				if(volS!=null) {
-					int radix=10;
-					char fc;
-					if(volS.indexOf("0x")==0) {
-						radix=16;
-						fc=volS.charAt(0);
-						volS=volS.substring(2);
-					}else fc=volS.charAt(0);
+				String volS=text.substring(index+5,ki).trim();
+				int radix=10;
+				char fc;
+				if(volS.indexOf("0x")==0) {
+					radix=16;
+					fc=volS.charAt(0);
+					volS=volS.substring(2);
+				}else fc=volS.charAt(0);
+				try{
+					int Nvol=-1;
+					if(fc=='+')Nvol=getVol();
+					else if(fc=='-')Nvol=getVol();
+					else if(fc=='ー')Nvol=getVol();
+					int vol=Integer.parseInt(volS,radix);
+					if(Nvol>=0)vol=Nvol+vol;
+					System.out.println("動画音量"+vol);//ログに残す
+					if(vol<0)vol=0;
+					VOL=vol;
 					try{
-						int Nvol=-1;
-						if(fc=='+')Nvol=getVol();
-						else if(fc=='-')Nvol=getVol();
-						int vol=Integer.parseInt(volS,radix);
-						if(Nvol>=0)vol=Nvol+vol;
-						System.out.println("動画音量"+vol);//ログに残す
-						if(vol<0)vol=0;
-						VOL=vol;
-						try{
-							URL url=new URL("http://"+video_host+"/operation.html?vol="+vol);
-							url.openStream().close();
-						}catch(IOException e){
-							e.printStackTrace();
-						}
-						em="音量を"+vol+"にします";
-					}catch(NumberFormatException e) {
-
+						URL url=new URL("http://"+video_host+"/operation.html?vol="+vol);
+						url.openStream().close();
+					}catch(IOException e){
+						e.printStackTrace();
 					}
+					em="音量を"+vol+"にします";
+				}catch(NumberFormatException e) {
+
 				}
 			}
 			return null;
