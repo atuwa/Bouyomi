@@ -3,16 +3,13 @@ package bouyomi;
 import static bouyomi.BouyomiProxy.*;
 import static bouyomi.TubeAPI.*;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
@@ -30,7 +27,7 @@ public class BouyomiConection implements Runnable{
 	private Object addTask=null;
 	private char fb;//最初の文字
 	private int len;
-	private String em=null;//置き換えメッセージ
+	public String em=null;//置き換えメッセージ
 	private int type;
 	private ByteArrayOutputStream baos2;
 	private ByteArrayOutputStream baos;
@@ -91,10 +88,10 @@ public class BouyomiConection implements Runnable{
 		//System.out.println("len="+len);
 		bot(text);
 		if(em!=null)return;
-		text=text.replaceAll("https?://[\\x00-\\x7F]++","URL省略");
-		if(text.length()>=90||len>=320){//長文省略基準100文字以上
+		text=text.replaceAll("https?://[\\x21-\\x7F]++","URL省略");
+		if(text.length()>=90||len>=250){//長文省略基準90文字以上
 			em="長文省略";
-			System.out.println("長文省略("+(text==null?len:text.length())+"文字)");
+			System.out.println("長文省略("+text.length()+"文字)");
 			return;
 		}
 		//文字データが取得できた時
@@ -252,7 +249,7 @@ public class BouyomiConection implements Runnable{
 		}
 		return null;
 	}
-	public String video(String text) {
+	public void video(String text) {
 		int ki=text.indexOf(')');
 		int zi=text.indexOf('）');
 		if(ki<zi)ki=zi;
@@ -261,39 +258,32 @@ public class BouyomiConection implements Runnable{
 		if(index>=0) {//動画再生
 			//System.out.println(text);//ログに残す
 			if(ki==index+5) {
-				try{
-					URL url=new URL("http://"+video_host+"/operation.html?play");
-					url.openStream().close();
+				if(operation("play")){
 					em="つづきを再生します。";
 					int vol=getVol();
 					if(vol>=0)em+="音量は"+vol+"です";
-				}catch(IOException e){
-					e.printStackTrace();
 				}
 			}else if(ki>index+5) {
 				String key=text.substring(index+5,ki).trim();
 				System.out.println("動画再生（"+key+")");//ログに残す
-				if(play(key)) {
+				if(play(this, key)) {
 					em="動画を再生します。";
 					int vol=getVol();
 					if(vol>=0)em+="音量は"+vol+"です";
-				}else em="動画を再生できませんでした";
+				}else if(em==null)em="動画を再生できませんでした";
 			}
 			if(text.length()>ki)text=text.substring(ki+1);
-			else return null;
+			else return;
 		}
 		index=text.indexOf("動画停止()");
 		if(index<0)index=text.indexOf("動画停止（）");
 		if(index>=0) {//動画停止
 			System.out.println("動画停止");//ログに残す
-			try{
-				URL url=new URL("http://"+video_host+"/operation.html?stop");
-				url.openStream().close();
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-			em="動画を停止します";
-			return null;
+			if(operation("stop")){
+				TubeAPI.nowPlayVideo=false;
+				em="動画を停止します";
+			}else em="動画を停止できませんでした";
+			return;
 		}
 		ki=text.indexOf(')');
 		zi=text.indexOf('）');
@@ -322,66 +312,18 @@ public class BouyomiConection implements Runnable{
 					else if(fc=='ー')Nvol=getVol();
 					int vol=Integer.parseInt(volS,radix);
 					if(Nvol>=0)vol=Nvol+vol;
+					if(vol>100)vol=100;
 					System.out.println("動画音量"+vol);//ログに残す
 					if(vol<0)vol=0;
 					VOL=vol;
-					try{
-						URL url=new URL("http://"+video_host+"/operation.html?vol="+vol);
-						url.openStream().close();
-					}catch(IOException e){
-						e.printStackTrace();
-					}
-					em="音量を"+vol+"にします";
+					if(operation("vol="+vol))em="音量を"+vol+"にします";
+					else em="音量を変更できませんでした";
 				}catch(NumberFormatException e) {
 
 				}
 			}
-			return null;
+			return;
 		}
-		return null;
-	}
-	private int getVol(){
-		BufferedReader br=null;
-		try{
-			URL url=new URL("http://"+video_host+"/operation.html?GETvolume");
-			InputStream is=url.openStream();
-			InputStreamReader isr=new InputStreamReader(is);
-			br=new BufferedReader(isr);//1行ずつ取得する
-			int vol=Integer.parseInt(br.readLine());
-			return vol;
-		}catch(NumberFormatException|IOException e){
-			e.printStackTrace();
-		}finally {
-			try{
-				br.close();
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-		}
-		return -1;
-	}
-	public boolean play(String url) {
-		if(url.indexOf("https://www.youtube.com/watch?")==0||
-				url.indexOf("https://m.youtube.com/watch?")==0||
-				url.indexOf("https://youtube.com/watch?")==0||
-				url.indexOf("http://www.youtube.com/watch?")==0||
-				url.indexOf("http://m.youtube.com/watch?")==0||
-				url.indexOf("http://youtube.com/watch?")==0) {
-			int Vindex=url.indexOf("?v=");
-			if(Vindex<0)Vindex=url.indexOf("&v=");
-			if(Vindex<0)return false;
-			String ss=url.substring(Vindex+3);
-			int end=ss.indexOf("&");
-			if(end<0)end=ss.length();
-			return playTube("v="+ss.substring(0,end));
-		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
-			return playTube("v="+url.substring(17));
-		}else if(url.indexOf("v=")==0) {
-			return playTube(url);
-		}else{
-			em="URLを解析できませんでした";
-			System.out.println("URL解析失敗"+url);
-		}
-		return false;
+		return;
 	}
 }
