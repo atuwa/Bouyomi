@@ -13,6 +13,8 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BouyomiConection implements Runnable{
 
@@ -88,8 +90,35 @@ public class BouyomiConection implements Runnable{
 		//System.out.println("len="+len);
 		bot(text);
 		if(em!=null)return;
-		text=text.replaceAll("https?://[\\x21-\\x7F]++","URL省略");
-		if(text.length()>=90||len>=250){//長文省略基準90文字以上
+		//text=text.replaceAll("https?://[\\x21-\\x7F]++","URL省略");
+		{//URL省略処理
+			//URL判定基準を正規表現で指定
+			Matcher m=Pattern.compile("https?://[\\x21-\\x7F]++").matcher(text);
+			m.reset();
+			boolean result = m.find();
+	        if (result) {
+				int co=0;//URLの数
+	            do {
+	            	co++;
+	                result = m.find();
+	            } while (result);
+		        m.reset();
+		        result = m.find();
+	        	boolean b=true;
+	            StringBuffer sb = new StringBuffer();
+	            do {
+	                if(b) {//初回
+	                	b=false;
+	                	if(co==1)m.appendReplacement(sb, "URL省略");//対象が一つの時
+	                	else m.appendReplacement(sb, co+"URL省略");
+	                }else m.appendReplacement(sb, "");//2回目以降
+	                result = m.find();
+	            } while (result);
+	            m.appendTail(sb);
+	            text=sb.toString();
+	        }
+		}
+		if(text.length()>=90){//長文省略基準90文字以上
 			em="長文省略";
 			System.out.println("長文省略("+text.length()+"文字)");
 			return;
@@ -290,6 +319,8 @@ public class BouyomiConection implements Runnable{
 		if(ki<zi)ki=zi;
 		index=text.indexOf("動画音量(");
 		if(index<0)index=text.indexOf("動画音量（");
+		if(index<0)index=text.indexOf("動画音声(");
+		if(index<0)index=text.indexOf("動画音声（");
 		if(index>=0) {//動画音量
 			if(ki==index+5) {
 				int vol=getVol();

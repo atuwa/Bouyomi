@@ -39,15 +39,26 @@ public class TubeAPI{
 		return false;
 	}
 	public static int getVol(){
+		try{
+			String l=getLine("GETvolume");
+			if(l==null)return -1;
+			int vol=Integer.parseInt(l);
+			return vol;
+		}catch(NumberFormatException e){
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	public static String getLine(String op) {
 		BufferedReader br=null;
 		try{
-			URL url=new URL("http://"+video_host+"/operation.html?GETvolume");
+			URL url=new URL("http://"+video_host+"/operation.html?"+op);
 			InputStream is=url.openStream();
 			InputStreamReader isr=new InputStreamReader(is);
 			br=new BufferedReader(isr);//1行ずつ取得する
-			int vol=Integer.parseInt(br.readLine());
-			return vol;
-		}catch(NumberFormatException|IOException e){
+			String line=br.readLine();
+			return line;
+		}catch(IOException e){
 			e.printStackTrace();
 		}finally {
 			try{
@@ -56,18 +67,18 @@ public class TubeAPI{
 				e.printStackTrace();
 			}
 		}
-		return -1;
+		return null;
 	}
 	public static boolean play(BouyomiConection bc,String url) {
-		if(url.indexOf("https://www.youtube.com/watch?")==0||
-				url.indexOf("https://m.youtube.com/watch?")==0||
-				url.indexOf("https://youtube.com/watch?")==0||
-				url.indexOf("http://www.youtube.com/watch?")==0||
-				url.indexOf("http://m.youtube.com/watch?")==0||
-				url.indexOf("http://youtube.com/watch?")==0) {
+		if(url.indexOf("https://www.youtube.com/")==0||
+				url.indexOf("https://m.youtube.com/")==0||
+				url.indexOf("https://youtube.com/")==0||
+				url.indexOf("http://www.youtube.com/?")==0||
+				url.indexOf("http://m.youtube.com/")==0||
+				url.indexOf("http://youtube.com/")==0) {
 			String vid=extract(url,"v");
 			String lid=extract(url,"list");
-			if(vid!=null&&lid==null)return playTube(vid);
+			if(vid!=null)return playTube(vid);
 			else if(lid!=null) {
 				String indexS=extract(url,"index");
 				int index=-1;
@@ -129,7 +140,8 @@ public class TubeAPI{
 					try{
 						Thread.sleep(60000);
 						if(nowPlayVideo&&System.currentTimeMillis()-BouyomiProxy.lastComment>8*60000) {
-							BouyomiProxy.talk(BouyomiProxy.proxy_port,"動画停止()");
+							if("NOT PLAYING".equals(getLine("status")))nowPlayVideo=false;
+							else BouyomiProxy.talk(BouyomiProxy.proxy_port,"/動画停止()");
 						}
 					}catch(InterruptedException e){
 						e.printStackTrace();
