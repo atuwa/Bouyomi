@@ -141,7 +141,10 @@ public class TubeAPI{
 						Thread.sleep(60000);
 						if(nowPlayVideo&&System.currentTimeMillis()-BouyomiProxy.lastComment>8*60000) {
 							if("NOT PLAYING".equals(getLine("status")))nowPlayVideo=false;
-							else BouyomiProxy.talk(BouyomiProxy.proxy_port,"/動画停止()");
+							else{
+								System.out.println("動画自動停止");
+								BouyomiProxy.talk(BouyomiProxy.proxy_port,"/動画停止()");
+							}
 						}
 					}catch(InterruptedException e){
 						e.printStackTrace();

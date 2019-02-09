@@ -86,7 +86,7 @@ public class BouyomiConection implements Runnable{
 		if(d[7]==0)text=baos2.toString("utf-8");//UTF-8でデコード
 		else if(d[7]==1)text=baos2.toString("utf-16");//UTF-16でデコード
 	}
-	private void replace() {
+	private void replace() throws IOException {
 		//System.out.println("len="+len);
 		bot(text);
 		if(em!=null)return;
@@ -118,6 +118,7 @@ public class BouyomiConection implements Runnable{
 	            text=sb.toString();
 	        }
 		}
+		if(em==null)ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 		if(text.length()>=90){//長文省略基準90文字以上
 			em="長文省略";
 			System.out.println("長文省略("+text.length()+"文字)");
@@ -175,6 +176,7 @@ public class BouyomiConection implements Runnable{
 		BufferedWriter bw=new BufferedWriter(sw);//文字バッファ
 		char lc=0;//最後に追加した文字
 		char cc=0;//連続カウント(9以下)
+		byte comment=0;
 		//int clen=0;
 		for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
@@ -182,6 +184,19 @@ public class BouyomiConection implements Runnable{
 			if(cc>8&&r==lc)continue;
 			if(r==lc)cc++;//次の文字が最後に書き込まれた文字と一致した場合連続カウントを増やす
 			else cc=0;//次の文字が最後に書き込まれた文字と異なる場合カウントをリセットする
+			if(comment==0&&(r=='/'||r=='／')) {
+				comment=1;
+			}else if(comment==1) {
+				if(r=='*'||r=='＊')comment=-1;
+				else comment=0;
+			}else if(comment==-1&&(r=='*'||r=='＊'))comment=-2;
+			else if(comment==-2) {
+				if(r=='/'||r=='／') {
+					comment=0;
+					continue;
+				}else comment=-1;
+			}
+			if(comment<0)continue;
 			/*
 			if(lc=='。'||lc=='、')clen++;
 			if(clen>10&&len>100) {
@@ -194,6 +209,7 @@ public class BouyomiConection implements Runnable{
 		}
 		//System.out.println("clen="+clen);
 		bw.flush();//バッファの内容をすべてバイナリに変換
+		text=baos2.toString("utf-8");//UTF-8でデコード
 	}
 	public void run(){
 		//System.out.println("接続");
@@ -211,7 +227,6 @@ public class BouyomiConection implements Runnable{
 			}
 			if(text!=null)replace();
 			else if(len>=250)em="長文省略";
-			if(text!=null&&em==null)ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 			if(em!=null) {//メッセージが書き換えられていた時
 				type=0;//文字コードをUTF-8に設定
 				baos2.reset();//読み込んだメッセージのバイナリを破棄
@@ -241,7 +256,7 @@ public class BouyomiConection implements Runnable{
 			}
 			//System.out.println((System.nanoTime()-start)+"ns");
 		}
-		if(addTask!=null) {//追完で言うデータがある時
+		if(addTask!=null) {//追加で言うデータがある時
 			if(addTask instanceof ArrayList) {//データがArrayListの時
 				for(Object s:(ArrayList<?>)addTask)talk(bouyomi_port,s.toString());//すべて送信
 			}else talk(bouyomi_port,addTask.toString());//送信
