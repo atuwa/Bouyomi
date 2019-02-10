@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,7 +58,8 @@ public class BouyomiConection implements Runnable{
 		int len=is.read(d);//この段階では変数lenは読み込みバイト数
 		type=is.read();//文字コード読み込み
 		if(len!=8||type<0){//読み込みバイト数が足りない時
-			System.out.println("notLen9");
+			System.out.println("notLen9("+len+")");
+			for(int i=0;i<len;i++)System.out.println(d[i]);
 			throw new IOException();
 		}
 		baos.write(d);//その他パラメータを送信データバッファに書き込み
@@ -178,6 +180,7 @@ public class BouyomiConection implements Runnable{
 		char cc=0;//連続カウント(9以下)
 		byte comment=0;
 		//int clen=0;
+		HashMap<Character, Short> counter=new HashMap<Character,Short>();
 		for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
 			//連続カウントが9以上で次の文字が最後に書き込まれた文字と一致した場合次へ
@@ -197,6 +200,18 @@ public class BouyomiConection implements Runnable{
 				}else comment=-1;
 			}
 			if(comment<0)continue;
+			if(counter!=null) {
+				Character c=Character.valueOf(r);
+				Short v=counter.get(c);
+				if(v==null)counter.put(c,(short) 1);
+				else{
+					short val=(short) (v.shortValue()+1);
+					if(val>6) {
+						em="単純文章省略";
+						return;
+					}else counter.put(c,val);
+				}
+			}
 			/*
 			if(lc=='。'||lc=='、')clen++;
 			if(clen>10&&len>100) {
@@ -213,7 +228,7 @@ public class BouyomiConection implements Runnable{
 	}
 	public void run(){
 		//System.out.println("接続");
-		//long start=System.nanoTime();
+		//long start=System.nanoTime();//TODO 処理時間計測用
 		try{
 			read();//受信処理
 			lastComment=System.currentTimeMillis();
@@ -254,7 +269,7 @@ public class BouyomiConection implements Runnable{
 			}catch(IOException e1){
 				e1.printStackTrace();
 			}
-			//System.out.println((System.nanoTime()-start)+"ns");
+			//System.out.println((System.nanoTime()-start)+"ns");//TODO 処理時間計測用
 		}
 		if(addTask!=null) {//追加で言うデータがある時
 			if(addTask instanceof ArrayList) {//データがArrayListの時
@@ -312,7 +327,7 @@ public class BouyomiConection implements Runnable{
 				System.out.println("動画再生（"+key+")");//ログに残す
 				if(play(this, key)) {
 					em="動画を再生します。";
-					int vol=getVol();
+					int vol=TubeAPI.VOL;
 					if(vol>=0)em+="音量は"+vol+"です";
 				}else if(em==null)em="動画を再生できませんでした";
 			}
