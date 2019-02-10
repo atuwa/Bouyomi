@@ -34,6 +34,7 @@ public class BouyomiConection implements Runnable{
 	private int type;
 	private ByteArrayOutputStream baos2;
 	private ByteArrayOutputStream baos;
+	public boolean mute;
 	private void read() throws IOException {
 		InputStream is=soc.getInputStream();//Discord取得ソフトから読み込むストリーム
 		int ch1=is.read();//コマンドバイトを取得
@@ -181,6 +182,7 @@ public class BouyomiConection implements Runnable{
 		byte comment=0;
 		//int clen=0;
 		HashMap<Character, Short> counter=new HashMap<Character,Short>();
+		if(type==0)counter=null;
 		for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
 			//連続カウントが9以上で次の文字が最後に書き込まれた文字と一致した場合次へ
@@ -242,6 +244,7 @@ public class BouyomiConection implements Runnable{
 			lastComment=System.currentTimeMillis();
 			if(fb=='/'||fb=='\\'){//最初の文字がスラッシュの時は終了
 				//System.out.println("スラッシュで始まる");
+				mute=true;
 				if(text!=null) {
 					text=text.substring(1);
 					bot(text);
@@ -342,9 +345,34 @@ public class BouyomiConection implements Runnable{
 			if(text.length()>ki)text=text.substring(ki+1);
 			else return;
 		}
+		ki=text.indexOf(')');
+		zi=text.indexOf('）');
+		if(ki<zi)ki=zi;
+		index=text.indexOf("動画URL(");
+		if(index<0)index=text.indexOf("動画URL（");
+		if(index<0)index=text.indexOf("動画ID(");
+		if(index<0)index=text.indexOf("動画ID（");
+		if(index>=0||"動画ID".equals(text)||"動画URL".equals(text)) {//動画再生
+			if(lastPlay==null)em="再生されていません";
+			else if(mute) {
+				em="";
+				System.out.println(lastPlay);
+			}else{
+				em="";
+				if(text.contains("URL")) {
+					if(lastPlay.indexOf("v=")==0){
+						DiscordAPI.chat("https://www.youtube.com/watch?"+lastPlay);
+					}else if(lastPlay.indexOf("list=")==0){
+						DiscordAPI.chat("https://www.youtube.com/playlist?"+lastPlay);
+					}else em="非対応形式です";
+				}else DiscordAPI.chat(lastPlay);
+			}
+			if(text.length()>ki)text=text.substring(ki+1);
+			else return;
+		}
 		index=text.indexOf("動画停止()");
 		if(index<0)index=text.indexOf("動画停止（）");
-		if(index>=0) {//動画停止
+		if(index>=0||"動画停止".equals(text)) {//動画停止
 			System.out.println("動画停止");//ログに残す
 			if(operation("stop")){
 				TubeAPI.nowPlayVideo=false;
@@ -365,6 +393,7 @@ public class BouyomiConection implements Runnable{
 				if(vol<0)em="音量を取得できません";
 				else em="音量は"+vol+"です";
 				System.out.println(em);
+				if(!mute&&DiscordAPI.chat(em))em="";
 			}else if(ki>index+5) {
 				String volS=text.substring(index+5,ki).trim();
 				int radix=10;

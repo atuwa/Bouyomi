@@ -15,11 +15,13 @@ public class TubeAPI{
 	public static boolean nowPlayVideo;
 	public static String video_host=null;
 	public static int VOL=30;
+	public static String lastPlay;
 	public static boolean playTube(String videoID) {
 		try{
 			nowPlayVideo=true;
 			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
 			url.openStream().close();
+			lastPlay=videoID;
 			try{
 				FileOutputStream fos=new FileOutputStream("play.txt",true);//追加モードでファイルを開く
 				try{
@@ -73,7 +75,7 @@ public class TubeAPI{
 		if(url.indexOf("https://www.youtube.com/")==0||
 				url.indexOf("https://m.youtube.com/")==0||
 				url.indexOf("https://youtube.com/")==0||
-				url.indexOf("http://www.youtube.com/?")==0||
+				url.indexOf("http://www.youtube.com/")==0||
 				url.indexOf("http://m.youtube.com/")==0||
 				url.indexOf("http://youtube.com/")==0) {
 			String vid=extract(url,"v");
@@ -102,6 +104,9 @@ public class TubeAPI{
 			return playTube(url);
 		}else if(url.indexOf("list=")==0) {
 			return playTube(url);
+		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0) {
+			bc.em="ニコニコ動画はできません";
+			System.out.println("ニコニコ動画はできません"+url);
 		}else{
 			bc.em="URLを解析できませんでした";
 			System.out.println("URL解析失敗"+url);

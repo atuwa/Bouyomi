@@ -143,14 +143,26 @@ public class BouyomiProxy{
 		}
 		//0文字だったらデフォルト、それ以外だったらそれ
 		final String BOTpath=command.isEmpty()?"BOT.dic":command;//相対パス
-		if(args.length>3&&!args[3].equals("-"))command=args[3];
-		else {
+		if(args.length>3) {
+			if(args[3].equals("-"))command="";
+			else command=args[3];
+		}else {
 			System.out.println("動画サーバのアドレス");
 			command=br.readLine();//1行取得する
 		}
 		//0文字だったら無し、それ以外だったらそれ
 		if(!command.isEmpty())TubeAPI.video_host=command;
 		System.out.println("動画サーバ"+(TubeAPI.video_host==null?"無し":TubeAPI.video_host));
+		if(args.length>4) {
+			if(args[4].equals("-"))command="";
+			else command=args[4];
+		}else {
+			System.out.println("Discord投稿サーバのアドレス");
+			command=br.readLine();//1行取得する
+		}
+		//0文字だったら無し、それ以外だったらそれ
+		if(!command.isEmpty())DiscordAPI.service_host=command;
+		System.out.println("Discord投稿サーバ"+(DiscordAPI.service_host==null?"無し":DiscordAPI.service_host));
 		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
 		new Thread(){
