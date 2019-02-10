@@ -184,7 +184,10 @@ public class BouyomiConection implements Runnable{
 		for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
 			//連続カウントが9以上で次の文字が最後に書き込まれた文字と一致した場合次へ
-			if(cc>8&&r==lc)continue;
+			if(cc>8&&r==lc) {
+				counter=null;
+				continue;
+			}
 			if(r==lc)cc++;//次の文字が最後に書き込まれた文字と一致した場合連続カウントを増やす
 			else cc=0;//次の文字が最後に書き込まれた文字と異なる場合カウントをリセットする
 			if(comment==0&&(r=='/'||r=='／')) {
@@ -200,18 +203,6 @@ public class BouyomiConection implements Runnable{
 				}else comment=-1;
 			}
 			if(comment<0)continue;
-			if(counter!=null) {
-				Character c=Character.valueOf(r);
-				Short v=counter.get(c);
-				if(v==null)counter.put(c,(short) 1);
-				else{
-					short val=(short) (v.shortValue()+1);
-					if(val>6) {
-						em="単純文章省略";
-						return;
-					}else counter.put(c,val);
-				}
-			}
 			/*
 			if(lc=='。'||lc=='、')clen++;
 			if(clen>10&&len>100) {
@@ -221,6 +212,23 @@ public class BouyomiConection implements Runnable{
 			*/
 			lc=r;//最後に書き込まれた文字を次に書き込む文字に設定する
 			bw.write(r);//文字バッファに書き込む
+		}
+		if(counter!=null){
+			bw.flush();//バッファの内容をすべてバイナリに変換
+			text=baos2.toString("utf-8");//UTF-8でデコード
+			baos2.reset();//読み込んだメッセージのバイナリを破棄
+			for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
+				char r=text.charAt(i);//現在位置の文字を取得
+				Character c=Character.valueOf(r);
+				Short v=counter.get(c);
+				if(v==null)counter.put(c,(short) 1);
+				else{
+					short val=(short) (v.shortValue()+1);
+					if(val>6)continue;
+					else counter.put(c,val);
+				}
+				bw.write(r);//文字バッファに書き込む
+			}
 		}
 		//System.out.println("clen="+clen);
 		bw.flush();//バッファの内容をすべてバイナリに変換
