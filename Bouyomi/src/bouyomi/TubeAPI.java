@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TubeAPI{
 
@@ -110,11 +112,9 @@ public class TubeAPI{
 		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
 			return playTube("v="+url.substring(17));
 		}else if(url.indexOf("v=")==0) {
-			int index=url.indexOf('&');
-			if(index>=0)url.substring(0,index);
-			return playTube(url);
+			return playTube(extract(url,"v"));
 		}else if(url.indexOf("list=")==0) {
-			return playTube(url);
+			return playTube(extract(url,"list"));
 		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0) {
 			bc.em="ニコニコ動画はできません";
 			System.out.println("ニコニコ動画はできません"+url);
@@ -124,6 +124,13 @@ public class TubeAPI{
 		}
 		return false;
 	}
+	public static String extract(String url,String name) {
+		Matcher match=Pattern.compile(name+"=[a-zA-Z0-9]").matcher(url);
+		if(match.find()) {
+			return match.group();
+		}else return null;
+	}
+	/*古いの勿体無いから置いてある
 	public static String extract(String url,String name) {
 		if(url==null||url.isEmpty())return null;
 		StringBuilder sb=new StringBuilder(name);
@@ -136,6 +143,7 @@ public class TubeAPI{
 		if(end<0)return ss;
 		return ss.substring(0,end);
 	}
+	*/
 	/**@param op 実行するコマンド
 	 * @return 正常に実行された時trueが返る*/
 	public static boolean operation(String op) {
