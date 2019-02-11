@@ -32,7 +32,9 @@ public class BouyomiConection implements Runnable{
 	private int len;
 	public String em=null;//置き換えメッセージ
 	private int type;
+	/**受け取った文字データ*/
 	private ByteArrayOutputStream baos2;
+	/**送信データ入れ*/
 	private ByteArrayOutputStream baos;
 	public boolean mute;
 	private void read() throws IOException {
@@ -192,7 +194,7 @@ public class BouyomiConection implements Runnable{
 			}
 			if(r==lc)cc++;//次の文字が最後に書き込まれた文字と一致した場合連続カウントを増やす
 			else cc=0;//次の文字が最後に書き込まれた文字と異なる場合カウントをリセットする
-			if(comment==0&&(r=='/'||r=='／')) {
+			if(comment==0&&(r=='/'||r=='／')) {//C言語風コメントアウト
 				comment=1;
 			}else if(comment==1) {
 				if(r=='*'||r=='＊')comment=-1;
@@ -288,6 +290,7 @@ public class BouyomiConection implements Runnable{
 			}else talk(bouyomi_port,addTask.toString());//送信
 		}
 	}
+	/**自作プロキシの追加機能*/
 	public String bot(String text) {
 		if(text.indexOf("応答(")==0||text.indexOf("応答（")==0) {//自動応答機能を使う時
 			//System.out.println(text);//ログに残す
@@ -319,8 +322,9 @@ public class BouyomiConection implements Runnable{
 		}
 		return null;
 	}
+	/**動画再生機能*/
 	public void video(String text) {
-		int ki=text.indexOf(')');
+		int ki=text.indexOf(')');//閉じカッコの位置を取得
 		int zi=text.indexOf('）');
 		if(ki<zi)ki=zi;
 		int index=text.indexOf("動画再生(");
@@ -348,32 +352,76 @@ public class BouyomiConection implements Runnable{
 		ki=text.indexOf(')');
 		zi=text.indexOf('）');
 		if(ki<zi)ki=zi;
-		index=text.indexOf("動画URL(");
-		if(index<0)index=text.indexOf("動画URL（");
-		if(index<0)index=text.indexOf("動画ＵＲＬ(");
-		if(index<0)index=text.indexOf("動画ＵＲＬ（");
-		if(index<0)index=text.indexOf("動画ID(");
-		if(index<0)index=text.indexOf("動画ID（");
-		if(index<0)index=text.indexOf("動画ＩＤ(");
-		if(index<0)index=text.indexOf("動画ＩＤ（");
-		if(index>=0||"動画ID".equals(text)||"動画URL".equals(text)
-				||"動画ＩＤ".equals(text)||"動画ＵＲＬ".equals(text)) {
-			if(lastPlay==null)em="再生されていません";
-			else if(mute) {
+		index=text.indexOf("動画URL(");//半角英文字半角カッコ
+		if(index<0)index=text.indexOf("動画URL（");//半角英文字全角カッコ
+		if(index<0)index=text.indexOf("動画ＵＲＬ(");//全角英文字半角カッコ
+		if(index<0)index=text.indexOf("動画ＵＲＬ（");//全角英文字全角カッコ
+		if(index>=0) {
+			if(lastPlay==null)em="再生されていません";//再生中の動画情報がない時
+			else if(ki==index+6) {//0文字
 				em="";
-				System.out.println(lastPlay);
-			}else{
+				String url=IDtoURL(lastPlay);
+				if(url==null)em="非対応形式です";
+				else DiscordAPI.chat(url);
+			}else if(ki>index+6) {
 				em="";
-				if(text.contains("URL")||text.contains("ＵＲＬ")) {
-					if(lastPlay.indexOf("v=")==0){
-						DiscordAPI.chat("https://www.youtube.com/watch?"+lastPlay);
-					}else if(lastPlay.indexOf("list=")==0){
-						DiscordAPI.chat("https://www.youtube.com/playlist?"+lastPlay);
-					}else em="非対応形式です";
-				}else DiscordAPI.chat("/"+lastPlay);
+				String key=text.substring(index+6,ki).trim();
+				try {
+					int dc=Integer.parseInt(key);//取得要求数
+					dc=Integer.min(dc,playHistory.size());//データ量と要求数の少ない方に
+					if(dc>0) {
+						StringBuilder sb=new StringBuilder();
+						sb.append(dc).append("件取得します/*\n");
+						for(int i=0;i<dc;i++) {
+							String s=playHistory.get(i);
+							String url=IDtoURL(s);
+							if(url==null)url=s;
+							sb.append(url).append("\n");
+						}
+						sb.append("*/");
+						DiscordAPI.chat(sb.toString());
+					}
+				}catch(NumberFormatException e) {
+
+				}
 			}
 			if(text.length()>ki)text=text.substring(ki+1);
 			else return;
+		}
+		ki=text.indexOf(')');
+		zi=text.indexOf('）');
+		if(ki<zi)ki=zi;
+		index=text.indexOf("動画ID(");//半角英文字半角カッコ
+		if(index<0)index=text.indexOf("動画ID（");//半角英文字全角カッコ
+		if(index<0)index=text.indexOf("動画ＩＤ(");//全角英文字半角カッコ
+		if(index<0)index=text.indexOf("動画ＩＤ（");//全角英文字全角カッコ
+		if(index>=0) {
+			if(lastPlay==null)em="再生されていません";//再生中の動画情報がない時
+			else if(ki==index+5) {//0文字
+				if(mute) {
+					em="";
+					System.out.println(lastPlay);
+				}else DiscordAPI.chat(lastPlay);
+			}else if(ki>index+5) {
+				em="";
+				String key=text.substring(index+5,ki).trim();
+				try {
+					int dc=Integer.parseInt(key);//取得要求数
+					dc=Integer.min(dc,playHistory.size());//データ量と要求数の少ない方に
+					if(dc>0) {
+						StringBuilder sb=new StringBuilder();
+						sb.append(dc).append("件取得します/*\n");
+						for(int i=0;i<dc;i++) {
+							String s=playHistory.get(i);
+							sb.append(s).append("\n");
+						}
+						sb.append("*/");
+						DiscordAPI.chat(sb.toString());
+					}
+				}catch(NumberFormatException e) {
+
+				}
+			}
 		}
 		index=text.indexOf("動画停止()");
 		if(index<0)index=text.indexOf("動画停止（）");
@@ -392,9 +440,11 @@ public class BouyomiConection implements Runnable{
 		if(index<0)index=text.indexOf("動画音量（");
 		if(index<0)index=text.indexOf("動画音声(");
 		if(index<0)index=text.indexOf("動画音声（");
+		if(index<0)index=text.indexOf("音量調整(");
+		if(index<0)index=text.indexOf("音量調整（");
 		if(index>=0) {//動画音量
 			if(ki==index+5) {
-				int vol=getVol();
+				int vol=getVol();//音量取得。取得失敗した時-1
 				if(vol<0)em="音量を取得できません";
 				else em="音量は"+vol+"です";
 				System.out.println(em);
@@ -410,17 +460,17 @@ public class BouyomiConection implements Runnable{
 				}else fc=volS.charAt(0);
 				try{
 					int Nvol=-1;
-					if(fc=='+')Nvol=getVol();
-					else if(fc=='-')Nvol=getVol();
-					else if(fc=='ー')Nvol=getVol();
-					int vol=Integer.parseInt(volS,radix);
-					if(Nvol>=0)vol=Nvol+vol;
-					if(vol>100)vol=100;
+					if(fc=='+')Nvol=getVol();//+記号で始まる時今の音量を取得
+					else if(fc=='-')Nvol=getVol();//-記号で始まる時今の音量を取得
+					else if(fc=='ー')Nvol=getVol();//ー記号で始まる時今の音量を取得
+					int vol=Integer.parseInt(volS,radix);//要求された音量
+					if(Nvol>=0)vol=Nvol+vol;//音量が取得させていたらそれに指定された音量を足す
+					if(vol>100)vol=100;//音量が100以上の時100にする
+					else if(vol<0)vol=0;//音量が0以下の時0にする
 					System.out.println("動画音量"+vol);//ログに残す
-					if(vol<0)vol=0;
-					VOL=vol;
-					if(operation("vol="+vol))em="音量を"+vol+"にします";
-					else em="音量を変更できませんでした";
+					VOL=vol;//再生時に使う音量をこれにする
+					if(operation("vol="+vol))em="音量を"+vol+"にします";//動画再生プログラムにコマンド送信
+					else em="音量を変更できませんでした";//失敗した時これを読む
 				}catch(NumberFormatException e) {
 
 				}

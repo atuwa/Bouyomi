@@ -1,6 +1,8 @@
 package bouyomi;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class TubeAPI{
@@ -16,14 +19,20 @@ public class TubeAPI{
 	public static String video_host=null;
 	public static int VOL=30;
 	public static String lastPlay;
+	public static ArrayList<String> playHistory=new ArrayList<String>();
+	private static String HistoryFile="play.txt";
 	public static boolean playTube(String videoID) {
 		try{
 			nowPlayVideo=true;
 			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
 			url.openStream().close();
 			lastPlay=videoID;
+			if(playHistory.size()>20){
+				playHistory.remove(20);
+			}
+			playHistory.add(0,videoID);
 			try{
-				FileOutputStream fos=new FileOutputStream("play.txt",true);//追加モードでファイルを開く
+				FileOutputStream fos=new FileOutputStream(HistoryFile,true);//追加モードでファイルを開く
 				try{
 					String d=new SimpleDateFormat("yyyy/MM/dd HH時mm分ss秒").format(new Date());
 					fos.write((videoID+"\t再生時刻"+d+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
@@ -101,6 +110,8 @@ public class TubeAPI{
 		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
 			return playTube("v="+url.substring(17));
 		}else if(url.indexOf("v=")==0) {
+			int index=url.indexOf('&');
+			if(index>=0)url.substring(0,index);
 			return playTube(url);
 		}else if(url.indexOf("list=")==0) {
 			return playTube(url);
@@ -136,6 +147,34 @@ public class TubeAPI{
 			e.printStackTrace();
 		}
 		return false;
+	}
+	public static String IDtoURL(String id) {
+		if(id.indexOf("v=")==0){//動画
+			return "https://www.youtube.com/watch?"+id;
+		}else if(id.indexOf("list=")==0){//プレイリスト
+			return "https://www.youtube.com/playlist?"+id;
+		}
+		return null;//それ以外
+	}
+	public static void loadHistory() throws IOException {
+		FileInputStream fis=new FileInputStream(new File(HistoryFile));
+		InputStreamReader isr=new InputStreamReader(fis,StandardCharsets.UTF_8);
+		BufferedReader br=new BufferedReader(isr);
+		try {
+			while(br.ready()) {
+				String line=br.readLine();
+				if(line==null)break;
+				int index=line.indexOf('\t');
+				if(index>=0)lastPlay=line.substring(0,index);
+				else lastPlay=line;
+				if(playHistory.size()>20){
+					playHistory.remove(20);
+				}
+				playHistory.add(0,lastPlay);
+			}
+		}finally{
+			br.close();
+		}
 	}
 	public static void setAutoStop(){
 		if(video_host==null)return;

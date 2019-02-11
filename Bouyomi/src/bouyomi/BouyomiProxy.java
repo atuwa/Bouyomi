@@ -151,7 +151,10 @@ public class BouyomiProxy{
 			command=br.readLine();//1行取得する
 		}
 		//0文字だったら無し、それ以外だったらそれ
-		if(!command.isEmpty())TubeAPI.video_host=command;
+		if(!command.isEmpty()) {
+			TubeAPI.video_host=command;
+			TubeAPI.loadHistory();
+		}
 		System.out.println("動画サーバ"+(TubeAPI.video_host==null?"無し":TubeAPI.video_host));
 		if(args.length>4) {
 			if(args[4].equals("-"))command="";
