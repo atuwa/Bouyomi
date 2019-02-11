@@ -350,22 +350,27 @@ public class BouyomiConection implements Runnable{
 		if(ki<zi)ki=zi;
 		index=text.indexOf("動画URL(");
 		if(index<0)index=text.indexOf("動画URL（");
+		if(index<0)index=text.indexOf("動画ＵＲＬ(");
+		if(index<0)index=text.indexOf("動画ＵＲＬ（");
 		if(index<0)index=text.indexOf("動画ID(");
 		if(index<0)index=text.indexOf("動画ID（");
-		if(index>=0||"動画ID".equals(text)||"動画URL".equals(text)) {//動画再生
+		if(index<0)index=text.indexOf("動画ＩＤ(");
+		if(index<0)index=text.indexOf("動画ＩＤ（");
+		if(index>=0||"動画ID".equals(text)||"動画URL".equals(text)
+				||"動画ＩＤ".equals(text)||"動画ＵＲＬ".equals(text)) {
 			if(lastPlay==null)em="再生されていません";
 			else if(mute) {
 				em="";
 				System.out.println(lastPlay);
 			}else{
 				em="";
-				if(text.contains("URL")) {
+				if(text.contains("URL")||text.contains("ＵＲＬ")) {
 					if(lastPlay.indexOf("v=")==0){
 						DiscordAPI.chat("https://www.youtube.com/watch?"+lastPlay);
 					}else if(lastPlay.indexOf("list=")==0){
 						DiscordAPI.chat("https://www.youtube.com/playlist?"+lastPlay);
 					}else em="非対応形式です";
-				}else DiscordAPI.chat(lastPlay);
+				}else DiscordAPI.chat("/"+lastPlay);
 			}
 			if(text.length()>ki)text=text.substring(ki+1);
 			else return;
