@@ -129,6 +129,7 @@ public class BouyomiConection implements Runnable{
 			System.out.println("長文省略("+text.length()+"文字)");
 			return;
 		}
+		Japanese.trans(text);
 		//文字データが取得できた時
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 		if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
@@ -163,11 +164,13 @@ public class BouyomiConection implements Runnable{
 					key=key.substring(5);
 					if(text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
 						System.out.println("BOT応答キー =部分一致："+key);//ログに残す
-						addTask=val;//追加で言う
+						if(DiscordAPI.chat(val))addTask="";
+						else addTask=val;//追加で言う
 					}
 				}else 	if(text.equals(key)) {//読み上げテキストがキーに一致した時
 					System.out.println("BOT応答キー ="+key);//ログに残す
-					addTask=val;//追加で言う
+					if(DiscordAPI.chat(val))addTask="";
+					else addTask=val;//追加で言う
 				}
 			}
 		});
@@ -287,7 +290,7 @@ public class BouyomiConection implements Runnable{
 		if(addTask!=null) {//追加で言うデータがある時
 			if(addTask instanceof ArrayList) {//データがArrayListの時
 				for(Object s:(ArrayList<?>)addTask)talk(bouyomi_port,s.toString());//すべて送信
-			}else talk(bouyomi_port,addTask.toString());//送信
+			}else if(!addTask.toString().isEmpty())talk(bouyomi_port,addTask.toString());//送信
 		}
 	}
 	/**自作プロキシの追加機能*/
@@ -324,50 +327,40 @@ public class BouyomiConection implements Runnable{
 	}
 	/**動画再生機能*/
 	public void video(String text) {
-		int ki=text.indexOf(')');//閉じカッコの位置を取得
-		int zi=text.indexOf('）');
-		if(ki<zi)ki=zi;
-		int index=text.indexOf("動画再生(");
-		if(index<0)index=text.indexOf("動画再生（");
-		if(index>=0) {//動画再生
+		String tag=getTag(text,"動画再生");
+		if(tag!=null) {//動画再生
 			//System.out.println(text);//ログに残す
-			if(ki==index+5) {
+			if(tag.isEmpty()) {
 				if(operation("play")){
 					em="つづきを再生します。";
 					int vol=getVol();
 					if(vol>=0)em+="音量は"+vol+"です";
 				}
-			}else if(ki>index+5) {
-				String key=text.substring(index+5,ki).trim();
-				System.out.println("動画再生（"+key+")");//ログに残す
-				if(play(this, key)) {
+			}else{
+				System.out.println("動画再生（"+tag+")");//ログに残す
+				if(play(this, tag)) {
 					em="動画を再生します。";
-					int vol=TubeAPI.VOL;
+					int vol=DefaultVol<0?VOL:DefaultVol;
 					if(vol>=0)em+="音量は"+vol+"です";
 				}else if(em==null)em="動画を再生できませんでした";
 			}
-			if(text.length()>ki)text=text.substring(ki+1);
-			else return;
+			//タグの部分を削除
+			text=removeTag(text,"動画再生",tag);
+			if(text.isEmpty())return;//1文字も残ってない時は終わり
 		}
-		ki=text.indexOf(')');
-		zi=text.indexOf('）');
-		if(ki<zi)ki=zi;
-		index=text.indexOf("動画URL(");//半角英文字半角カッコ
-		if(index<0)index=text.indexOf("動画URL（");//半角英文字全角カッコ
-		if(index<0)index=text.indexOf("動画ＵＲＬ(");//全角英文字半角カッコ
-		if(index<0)index=text.indexOf("動画ＵＲＬ（");//全角英文字全角カッコ
-		if(index>=0) {
+		tag=getTag(text,"動画URL");
+		if(tag==null)tag=getTag(text,"動画ＵＲＬ");//全角英文字
+		if(tag!=null) {
 			if(lastPlay==null)em="再生されていません";//再生中の動画情報がない時
-			else if(ki==index+6) {//0文字
+			else if(tag.isEmpty()) {//0文字
 				em="";
 				String url=IDtoURL(lastPlay);
 				if(url==null)em="非対応形式です";
 				else DiscordAPI.chat(url);
-			}else if(ki>index+6) {
+			}else{
 				em="";
-				String key=text.substring(index+6,ki).trim();
 				try {
-					int dc=Integer.parseInt(key);//取得要求数
+					int dc=Integer.parseInt(tag);//取得要求数
 					dc=Integer.min(dc,playHistory.size());//データ量と要求数の少ない方に
 					if(dc>0) {
 						StringBuilder sb=new StringBuilder();
@@ -378,35 +371,29 @@ public class BouyomiConection implements Runnable{
 							if(url==null)url=s;
 							sb.append(url).append("\n");
 						}
-						sb.append("*/");
 						DiscordAPI.chat(sb.toString());
 					}
 				}catch(NumberFormatException e) {
 
 				}
 			}
-			if(text.length()>ki)text=text.substring(ki+1);
-			else return;
+			text=removeTag(text,"動画URL",tag);
+			text=removeTag(text,"動画ＵＲＬ",tag);
+			if(text.isEmpty())return;//1文字も残ってない時は終わり
 		}
-		ki=text.indexOf(')');
-		zi=text.indexOf('）');
-		if(ki<zi)ki=zi;
-		index=text.indexOf("動画ID(");//半角英文字半角カッコ
-		if(index<0)index=text.indexOf("動画ID（");//半角英文字全角カッコ
-		if(index<0)index=text.indexOf("動画ＩＤ(");//全角英文字半角カッコ
-		if(index<0)index=text.indexOf("動画ＩＤ（");//全角英文字全角カッコ
-		if(index>=0) {
+		tag=getTag(text,"動画ID");
+		if(tag==null)tag=getTag(text,"動画ＩＤ");//全角英文字
+		if(tag!=null) {
 			if(lastPlay==null)em="再生されていません";//再生中の動画情報がない時
-			else if(ki==index+5) {//0文字
+			else if(tag.isEmpty()) {//0文字
 				if(mute) {
 					em="";
 					System.out.println(lastPlay);
-				}else DiscordAPI.chat(lastPlay);
-			}else if(ki>index+5) {
+				}else DiscordAPI.chat("/"+lastPlay);
+			}else{
 				em="";
-				String key=text.substring(index+5,ki).trim();
 				try {
-					int dc=Integer.parseInt(key);//取得要求数
+					int dc=Integer.parseInt(tag);//取得要求数
 					dc=Integer.min(dc,playHistory.size());//データ量と要求数の少ない方に
 					if(dc>0) {
 						StringBuilder sb=new StringBuilder();
@@ -415,68 +402,122 @@ public class BouyomiConection implements Runnable{
 							String s=playHistory.get(i);
 							sb.append(s).append("\n");
 						}
-						sb.append("*/");
 						DiscordAPI.chat(sb.toString());
 					}
 				}catch(NumberFormatException e) {
 
 				}
 			}
+			text=removeTag(text,"動画ID",tag);
+			text=removeTag(text,"動画ＩＤ",tag);
 		}
-		index=text.indexOf("動画停止()");
-		if(index<0)index=text.indexOf("動画停止（）");
-		if(index>=0||"動画停止".equals(text)) {//動画停止
+		tag=getTag(text,"動画停止");
+		if( ( tag!=null&&tag.isEmpty() ) ||"動画停止".equals(text)) {//動画停止
 			System.out.println("動画停止");//ログに残す
 			if(operation("stop")){
 				TubeAPI.nowPlayVideo=false;
 				em="動画を停止します";
 			}else em="動画を停止できませんでした";
+			text=removeTag(text,"動画停止","");
 			return;
 		}
-		ki=text.indexOf(')');
-		zi=text.indexOf('）');
-		if(ki<zi)ki=zi;
-		index=text.indexOf("動画音量(");
-		if(index<0)index=text.indexOf("動画音量（");
-		if(index<0)index=text.indexOf("動画音声(");
-		if(index<0)index=text.indexOf("動画音声（");
-		if(index<0)index=text.indexOf("音量調整(");
-		if(index<0)index=text.indexOf("音量調整（");
-		if(index>=0) {//動画音量
-			if(ki==index+5) {
+		tag=getTag(text,"動画音量");
+		if(tag==null)tag=getTag(text,"動画音声");
+		if(tag==null)tag=getTag(text,"音量調整");
+		if(tag==null)tag=getTag(text,"音量設定");
+		if(tag!=null){//動画音量
+			if(tag.isEmpty()) {
 				int vol=getVol();//音量取得。取得失敗した時-1
 				if(vol<0)em="音量を取得できません";
 				else em="音量は"+vol+"です";
 				System.out.println(em);
 				if(!mute&&DiscordAPI.chat(em))em="";
-			}else if(ki>index+5) {
-				String volS=text.substring(index+5,ki).trim();
-				int radix=10;
-				char fc;
-				if(volS.indexOf("0x")==0) {
-					radix=16;
-					fc=volS.charAt(0);
-					volS=volS.substring(2);
-				}else fc=volS.charAt(0);
+			}else{
 				try{
-					int Nvol=-1;
-					if(fc=='+')Nvol=getVol();//+記号で始まる時今の音量を取得
-					else if(fc=='-')Nvol=getVol();//-記号で始まる時今の音量を取得
-					else if(fc=='ー')Nvol=getVol();//ー記号で始まる時今の音量を取得
-					int vol=Integer.parseInt(volS,radix);//要求された音量
-					if(Nvol>=0)vol=Nvol+vol;//音量が取得させていたらそれに指定された音量を足す
-					if(vol>100)vol=100;//音量が100以上の時100にする
-					else if(vol<0)vol=0;//音量が0以下の時0にする
-					System.out.println("動画音量"+vol);//ログに残す
-					VOL=vol;//再生時に使う音量をこれにする
-					if(operation("vol="+vol))em="音量を"+vol+"にします";//動画再生プログラムにコマンド送信
-					else em="音量を変更できませんでした";//失敗した時これを読む
+					int Nvol=-10;
+					switch(tag.charAt(0)){
+						case '+':
+						case '-':
+						case 'ー':
+							Nvol=getVol();//+記号で始まる時今の音量を取得
+					}
+					int vol=Integer.parseInt(tag);//要求された音量
+					if(Nvol==-1) {
+						em="音量を変更できませんでした";//失敗した時これを読む
+					}else {
+						if(Nvol>=0)vol=Nvol+vol;//音量が取得させていたらそれに指定された音量を足す
+						if(vol>100)vol=100;//音量が100以上の時100にする
+						else if(vol<0)vol=0;//音量が0以下の時0にする
+						System.out.println("動画音量"+vol);//ログに残す
+						VOL=vol;//再生時に使う音量をこれにする
+						if(operation("vol="+vol))em="音量を"+vol+"にします";//動画再生プログラムにコマンド送信
+						else em="音量を変更できませんでした";//失敗した時これを読む
+					}
 				}catch(NumberFormatException e) {
 
 				}
 			}
-			return;
+			text=removeTag(text,"動画音量",tag);
+			text=removeTag(text,"動画音声",tag);
+			text=removeTag(text,"音量調整",tag);
+			text=removeTag(text,"音量設定",tag);
+			if(text.isEmpty())return;
 		}
-		return;
+		tag=getTag(text,"初期音量");
+		if(tag!=null) {
+			if(tag.isEmpty()) {
+				em="デフォルトの音量は"+DefaultVol+"です";
+				System.out.println(em);
+				if(!mute&&DiscordAPI.chat(em))em="";//スラッシュで始まる場合かDiscordに投稿できない時は読み上げる
+				//Discordに投稿出来た時はその投稿されたメッセージを読むから読み上げメッセージは空白
+			}else {
+				try{
+					int vol=Integer.parseInt(tag);//要求された音量
+					if(vol<0) {
+						System.out.println("初期音量 前回の動画音量");//ログに残す
+						em="前に再生した時の音量を使うように設定します";//取得失敗した時これを読む
+						DefaultVol=-1;//再生時に使う音量をこれにする
+					}else {
+						if(vol>100)vol=100;//音量が100以上の時100にする
+						System.out.println("初期音量"+vol);//ログに残す
+						DefaultVol=vol;//再生時に使う音量をこれにする
+						em="次に再生する時は"+DefaultVol+"で再生します";//成功した時これを読む
+					}
+				}catch(NumberFormatException e) {
+
+				}
+				text=removeTag(text,"初期音量",tag);
+			}
+			if(text.isEmpty())return;
+		}
+	}
+	public String removeTag(String text,String tagName,String val) {
+		StringBuilder sb=new StringBuilder();
+		StringBuilder sb0=new StringBuilder(tagName);
+		sb0.append("(").append(val);//これ半角しか削除できない
+		String remove=sb0.toString();
+		int index=text.indexOf(remove);
+		if(index<0) {
+			StringBuilder sb1=new StringBuilder(tagName);
+			sb0.append("（").append(val);//こっちで全角のカッコを処理
+			remove=sb1.toString();
+			index=text.indexOf(remove);
+			if(index<0)return text;
+		}
+		if(index>0)sb.append(text.substring(0,index));//タグで始まる時以外
+		if(text.length()>index+remove.length()+1)sb.append(text.substring(index+remove.length()+1));
+		return sb.toString();
+	}
+	/**タグ取得*/
+	public String getTag(String text,String key) {
+		int index=text.indexOf(key+"(");
+		if(index<0)index=text.indexOf(key+"（");
+		if(index<0)return null;//タグを含まない時
+		int ki=text.indexOf(')');//半角
+		int zi=text.indexOf('）');//全角
+		if(ki<zi)ki=zi;
+		if(ki<0)return null;//閉じカッコが無い時
+		if(ki==index+key.length()+1)return "";//0文字
+		return text.substring(index+key.length()+1,ki).trim();//スペースは削除
 	}
 }

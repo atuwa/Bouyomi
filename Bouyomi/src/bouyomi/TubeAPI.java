@@ -12,25 +12,25 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class TubeAPI{
 
 	public static boolean nowPlayVideo;
 	public static String video_host=null;
-	public static int VOL=30;
+	public static int VOL=30,DefaultVol=-1;
 	public static String lastPlay;
+	public static int maxHistory=32;//32個履歴を保持する
+	/**履歴が入ってるリスト*/
 	public static ArrayList<String> playHistory=new ArrayList<String>();
 	private static String HistoryFile="play.txt";
 	public static boolean playTube(String videoID) {
 		try{
 			nowPlayVideo=true;
-			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
+			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+(DefaultVol<0?VOL:DefaultVol));
 			url.openStream().close();
 			lastPlay=videoID;
-			if(playHistory.size()>20){
-				playHistory.remove(20);
+			if(playHistory.size()>=maxHistory){
+				playHistory.remove(maxHistory-1);
 			}
 			playHistory.add(0,videoID);
 			try{
@@ -63,6 +63,7 @@ public class TubeAPI{
 		return -1;
 	}
 	public static String getLine(String op) {
+		if(!op.contains("="))op+="=0";
 		BufferedReader br=null;
 		try{
 			URL url=new URL("http://"+video_host+"/operation.html?"+op);
@@ -112,9 +113,9 @@ public class TubeAPI{
 		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
 			return playTube("v="+url.substring(17));
 		}else if(url.indexOf("v=")==0) {
-			return playTube(extract(url,"v"));
+			return playTube(url);
 		}else if(url.indexOf("list=")==0) {
-			return playTube(extract(url,"list"));
+			return playTube(url);
 		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0) {
 			bc.em="ニコニコ動画はできません";
 			System.out.println("ニコニコ動画はできません"+url);
@@ -124,13 +125,15 @@ public class TubeAPI{
 		}
 		return false;
 	}
+	/*//新しいの。上手いこと動かない
 	public static String extract(String url,String name) {
 		Matcher match=Pattern.compile(name+"=[a-zA-Z0-9]").matcher(url);
 		if(match.find()) {
 			return match.group();
 		}else return null;
 	}
-	/*古いの勿体無いから置いてある
+	*/
+	//古いの。新しいのがうまく動かないからこっちを使う
 	public static String extract(String url,String name) {
 		if(url==null||url.isEmpty())return null;
 		StringBuilder sb=new StringBuilder(name);
@@ -143,10 +146,10 @@ public class TubeAPI{
 		if(end<0)return ss;
 		return ss.substring(0,end);
 	}
-	*/
 	/**@param op 実行するコマンド
 	 * @return 正常に実行された時trueが返る*/
 	public static boolean operation(String op) {
+		if(!op.contains("="))op+="=0";
 		try{
 			URL url=new URL("http://"+video_host+"/operation.html?"+op);
 			url.openStream().close();
@@ -164,6 +167,7 @@ public class TubeAPI{
 		}
 		return null;//それ以外
 	}
+	/**ファイルから再生履歴を読み込む*/
 	public static void loadHistory() throws IOException {
 		FileInputStream fis=new FileInputStream(new File(HistoryFile));
 		InputStreamReader isr=new InputStreamReader(fis,StandardCharsets.UTF_8);
@@ -175,8 +179,8 @@ public class TubeAPI{
 				int index=line.indexOf('\t');
 				if(index>=0)lastPlay=line.substring(0,index);
 				else lastPlay=line;
-				if(playHistory.size()>20){
-					playHistory.remove(20);
+				if(playHistory.size()>=maxHistory){
+					playHistory.remove(maxHistory-1);
 				}
 				playHistory.add(0,lastPlay);
 			}
