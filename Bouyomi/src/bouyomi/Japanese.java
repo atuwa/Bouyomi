@@ -1,10 +1,14 @@
 package bouyomi;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 //こけえもんのローマ字を翻訳する
 public class Japanese{
+	public static DiscordAPI chat_server;
 	private static HashMap<String,String> map=new HashMap<String,String>();
+	//ひらがなにする人に変なことを言わせたくない
+	public static ArrayList<String> NGword=new ArrayList<String>();
 	static {
 		map.put("a","あ");map.put("i","い");map.put("u","う");map.put("e","え");map.put("o","お");
 		map.put("ka","か");map.put("ki","き");map.put("ku","く");map.put("ke","け");map.put("ko","こ");
@@ -31,18 +35,27 @@ public class Japanese{
 		map.put("da","だ");map.put("di","ぢ");map.put("du","づ");map.put("de","で");map.put("do","ど");
 		map.put("ga","が");map.put("gi","ぐ");map.put("ge","げ");map.put("go","ご");
 		map.put("ba","ば");map.put("bi","び");map.put("bu","ぶ");map.put("be","べ");map.put("bo","ぼ");
+		map.put("pa","ぱ");map.put("pi","ぴ");map.put("pu","ぷ");map.put("pe","ぺ");map.put("po","ぽ");
+		map.put("fa","ふぁ");map.put("fi","ふぃ");map.put("fu","ふ");map.put("fe","ふぇ");map.put("fo","ふぉ");
+		map.put("byi","びゃ");map.put("byi","びぃ");map.put("byu","びゅ");map.put("bye","びぇ");map.put("byo","びょ");
 
 		map.put("n","ん");map.put("nn","ん");
+
+		NGword.add("mannko");NGword.add("manko");NGword.add("tinko");NGword.add("tinnko");
+		NGword.add("oppai");NGword.add("unnti");NGword.add("unti");NGword.add("unnko");
+		NGword.add("unko");NGword.add("tinnko");
 
 		map.put("-","ー");
 	}
 	public static void trans(String text) {
-		add();
-		if(text.length()<5)return;
+		if(text.length()<5||chat_server==null)return;
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
-			if(c=='-'||c=='?');
+			if(c=='-'||c=='?'||c==',');
 			else if(c<0x5B||c>0x7E)return;
+		}
+		for(int i=0;i<NGword.size();i++) {
+			if(text.indexOf(NGword.get(i))>=0)return;
 		}
 		StringBuilder result=new StringBuilder();
 		for(int i=0;i<text.length();i++) {
@@ -72,34 +85,6 @@ public class Japanese{
 			}else result.append(ms);
 		}
 		System.out.println("ローマ字変換"+text+"="+result);
-		DiscordAPI.chat("/"+result.toString());
-	}
-	public static void main(String[] args) {
-		trans("あいうえおかきくけこさしすせそ");
-		trans("URL解析失敗em1x22e3YXs");
-		trans("tesutomesse-ji");
-		trans("tesutobunnsyou");
-		trans("テスト用文章");
-		trans("hajimeteii?");
-		trans("eenyade");
-		trans("watashi mettya yatterukara ru-to anki siteru");
-		trans("zenbu yattenai shina");
-		trans("maa torima korede eeka");
-		trans("ippai map arukarane");
-		trans("ouyo");
-		trans("iine");
-		trans("sou");
-		trans("MOD入りもやりたいねってことか");
-		trans("sonouti adoonmapputokayaritaiwane");
-		trans("imamuri");
-		trans("seyade");
-		trans("mokkaiyaryu?");
-		trans("okiteruyo");
-		trans("");
-		trans("");
-		trans("");
-	}
-	public static void add() {
-		//map.put("","");
+		chat_server.chat("/"+result.toString());
 	}
 }

@@ -164,12 +164,12 @@ public class BouyomiConection implements Runnable{
 					key=key.substring(5);
 					if(text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
 						System.out.println("BOT応答キー =部分一致："+key);//ログに残す
-						if(DiscordAPI.chat(val))addTask="";
+						if(DiscordAPI.chatDefaultHost(val))addTask="";
 						else addTask=val;//追加で言う
 					}
 				}else 	if(text.equals(key)) {//読み上げテキストがキーに一致した時
 					System.out.println("BOT応答キー ="+key);//ログに残す
-					if(DiscordAPI.chat(val))addTask="";
+					if(DiscordAPI.chatDefaultHost(val))addTask="";
 					else addTask=val;//追加で言う
 				}
 			}
@@ -356,7 +356,7 @@ public class BouyomiConection implements Runnable{
 				em="";
 				String url=IDtoURL(lastPlay);
 				if(url==null)em="非対応形式です";
-				else DiscordAPI.chat(url);
+				else DiscordAPI.chatDefaultHost(url);
 			}else{
 				em="";
 				try {
@@ -371,7 +371,7 @@ public class BouyomiConection implements Runnable{
 							if(url==null)url=s;
 							sb.append(url).append("\n");
 						}
-						DiscordAPI.chat(sb.toString());
+						DiscordAPI.chatDefaultHost(sb.toString());
 					}
 				}catch(NumberFormatException e) {
 
@@ -389,7 +389,7 @@ public class BouyomiConection implements Runnable{
 				if(mute) {
 					em="";
 					System.out.println(lastPlay);
-				}else DiscordAPI.chat("/"+lastPlay);
+				}else DiscordAPI.chatDefaultHost("/"+lastPlay);
 			}else{
 				em="";
 				try {
@@ -402,7 +402,7 @@ public class BouyomiConection implements Runnable{
 							String s=playHistory.get(i);
 							sb.append(s).append("\n");
 						}
-						DiscordAPI.chat(sb.toString());
+						DiscordAPI.chatDefaultHost(sb.toString());
 					}
 				}catch(NumberFormatException e) {
 
@@ -431,7 +431,7 @@ public class BouyomiConection implements Runnable{
 				if(vol<0)em="音量を取得できません";
 				else em="音量は"+vol+"です";
 				System.out.println(em);
-				if(!mute&&DiscordAPI.chat(em))em="";
+				if(!mute&&DiscordAPI.chatDefaultHost(em))em="";
 			}else{
 				try{
 					int Nvol=-10;
@@ -468,7 +468,7 @@ public class BouyomiConection implements Runnable{
 			if(tag.isEmpty()) {
 				em="デフォルトの音量は"+DefaultVol+"です";
 				System.out.println(em);
-				if(!mute&&DiscordAPI.chat(em))em="";//スラッシュで始まる場合かDiscordに投稿できない時は読み上げる
+				if(!mute&&DiscordAPI.chatDefaultHost(em))em="";//スラッシュで始まる場合かDiscordに投稿できない時は読み上げる
 				//Discordに投稿出来た時はその投稿されたメッセージを読むから読み上げメッセージは空白
 			}else {
 				try{
