@@ -320,14 +320,26 @@ public class BouyomiConection implements Runnable{
 				System.out.println("応答破棄（"+key+")");//ログに残す
 				BOT.remove(key);
 			}
-		}else if(video_host!=null) {//再生サーバが設定されている時
-			video(text);
+		}
+		String tag=getTag("平仮名変換");
+		if(tag!=null) {
+			Config.put("平仮名変換",tag);
+			if(tag.equals("有効")) {
+				Japanese.active=true;
+				em="平仮名変換機能を有効にしました";
+			}else if(tag.equals("無効")) {
+				Japanese.active=false;
+				em="平仮名変換機能を無効にしました";
+			}
+		}
+		if(video_host!=null) {//再生サーバが設定されている時
+			video();
 		}
 		return null;
 	}
 	/**動画再生機能*/
-	public void video(String text) {
-		String tag=getTag(text,"動画再生");
+	public void video() {
+		String tag=getTag("動画再生");
 		if(tag!=null) {//動画再生
 			//System.out.println(text);//ログに残す
 			if(tag.isEmpty()) {
@@ -344,12 +356,10 @@ public class BouyomiConection implements Runnable{
 					if(vol>=0)em+="音量は"+vol+"です";
 				}else if(em==null)em="動画を再生できませんでした";
 			}
-			//タグの部分を削除
-			text=removeTag(text,"動画再生",tag);
 			if(text.isEmpty())return;//1文字も残ってない時は終わり
 		}
-		tag=getTag(text,"動画URL");
-		if(tag==null)tag=getTag(text,"動画ＵＲＬ");//全角英文字
+		tag=getTag("動画URL");
+		if(tag==null)tag=getTag("動画ＵＲＬ");//全角英文字
 		if(tag!=null) {
 			if(lastPlay==null)em="再生されていません";//再生中の動画情報がない時
 			else if(tag.isEmpty()) {//0文字
@@ -377,12 +387,9 @@ public class BouyomiConection implements Runnable{
 
 				}
 			}
-			text=removeTag(text,"動画URL",tag);
-			text=removeTag(text,"動画ＵＲＬ",tag);
 			if(text.isEmpty())return;//1文字も残ってない時は終わり
 		}
-		tag=getTag(text,"動画ID");
-		if(tag==null)tag=getTag(text,"動画ＩＤ");//全角英文字
+		tag=getTag("動画ID","動画ＩＤ");//全角英文字
 		if(tag!=null) {
 			if(lastPlay==null)em="再生されていません";//再生中の動画情報がない時
 			else if(tag.isEmpty()) {//0文字
@@ -408,23 +415,17 @@ public class BouyomiConection implements Runnable{
 
 				}
 			}
-			text=removeTag(text,"動画ID",tag);
-			text=removeTag(text,"動画ＩＤ",tag);
 		}
-		tag=getTag(text,"動画停止");
+		tag=getTag("動画停止");
 		if( ( tag!=null&&tag.isEmpty() ) ||"動画停止".equals(text)) {//動画停止
 			System.out.println("動画停止");//ログに残す
 			if(operation("stop")){
 				TubeAPI.nowPlayVideo=false;
 				em="動画を停止します";
 			}else em="動画を停止できませんでした";
-			text=removeTag(text,"動画停止","");
 			return;
 		}
-		tag=getTag(text,"動画音量");
-		if(tag==null)tag=getTag(text,"動画音声");
-		if(tag==null)tag=getTag(text,"音量調整");
-		if(tag==null)tag=getTag(text,"音量設定");
+		tag=getTag("動画音量","動画音声","音量調整","音量設定");
 		if(tag!=null){//動画音量
 			if(tag.isEmpty()) {
 				int vol=getVol();//音量取得。取得失敗した時-1
@@ -457,16 +458,13 @@ public class BouyomiConection implements Runnable{
 
 				}
 			}
-			text=removeTag(text,"動画音量",tag);
-			text=removeTag(text,"動画音声",tag);
-			text=removeTag(text,"音量調整",tag);
-			text=removeTag(text,"音量設定",tag);
 			if(text.isEmpty())return;
 		}
-		tag=getTag(text,"初期音量");
+		tag=getTag("初期音量");
 		if(tag!=null) {
 			if(tag.isEmpty()) {
-				em="デフォルトの音量は"+DefaultVol+"です";
+				if(DefaultVol<0)em="デフォルトの音量は前回の動画の音量です";
+				else em="デフォルトの音量は"+DefaultVol+"です";
 				System.out.println(em);
 				if(!mute&&DiscordAPI.chatDefaultHost(em))em="";//スラッシュで始まる場合かDiscordに投稿できない時は読み上げる
 				//Discordに投稿出来た時はその投稿されたメッセージを読むから読み上げメッセージは空白
@@ -477,22 +475,44 @@ public class BouyomiConection implements Runnable{
 						System.out.println("初期音量 前回の動画音量");//ログに残す
 						em="前に再生した時の音量を使うように設定します";//取得失敗した時これを読む
 						DefaultVol=-1;//再生時に使う音量をこれにする
+						Config.put("初期音量",String.valueOf(DefaultVol));
 					}else {
 						if(vol>100)vol=100;//音量が100以上の時100にする
 						System.out.println("初期音量"+vol);//ログに残す
 						DefaultVol=vol;//再生時に使う音量をこれにする
 						em="次に再生する時は"+DefaultVol+"で再生します";//成功した時これを読む
+						Config.put("初期音量",String.valueOf(DefaultVol));
 					}
 				}catch(NumberFormatException e) {
 
 				}
-				text=removeTag(text,"初期音量",tag);
 			}
 			if(text.isEmpty())return;
 		}
 	}
-	public String removeTag(String text,String tagName,String val) {
-		StringBuilder sb=new StringBuilder();
+	public String getTag(String... key) {
+		for(String s:key) {
+			String t=getTag(s);
+			if(t!=null)return t;
+		}
+		return null;
+	}
+	/**タグ取得*/
+	public String getTag(String key) {
+		int index=text.indexOf(key+"(");
+		if(index<0)index=text.indexOf(key+"（");
+		if(index<0)return null;//タグを含まない時
+		int ki=text.indexOf(')');//半角
+		int zi=text.indexOf('）');//全角
+		if(ki<zi)ki=zi;
+		if(ki<0)return null;//閉じカッコが無い時
+		if(ki<index+key.length()+1)return null;//閉じカッコの位置がおかしい時
+		if(ki==index+key.length()+1)return "";//0文字
+		String tag=text.substring(index+key.length()+1,ki).trim();//スペースは削除
+		removeTag(key,tag);
+		return tag;
+	}
+	public void removeTag(String tagName,String val) {
 		StringBuilder sb0=new StringBuilder(tagName);
 		sb0.append("(").append(val);//これ半角しか削除できない
 		String remove=sb0.toString();
@@ -502,22 +522,11 @@ public class BouyomiConection implements Runnable{
 			sb0.append("（").append(val);//こっちで全角のカッコを処理
 			remove=sb1.toString();
 			index=text.indexOf(remove);
-			if(index<0)return text;
+			if(index<0)return;
 		}
+		StringBuilder sb=new StringBuilder();
 		if(index>0)sb.append(text.substring(0,index));//タグで始まる時以外
-		if(text.length()>index+remove.length()+1)sb.append(text.substring(index+remove.length()+1));
-		return sb.toString();
-	}
-	/**タグ取得*/
-	public String getTag(String text,String key) {
-		int index=text.indexOf(key+"(");
-		if(index<0)index=text.indexOf(key+"（");
-		if(index<0)return null;//タグを含まない時
-		int ki=text.indexOf(')');//半角
-		int zi=text.indexOf('）');//全角
-		if(ki<zi)ki=zi;
-		if(ki<0)return null;//閉じカッコが無い時
-		if(ki==index+key.length()+1)return "";//0文字
-		return text.substring(index+key.length()+1,ki).trim();//スペースは削除
+		if(text.length()>index+remove.length())sb.append(text.substring(index+remove.length()+1));
+		text=sb.toString();
 	}
 }

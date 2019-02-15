@@ -26,7 +26,8 @@ public class TubeAPI{
 	public static boolean playTube(String videoID) {
 		try{
 			nowPlayVideo=true;
-			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+(DefaultVol<0?VOL:DefaultVol));
+			if(DefaultVol>=0)VOL=DefaultVol;
+			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
 			url.openStream().close();
 			lastPlay=videoID;
 			if(playHistory.size()>=maxHistory){

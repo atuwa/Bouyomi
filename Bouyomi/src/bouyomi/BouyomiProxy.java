@@ -24,6 +24,7 @@ import java.util.function.BiConsumer;
 public class BouyomiProxy{
 	/**自動応答辞書*/
 	public static HashMap<String,String> BOT=new HashMap<String,String>();
+	public static HashMap<String,String> Config=new HashMap<String,String>();
 	static {
 		BOT.put("ちくわ大明神","b) 誰だいまの");//デフォルトの自動応答
 	}
@@ -85,12 +86,12 @@ public class BouyomiProxy{
 			if(args[5].equals("-"))command="";
 			else command=args[5];
 		}else {
-			System.out.println("ローマ字変換結果Discord投稿サーバのアドレス");
+			System.out.println("ローマ字変換結果をDiscordに投稿するサーバのアドレス");
 			command=br.readLine();//1行取得する
 		}
 		//0文字だったら無し、それ以外だったらそれ
 		if(!command.isEmpty())Japanese.chat_server=new DiscordAPI(command);
-		System.out.println("ローマ字変換結果Discord投稿サーバ"+(DiscordAPI.service_host==null?"無し":DiscordAPI.service_host));
+		System.out.println("ローマ字変換結果をDiscordに投稿するサーバ"+(DiscordAPI.service_host==null?"無し":DiscordAPI.service_host));
 
 		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
@@ -100,15 +101,21 @@ public class BouyomiProxy{
 					try{
 						command=br.readLine();//1行取得する
 						if(command==null) System.exit(1);//読み込み失敗した場合終了
-						if("saveBOT".equals(command)) {
+						if("saveConfig".equals(command)) {
 							try{
-								save(BOTpath);
+								save(Config,"config.txt");
+							}catch(IOException e){
+								e.printStackTrace();
+							}
+						}else if("saveBOT".equals(command)) {
+							try{
+								save(BOT,BOTpath);
 							}catch(IOException e){
 								e.printStackTrace();
 							}
 						}else if("loadBOT".equals(command)) {
 							try{
-								load(BOTpath);
+								load(BOT,BOTpath);
 							}catch(IOException e){
 								e.printStackTrace();
 							}
@@ -133,7 +140,12 @@ public class BouyomiProxy{
 		Runtime.getRuntime().addShutdownHook(new Thread("save") {
 			public void run() {
 				try{
-					save(BOTpath);
+					save(BOT,BOTpath);
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+				try{
+					save(Config,"config.txt");
 				}catch(IOException e){
 					e.printStackTrace();
 				}
@@ -141,7 +153,22 @@ public class BouyomiProxy{
 		});
 		TubeAPI.setAutoStop();
 		try{
-			load(BOTpath);
+			load(BOT,BOTpath);
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+		try{
+			load(Config,"config.txt");
+			if("無効".equals(Config.get("平仮名変換"))){
+				Japanese.active=false;
+			}
+			if(Config.containsKey("初期音量")) {
+				try{
+					TubeAPI.DefaultVol=Integer.parseInt(Config.get("初期音量"));
+				}catch(NumberFormatException e) {
+
+				}
+			}
 		}catch(IOException e){
 			e.printStackTrace();
 		}
@@ -158,9 +185,8 @@ public class BouyomiProxy{
 			}
 		}
 	}
-	/**BOT応答辞書読み込み*/
-	public static void load(String path) throws IOException {
-		BOT.clear();
+	public static void load(HashMap<String,String> map,String path) throws IOException {
+		map.clear();
 		FileInputStream fos=new FileInputStream(path);
 		InputStreamReader isr=new InputStreamReader(fos,StandardCharsets.UTF_8);
 		BufferedReader br=new BufferedReader(isr);
@@ -173,18 +199,17 @@ public class BouyomiProxy{
 				String key=line.substring(0,tab);
 				String val=line.substring(tab+1);
 				System.out.println("k="+key+" v="+val);
-				BOT.put(key,val);
+				map.put(key,val);
 			}
 		}finally {
 			br.close();
 		}
 	}
-	/**BOT応答辞書書き出し*/
-	public static void save(String path) throws IOException {
+	public static void save(HashMap<String,String> map,String path) throws IOException {
 		FileOutputStream fos=new FileOutputStream(path);
 		final OutputStreamWriter osw=new OutputStreamWriter(fos,StandardCharsets.UTF_8);
 		try {
-			BOT.forEach(new BiConsumer<String,String>(){
+			map.forEach(new BiConsumer<String,String>(){
 			@Override
 			public void accept(String key,String val){
 				try{

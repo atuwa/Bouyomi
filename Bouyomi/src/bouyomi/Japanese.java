@@ -7,8 +7,9 @@ import java.util.HashMap;
 public class Japanese{
 	public static DiscordAPI chat_server;
 	private static HashMap<String,String> map=new HashMap<String,String>();
-	//ひらがなにする人に変なことを言わせたくない
+	//ひらがなにする人 に変なことを言わせたくない
 	public static ArrayList<String> NGword=new ArrayList<String>();
+	public static boolean active=true;
 	static {
 		map.put("a","あ");map.put("i","い");map.put("u","う");map.put("e","え");map.put("o","お");
 		map.put("ka","か");map.put("ki","き");map.put("ku","く");map.put("ke","け");map.put("ko","こ");
@@ -20,6 +21,14 @@ public class Japanese{
 		map.put("ya","や");map.put("yi","い");map.put("yu","ゆ");map.put("ye","いぇ");map.put("yo","よ");
 		map.put("ra","ら");map.put("ri","り");map.put("ru","る");map.put("re","れ");map.put("ro","ろ");
 		map.put("wa","わ");map.put("wi","うぃ");map.put("wu","う");map.put("we","うぇ");map.put("wo","を");
+
+		map.put("ca","か");map.put("ci","し");map.put("cu","く");map.put("ce","せ");map.put("co","こ");
+		map.put("va","ヴぁ");map.put("vi","ヴぃ");map.put("vu","ヴ");map.put("ve","ヴぇ");map.put("vo","ヴぉ");
+
+		map.put("cha","ちゃ");map.put("chi","ち");map.put("chu","ちゅ");map.put("che","ちぇ");map.put("cho","ちょ");
+		map.put("xtu","っ");map.put("tsu","つ");
+		map.put("lya","ゃ");map.put("li","ぃ");map.put("lu","ぅ");map.put("le","ぇ");map.put("lo","ぉ");
+		map.put("xa","ぁ");map.put("xi","ぃ");map.put("xu","ぅ");map.put("xe","ぇ");map.put("xo","ぉ");
 
 		map.put("kya","きゃ");map.put("kyu","きゅ");map.put("kyo","きょ");
 		map.put("sya","しゃ");map.put("syu","しゅ");map.put("syo","しょ");
@@ -39,7 +48,7 @@ public class Japanese{
 		map.put("fa","ふぁ");map.put("fi","ふぃ");map.put("fu","ふ");map.put("fe","ふぇ");map.put("fo","ふぉ");
 		map.put("byi","びゃ");map.put("byi","びぃ");map.put("byu","びゅ");map.put("bye","びぇ");map.put("byo","びょ");
 
-		map.put("n","ん");map.put("nn","ん");
+		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");
 
 		NGword.add("mannko");NGword.add("manko");NGword.add("tinko");NGword.add("tinnko");
 		NGword.add("oppai");NGword.add("unnti");NGword.add("unti");NGword.add("unnko");
@@ -48,10 +57,11 @@ public class Japanese{
 		map.put("-","ー");
 	}
 	public static void trans(String text) {
+		if(!active)return;
 		if(text.length()<5||chat_server==null)return;
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
-			if(c=='-'||c=='?'||c==',');
+			if(c=='-'||c=='?'||c==','||c=='.'||c=='!'||c==' '||c=='/');
 			else if(c<0x5B||c>0x7E)return;
 		}
 		for(int i=0;i<NGword.size();i++) {
@@ -61,6 +71,13 @@ public class Japanese{
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
 			if(i+1<text.length()) {
+				if(c==text.charAt(i+1)) {
+					if(c=='a'&&c=='i'&&c=='u'&&c=='e'&&c=='o');
+					else if(c!='n') {
+						result.append('っ');
+						continue;
+					}
+				}
 				if(i+2<text.length()) {
 					String ms=new String(new char[] {c,text.charAt(i+1),text.charAt(i+2)});
 					String r=map.get(ms);
