@@ -48,31 +48,34 @@ public class Japanese{
 		map.put("fa","ふぁ");map.put("fi","ふぃ");map.put("fu","ふ");map.put("fe","ふぇ");map.put("fo","ふぉ");
 		map.put("byi","びゃ");map.put("byi","びぃ");map.put("byu","びゅ");map.put("bye","びぇ");map.put("byo","びょ");
 
-		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");
+		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");map.put("~","～");
 
 		NGword.add("mannko");NGword.add("manko");NGword.add("tinko");NGword.add("tinnko");
 		NGword.add("oppai");NGword.add("unnti");NGword.add("unti");NGword.add("unnko");
-		NGword.add("unko");NGword.add("tinnko");
+		NGword.add("unko");NGword.add("tinnko");NGword.add("homo");
 
 		map.put("-","ー");
 	}
-	public static void trans(String text) {
-		if(!active)return;
-		if(text.length()<5||chat_server==null)return;
+	public static boolean trans(String text) {
+		if(!active)return false;
+		if(text.length()<5||chat_server==null)return false;
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
 			if(c=='-'||c=='?'||c==','||c=='.'||c=='!'||c==' '||c=='/');
-			else if(c<0x5B||c>0x7E)return;
+			else if(c<0x5B||c>0x7E)return false;
 		}
 		for(int i=0;i<NGword.size();i++) {
-			if(text.indexOf(NGword.get(i))>=0)return;
+			if(text.indexOf(NGword.get(i))>=0) {
+				chat_server.chat("/NGワードを含みます");
+				return false;
+			}
 		}
 		StringBuilder result=new StringBuilder();
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
 			if(i+1<text.length()) {
 				if(c==text.charAt(i+1)) {
-					if(c=='a'&&c=='i'&&c=='u'&&c=='e'&&c=='o');
+					if(c=='a'||c=='i'||c=='u'||c=='e'||c=='o');
 					else if(c!='n') {
 						result.append('っ');
 						continue;
@@ -102,6 +105,7 @@ public class Japanese{
 			}else result.append(ms);
 		}
 		System.out.println("ローマ字変換"+text+"="+result);
-		chat_server.chat("/"+result.toString());
+		chat_server.chat(result.toString());
+		return true;
 	}
 }

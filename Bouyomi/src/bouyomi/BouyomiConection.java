@@ -17,6 +17,8 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import player.WAVPlayer;
+
 public class BouyomiConection implements Runnable{
 
 	/**このインスタンスの接続先*/
@@ -129,7 +131,7 @@ public class BouyomiConection implements Runnable{
 			System.out.println("長文省略("+text.length()+"文字)");
 			return;
 		}
-		Japanese.trans(text);
+		if(Japanese.trans(text))em="";
 		//文字データが取得できた時
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 		if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
@@ -275,7 +277,7 @@ public class BouyomiConection implements Runnable{
 			baos.write((len >>>  24) & 0xFF);
 			baos2.writeTo(baos);//メッセージバイナリデータを送信データに追加
 			//System.out.println("W"+baos.size());
-			send(bouyomi_port,baos.toByteArray());//作ったデータを送信
+			if(len>0)send(bouyomi_port,baos.toByteArray());//作ったデータを送信
 			//System.out.println("Write");
 		}catch(IOException e){
 			e.printStackTrace();//例外が発生したらログに残す
@@ -332,10 +334,56 @@ public class BouyomiConection implements Runnable{
 				em="平仮名変換機能を無効にしました";
 			}
 		}
+		music();
 		if(video_host!=null) {//再生サーバが設定されている時
 			video();
 		}
 		return null;
+	}
+	public void music() {
+		String tag=getTag("音楽再生");
+		if(tag!=null) {
+			if(tag.isEmpty()) {
+				WAVPlayer.play();
+				em="続きを再生します。";
+			}else {
+				WAVPlayer.play(tag);
+				em="音楽ファイルを再生します。";
+			}
+			float vol=WAVPlayer.nowVolume();
+			if(vol>=0)em+="音量は"+vol+"です";
+		}
+		tag=getTag("音楽音量");
+		if(tag!=null) {
+			try{
+				float vol=Float.parseFloat(tag);
+				float Nvol=-10;
+				switch(tag.charAt(0)){
+					case '+':
+					case '-':
+					case 'ー':
+						Nvol=WAVPlayer.nowVolume();//+記号で始まる時今の音量を取得
+				}
+				if(Nvol==-1) {
+					em="音量を変更できませんでした";//失敗した時これを読む
+				}else {
+					if(Nvol>=0)vol=Nvol+vol;//音量が取得させていたらそれに指定された音量を足す
+					if(vol>100)vol=100;//音量が100以上の時100にする
+					else if(vol<0)vol=0;//音量が0以下の時0にする
+					System.out.println("音楽音量"+vol);//ログに残す
+					WAVPlayer.Volume=vol;
+					if(WAVPlayer.setVolume(vol)>=0)em="音量を"+vol+"にします";//動画再生プログラムにコマンド送信
+					else em="音量を変更できませんでした";//失敗した時これを読む
+				}
+			}catch(NumberFormatException e) {
+
+			}
+		}
+		tag=getTag("音楽停止");
+		if(tag!=null) {
+			WAVPlayer.Stop();
+			em="音楽を停止します。";
+		}
 	}
 	/**動画再生機能*/
 	public void video() {
