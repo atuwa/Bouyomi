@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TubeAPI{
 
@@ -27,6 +29,7 @@ public class TubeAPI{
 		try{
 			nowPlayVideo=true;
 			if(DefaultVol>=0)VOL=DefaultVol;
+			//videoID=URLEncoder.encode(videoID,"utf-8");//これ使うと動かない
 			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
 			url.openStream().close();
 			lastPlay=videoID;
@@ -56,7 +59,7 @@ public class TubeAPI{
 		try{
 			String l=getLine("GETvolume");
 			if(l==null)return -1;
-			int vol=Integer.parseInt(l);
+			int vol=(int) Double.parseDouble(l);
 			return vol;
 		}catch(NumberFormatException e){
 			e.printStackTrace();
@@ -117,10 +120,27 @@ public class TubeAPI{
 			return playTube(url);
 		}else if(url.indexOf("list=")==0) {
 			return playTube(url);
-		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0) {
-			bc.em="ニコニコ動画はできません";
-			System.out.println("ニコニコ動画はできません"+url);
+		}else if(url.indexOf("nico=")==0) {
+			return playTube(url);
+		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0
+				||url.indexOf("http://www.nicovideo.jp/watch/")==0
+				||url.indexOf("https://nicovideo.jp/watch/")==0
+				||url.indexOf("http://nicovideo.jp/watch/")==0) {
+			Pattern p = Pattern.compile("sm[0-9]++");
+			Matcher m = p.matcher(url);
+			if(m.find()) {
+				url=m.group();
+				//System.out.println("ニコニコ ID="+url);
+				return playTube("nico="+url);
+			}
 		}else{
+			Pattern p = Pattern.compile("sm[0-9]++");
+			Matcher m = p.matcher(url);
+			if(m.find()) {
+				url=m.group();
+				//System.out.println("ニコニコ ID="+url);
+				return playTube("nico="+url);
+			}
 			bc.em="URLを解析できませんでした";
 			System.out.println("URL解析失敗"+url);
 		}
@@ -165,6 +185,8 @@ public class TubeAPI{
 			return "https://www.youtube.com/watch?"+id;
 		}else if(id.indexOf("list=")==0){//プレイリスト
 			return "https://www.youtube.com/playlist?"+id;
+		}else if(id.indexOf("nico=")==0){//プレイリスト
+			return "https://www.nicovideo.jp/watch/"+id.substring(5);
 		}
 		return null;//それ以外
 	}

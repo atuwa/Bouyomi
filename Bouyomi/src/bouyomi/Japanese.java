@@ -9,6 +9,9 @@ public class Japanese{
 	private static HashMap<String,String> map=new HashMap<String,String>();
 	//ひらがなにする人 に変なことを言わせたくない
 	public static ArrayList<String> NGword=new ArrayList<String>();
+	public static long lastMatch;
+	public static long block;
+	private static int blockCunt;
 	public static boolean active=true;
 	static {
 		map.put("a","あ");map.put("i","い");map.put("u","う");map.put("e","え");map.put("o","お");
@@ -47,12 +50,15 @@ public class Japanese{
 		map.put("pa","ぱ");map.put("pi","ぴ");map.put("pu","ぷ");map.put("pe","ぺ");map.put("po","ぽ");
 		map.put("fa","ふぁ");map.put("fi","ふぃ");map.put("fu","ふ");map.put("fe","ふぇ");map.put("fo","ふぉ");
 		map.put("byi","びゃ");map.put("byi","びぃ");map.put("byu","びゅ");map.put("bye","びぇ");map.put("byo","びょ");
+		map.put("vyu","ヴゅ");
 
 		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");map.put("~","～");
 
-		NGword.add("mannko");NGword.add("manko");NGword.add("tinko");NGword.add("tinnko");
-		NGword.add("oppai");NGword.add("unnti");NGword.add("unti");NGword.add("unnko");
-		NGword.add("unko");NGword.add("tinnko");NGword.add("homo");
+		NGword.add("まんこ");NGword.add("ちんこ");NGword.add("ちんぽ");NGword.add("tんぽ");
+		NGword.add("おっぱい");NGword.add("うんち");NGword.add("うんこ");NGword.add("ほも");
+		NGword.add("せっくす");NGword.add("せいし");NGword.add("せいえき");NGword.add("ざーめん");
+		NGword.add("きんたま");NGword.add("まんまん");NGword.add("みるく");NGword.add("ぱいぱん");
+		NGword.add("おなに");NGword.add("ぺにす");NGword.add("ちんちん");
 
 		map.put("-","ー");
 	}
@@ -64,18 +70,12 @@ public class Japanese{
 			if(c=='-'||c=='?'||c==','||c=='.'||c=='!'||c==' '||c=='/');
 			else if(c<0x5B||c>0x7E)return false;
 		}
-		for(int i=0;i<NGword.size();i++) {
-			if(text.indexOf(NGword.get(i))>=0) {
-				chat_server.chat("/NGワードを含みます");
-				return false;
-			}
-		}
 		StringBuilder result=new StringBuilder();
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
 			if(i+1<text.length()) {
 				if(c==text.charAt(i+1)) {
-					if(c=='a'||c=='i'||c=='u'||c=='e'||c=='o');
+					if(c=='a'||c=='i'||c=='u'||c=='e'||c=='o'||c=='/'||c=='^');
 					else if(c!='n') {
 						result.append('っ');
 						continue;
@@ -104,8 +104,48 @@ public class Japanese{
 				result.append(r);
 			}else result.append(ms);
 		}
+		String r=result.toString();
+		//NGワードなしで使うならここでchat_server.chat(r);するといい
 		System.out.println("ローマ字変換"+text+"="+result);
-		chat_server.chat(result.toString());
+		for(int i=0;i<NGword.size();i++) {
+			if(r.indexOf(NGword.get(i))>=0) {
+				chat_server.chat("/NGワードを含みます");
+				block();
+				return false;
+			}
+		}
+		char[] taisaku=new char[] {' ','^','/','ー','_','\\'};
+		StringBuilder t=new StringBuilder();
+		for(int i=0;i<r.length();i++) {
+			char c=r.charAt(i);
+			boolean flag=false;
+			for(char ch:taisaku) {
+				if(c==ch)flag=true;
+			}
+			if(flag);
+			else t.append(c);
+		}
+		//System.out.println(t.toString());
+		for(int ta=0;ta<taisaku.length;ta++) {
+			for(int i=0;i<NGword.size();i++) {
+				if(t.indexOf(NGword.get(i))>=0) {
+					chat_server.chat("/NGワード対策するな");
+					block();
+					return false;
+				}
+			}
+		}
+		chat_server.chat(r);
 		return true;
+	}
+	public static void block() {
+		System.out.println("NG掛かった");
+		if(System.currentTimeMillis()-lastMatch<2000)blockCunt++;//2秒以内にNGに掛かった時
+		else blockCunt=0;//それ以上空いていた時カウントをリセット
+		lastMatch=System.currentTimeMillis();//最後に掛かった時間
+		if(blockCunt>3) {//3回以上掛かった時
+			block=lastMatch+30*1000;//ブロック時間10秒
+			chat_server.chat("/NGワードを連投されたので30秒間変換を停止します。");
+		}
 	}
 }
