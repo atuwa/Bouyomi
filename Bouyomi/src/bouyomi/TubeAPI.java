@@ -26,6 +26,7 @@ public class TubeAPI{
 	public static ArrayList<String> playHistory=new ArrayList<String>();
 	private static String HistoryFile="play.txt";
 	public static boolean playTube(String videoID) {
+		if(videoID.indexOf("script")>=0)return false;
 		try{
 			nowPlayVideo=true;
 			if(DefaultVol>=0)VOL=DefaultVol;

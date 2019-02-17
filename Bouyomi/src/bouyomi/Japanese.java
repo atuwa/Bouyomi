@@ -62,14 +62,18 @@ public class Japanese{
 
 		map.put("-","ー");
 	}
-	public static boolean trans(String text) {
-		if(!active)return false;
-		if(text.length()<5||chat_server==null)return false;
+	public static boolean isTrans(String text) {
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
 			if(c=='-'||c=='?'||c==','||c=='.'||c=='!'||c==' '||c=='/');
 			else if(c<0x5B||c>0x7E)return false;
 		}
+		return true;
+	}
+	public static boolean trans(String text) {
+		if(!active)return false;
+		if(text.length()<5||chat_server==null)return false;
+		if(!isTrans(text))return false;
 		StringBuilder result=new StringBuilder();
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
@@ -135,7 +139,10 @@ public class Japanese{
 				}
 			}
 		}
-		chat_server.chat(r);
+		if(isTrans(text)) {
+			chat_server.chat("/変換できません");
+			return false;
+		}else chat_server.chat(r);
 		return true;
 	}
 	public static void block() {
