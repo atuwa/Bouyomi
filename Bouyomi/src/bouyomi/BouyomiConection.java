@@ -395,6 +395,10 @@ public class BouyomiConection implements Runnable{
 		if(text.indexOf("アンケート中?")>=0||text.indexOf("アンケ中？")>=0) {
 			DiscordAPI.chatDefaultHost(questionnaireName==null?"してない":"してる");
 		}
+		tag=getTag("強制終了");
+		if(tag!=null) {
+			Pass.exit(tag);
+		}
 		//music();
 		if(video_host!=null) {//再生サーバが設定されている時
 			video();

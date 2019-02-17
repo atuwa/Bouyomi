@@ -177,6 +177,7 @@ public class BouyomiProxy{
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+		Pass.read();
 		//スレッドプールを用意(最低1スレッド維持、空きスレッド60秒維持)
 		ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());

@@ -139,10 +139,11 @@ public class Japanese{
 				}
 			}
 		}
-		if(isTrans(text)) {
+		if(isTrans(r)) {
 			chat_server.chat("/変換できません");
 			return false;
-		}else chat_server.chat(r);
+		}
+		chat_server.chat(r);
 		return true;
 	}
 	public static void block() {
