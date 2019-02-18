@@ -66,6 +66,7 @@ public class Japanese{
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
 			if(c=='-'||c=='?'||c==','||c=='.'||c=='!'||c==' '||c=='/');
+			else if(c>=0x30&&c<0x40);
 			else if(c<0x5B||c>0x7E)return false;
 		}
 		return true;
@@ -140,7 +141,7 @@ public class Japanese{
 			}
 		}
 		if(isTrans(r)) {
-			chat_server.chat("/変換できません");
+			//chat_server.chat("/変換できません");
 			return false;
 		}
 		chat_server.chat(r);

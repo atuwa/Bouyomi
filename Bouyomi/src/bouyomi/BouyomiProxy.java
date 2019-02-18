@@ -13,7 +13,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -32,10 +31,6 @@ public class BouyomiProxy{
 	private static String command;//コンソールに入力されたテキスト
 	public static int bouyomi_port,proxy_port;//棒読みちゃんのポート(サーバはlocalhost固定)
 	public static long lastComment=System.currentTimeMillis();
-	/**アンケート*/
-	public static String questionnaireName;
-	public static ArrayList<String> questionnaireList=new ArrayList<String>();
-	public static HashMap<String,Integer> questionnaire=new HashMap<String,Integer>();
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
 		InputStreamReader isr=new InputStreamReader(System.in);
