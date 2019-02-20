@@ -44,6 +44,7 @@ public class Japanese{
 		map.put("za","ざ");map.put("zi","じ");map.put("zu","ず");map.put("ze","ぜ");map.put("zo","ぞ");
 		map.put("ja","じゃ");map.put("ji","じ");map.put("ju","じゅ");map.put("je","じぇ");map.put("jo","じょ");
 		map.put("jya","じゃ");map.put("jyi","じぃ");map.put("jyu","じゅ");map.put("jye","じぇ");map.put("jyo","じょ");
+		map.put("zya","じゃ");map.put("zyi","じぃ");map.put("zyu","じゅ");map.put("zye","じぇ");map.put("zyo","じょ");
 		map.put("da","だ");map.put("di","ぢ");map.put("du","づ");map.put("de","で");map.put("do","ど");
 		map.put("ga","が");map.put("gi","ぐ");map.put("ge","げ");map.put("go","ご");
 		map.put("ba","ば");map.put("bi","び");map.put("bu","ぶ");map.put("be","べ");map.put("bo","ぼ");
@@ -55,8 +56,8 @@ public class Japanese{
 		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");map.put("~","～");
 
 		NGword.add("まんこ");NGword.add("ちんこ");NGword.add("ちんぽ");NGword.add("tんぽ");
-		NGword.add("おっぱい");NGword.add("うんち");NGword.add("うんこ");NGword.add("ほも");
-		NGword.add("せっくす");NGword.add("せいし");NGword.add("せいえき");NGword.add("ざーめん");
+		NGword.add("おぱい");NGword.add("うんち");NGword.add("うんこ");NGword.add("ほも");
+		NGword.add("せくす");NGword.add("せいし");NGword.add("せいえき");NGword.add("ざめん");
 		NGword.add("きんたま");NGword.add("まんまん");NGword.add("みるく");NGword.add("ぱいぱん");
 		NGword.add("おなに");NGword.add("ぺにす");NGword.add("ちんちん");
 
@@ -67,7 +68,7 @@ public class Japanese{
 			char c=text.charAt(i);
 			if(c=='-'||c=='?'||c==','||c=='.'||c=='!'||c==' '||c=='/');
 			else if(c>=0x30&&c<0x40);
-			else if(c<0x5B||c>0x7E)return false;
+			else if(c<0x60||c>0x7A)return false;
 		}
 		return true;
 	}
@@ -75,12 +76,14 @@ public class Japanese{
 		if(!active)return false;
 		if(text.length()<5||chat_server==null)return false;
 		if(!isTrans(text))return false;
+		if(block>System.currentTimeMillis())return false;
 		StringBuilder result=new StringBuilder();
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
 			if(i+1<text.length()) {
 				if(c==text.charAt(i+1)) {
 					if(c=='a'||c=='i'||c=='u'||c=='e'||c=='o'||c=='/'||c=='^');
+					else if(c>=0x30&&c<0x40);
 					else if(c!='n') {
 						result.append('っ');
 						continue;
@@ -119,7 +122,7 @@ public class Japanese{
 				return false;
 			}
 		}
-		char[] taisaku=new char[] {' ','^','/','ー','_','\\'};
+		char[] taisaku=new char[] {' ','^','/','ー','_','\\','っ'};
 		StringBuilder t=new StringBuilder();
 		for(int i=0;i<r.length();i++) {
 			char c=r.charAt(i);

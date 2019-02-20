@@ -25,8 +25,16 @@ public class TubeAPI{
 	/**履歴が入ってるリスト*/
 	public static ArrayList<String> playHistory=new ArrayList<String>();
 	private static String HistoryFile="play.txt";
-	public static boolean playTube(String videoID) {
-		if(videoID.indexOf("script")>=0)return false;
+	public static boolean playTube(BouyomiConection bc,String videoID) {
+		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0)return false;
+		int index=videoID.indexOf('&');
+		String vid=videoID;
+		if(index>0)vid=videoID.substring(0,index);
+		if("v=grrX9elpi_A".equals(vid)) {
+			System.out.println("再生禁止="+vid);
+			if(bc!=null)bc.em="再生が禁止されています";
+			return false;
+		}
 		try{
 			nowPlayVideo=true;
 			if(DefaultVol>=0)VOL=DefaultVol;
@@ -97,7 +105,7 @@ public class TubeAPI{
 				url.indexOf("http://youtube.com/")==0) {
 			String vid=extract(url,"v");
 			String lid=extract(url,"list");
-			if(vid!=null)return playTube(vid);
+			if(vid!=null)return playTube(bc, vid);
 			else if(lid!=null) {
 				String indexS=extract(url,"index");
 				int index=-1;
@@ -110,19 +118,19 @@ public class TubeAPI{
 					}
 				}
 				if(index>=0)lid+="&index="+index;
-				return playTube(lid);
+				return playTube(bc, lid);
 			}else{
 				bc.em="URLを解析できませんでした";
 				return false;
 			}
 		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
-			return playTube("v="+url.substring(17));
+			return playTube(bc, "v="+url.substring(17));
 		}else if(url.indexOf("v=")==0) {
-			return playTube(url);
+			return playTube(bc, url);
 		}else if(url.indexOf("list=")==0) {
-			return playTube(url);
+			return playTube(bc, url);
 		}else if(url.indexOf("nico=")==0) {
-			return playTube(url);
+			return playTube(bc, url);
 		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0
 				||url.indexOf("http://www.nicovideo.jp/watch/")==0
 				||url.indexOf("https://nicovideo.jp/watch/")==0
@@ -132,7 +140,7 @@ public class TubeAPI{
 			if(m.find()) {
 				url=m.group();
 				//System.out.println("ニコニコ ID="+url);
-				return playTube("nico="+url);
+				return playTube(bc, "nico="+url);
 			}
 		}else{
 			Pattern p = Pattern.compile("sm[0-9]++");
@@ -140,7 +148,7 @@ public class TubeAPI{
 			if(m.find()) {
 				url=m.group();
 				//System.out.println("ニコニコ ID="+url);
-				return playTube("nico="+url);
+				return playTube(bc, "nico="+url);
 			}
 			bc.em="URLを解析できませんでした";
 			System.out.println("URL解析失敗"+url);

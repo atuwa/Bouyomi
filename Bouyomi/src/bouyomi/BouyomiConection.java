@@ -31,6 +31,7 @@ public class BouyomiConection implements Runnable{
 	private int len;
 	public String em=null;//置き換えメッセージ
 	private int type;
+	public String user;
 	/**受け取った文字データ*/
 	private ByteArrayOutputStream baos2;
 	/**送信データ入れ*/
@@ -89,6 +90,15 @@ public class BouyomiConection implements Runnable{
 		}
 		if(d[7]==0)text=baos2.toString("utf-8");//UTF-8でデコード
 		else if(d[7]==1)text=baos2.toString("utf-16");//UTF-16でデコード
+		if(text!=null) {
+			String key="濰濱濲濳濴濵濶濷濸濹濺濻濼濽濾濿";
+			int index=text.indexOf(key);
+			if(index>0) {
+				user=text.substring(0,index);
+				text=text.substring(index+key.length());
+				fb=text.charAt(0);
+			}
+		}
 	}
 	private void replace() throws IOException {
 		//System.out.println("len="+len);
@@ -248,7 +258,7 @@ public class BouyomiConection implements Runnable{
 			Tag tag;
 			if(text==null)tag=null;
 			else tag=new Tag(this);
-			if(fb=='/'||fb=='\\'){//最初の文字がスラッシュの時は終了
+			if(fb=='/'||fb=='\\'||text.indexOf("```")==0){//最初の文字がスラッシュの時は終了
 				//System.out.println("スラッシュで始まる");
 				mute=true;
 				if(text!=null) {

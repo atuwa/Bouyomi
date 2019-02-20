@@ -91,7 +91,18 @@ public class BouyomiProxy{
 		}
 		//0文字だったら無し、それ以外だったらそれ
 		if(!command.isEmpty())Japanese.chat_server=new DiscordAPI(command);
-		System.out.println("ローマ字変換結果をDiscordに投稿するサーバ"+(DiscordAPI.service_host==null?"無し":DiscordAPI.service_host));
+		System.out.println("ローマ字変換結果をDiscordに投稿するサーバ"+(Japanese.chat_server==null?"無し":Japanese.chat_server.server));
+
+		if(args.length>6) {
+			if(args[6].equals("-"))command="";
+			else command=args[6];
+		}else {
+			System.out.println("mp3とwavファイルを再生するサーバのアドレス");
+			command=br.readLine();//1行取得する
+		}
+		//0文字だったら無し、それ以外だったらそれ
+		if(!command.isEmpty())MusicPlayerAPI.host=command;
+		System.out.println("mp3とwavファイルを再生するサーバ"+(MusicPlayerAPI.host==null?"無し":MusicPlayerAPI.host));
 
 		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
@@ -119,6 +130,8 @@ public class BouyomiProxy{
 							}catch(IOException e){
 								e.printStackTrace();
 							}
+						}else if("addPass".equals(command)) {
+							Pass.addPass();
 						}else if("listBOT".equals(command)) {
 							BOT.forEach(new BiConsumer<String,String>(){
 								@Override

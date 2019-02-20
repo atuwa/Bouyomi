@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
 
-import player.WAVPlayer;
-
 public class Tag{
 	/**アンケート*/
 	public static String questionnaireName;
 	public static ArrayList<String> questionnaireList=new ArrayList<String>();
+	public static HashMap<String,String> questionnaireUserList=new HashMap<String,String>();
 	public static HashMap<String,Integer> questionnaire=new HashMap<String,Integer>();
 	private BouyomiConection con;
 	private String text;
@@ -23,6 +22,10 @@ public class Tag{
 	}
 	/**自作プロキシの追加機能*/
 	public String bot() {
+		if(text.equals("!help")) {
+			DiscordAPI.chatDefaultHost("説明 https://github.com/atuwa/Bouyomi/wiki");
+			return "";
+		}
 		if(text.indexOf("応答(")==0||text.indexOf("応答（")==0) {//自動応答機能を使う時
 			//System.out.println(text);//ログに残す
 			int ei=text.indexOf('=');
@@ -33,7 +36,7 @@ public class Tag{
 			if(ei>0&&ki>1) {
 				String key=text.substring(3,ei);
 				String val=text.substring(ei+1,ki);
-				if(key.equals(val)) {
+				if(!key.equals(val)) {
 					em=key+" には "+val+" を返します";
 					System.out.println("応答登録（"+key+"="+val+")");//ログに残す
 					BOT.put(key,val);
@@ -64,17 +67,13 @@ public class Tag{
 		}
 		if(questionnaireName!=null)try {
 			if(questionnaire.containsKey(text)) {
-				Integer value=questionnaire.get(text);
-				questionnaire.put(text,value+1);
-				em="投票";
-			}else {
+				questionnaire(text);
+			}else{
 				int i=Integer.parseInt(text);
 				if(questionnaireList.size()>i&&i>=0) {
 					String key=questionnaireList.get(i);
 					if(questionnaire.containsKey(key)) {
-						Integer value=questionnaire.get(key);
-						questionnaire.put(key,value+1);
-						em="投票";
+						questionnaire(key);
 					}
 				}
 			}
@@ -118,42 +117,58 @@ public class Tag{
 			questionnaireList.clear();
 			questionnaire.clear();
 		}
-		if(text.indexOf("アンケート中?")>=0||text.indexOf("アンケ中？")>=0) {
+		if(text.indexOf("アンケート中?")>=0||text.indexOf("アンケート中？")>=0
+				||text.indexOf("アンケ中?")>=0||text.indexOf("アンケ中？")>=0) {
 			DiscordAPI.chatDefaultHost(questionnaireName==null?"してない":"してる");
 		}
 		tag=getTag("強制終了");
 		if(tag!=null) {
 			Pass.exit(tag);
 		}
-		//music();
+		music();
 		if(video_host!=null) {//再生サーバが設定されている時
 			video();
 		}
 		return text;
 	}
+	public void questionnaire(String key) {
+		if(questionnaireUserList.containsKey(con.user)) {
+			String k=questionnaireUserList.get(con.user);
+			Integer value=questionnaire.get(k);
+			questionnaire.put(k,value-1);
+		}
+		Integer value=questionnaire.get(key);
+		questionnaire.put(key,value+1);
+		em="投票";
+		questionnaireUserList.put(con.user,key);
+	}
 	public void music() {
 		String tag=getTag("音楽再生");
 		if(tag!=null) {
 			if(tag.isEmpty()) {
-				WAVPlayer.play();
+				MusicPlayerAPI.play();
 				em="続きを再生します。";
 			}else {
-				WAVPlayer.play(tag);
+				MusicPlayerAPI.play(tag);
 				em="音楽ファイルを再生します。";
 			}
-			float vol=WAVPlayer.nowVolume();
+			float vol=MusicPlayerAPI.nowVolume();
 			if(vol>=0)em+="音量は"+vol+"です";
 		}
 		tag=getTag("音楽音量");
 		if(tag!=null) {
-			try{
+			if(tag.isEmpty()) {
+				float vol=MusicPlayerAPI.nowVolume();
+				em="音量は"+vol+"です";
+				System.out.println("音楽音量"+vol);//ログに残す
+			}else try{
 				float vol=Float.parseFloat(tag);
 				float Nvol=-10;
 				switch(tag.charAt(0)){
 					case '+':
 					case '-':
 					case 'ー':
-						Nvol=WAVPlayer.nowVolume();//+記号で始まる時今の音量を取得
+						Nvol=MusicPlayerAPI.nowVolume();//+記号で始まる時今の音量を取得
 				}
 				if(Nvol==-1) {
 					em="音量を変更できませんでした";//失敗した時これを読む
@@ -161,10 +176,9 @@ public class Tag{
 					if(Nvol>=0)vol=Nvol+vol;//音量が取得させていたらそれに指定された音量を足す
 					if(vol>100)vol=100;//音量が100以上の時100にする
 					else if(vol<0)vol=0;//音量が0以下の時0にする
-					System.out.println("音楽音量"+vol);//ログに残す
-					WAVPlayer.Volume=vol;
-					if(WAVPlayer.setVolume(vol)>=0)em="音量を"+vol+"にします";//動画再生プログラムにコマンド送信
+					if(MusicPlayerAPI.setVolume(vol)>=0)em="音量を"+vol+"にします";//動画再生プログラムにコマンド送信
 					else em="音量を変更できませんでした";//失敗した時これを読む
+					System.out.println(em);//ログに残す
 				}
 			}catch(NumberFormatException e) {
 
@@ -172,7 +186,7 @@ public class Tag{
 		}
 		tag=getTag("音楽停止");
 		if(tag!=null) {
-			WAVPlayer.Stop();
+			MusicPlayerAPI.stop();
 			em="音楽を停止します。";
 		}
 	}

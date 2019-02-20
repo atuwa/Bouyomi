@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 
 /**ワンタイムパスワード機能*/
@@ -21,7 +22,7 @@ public class Pass{
 			while(br.ready()) {
 				String line=br.readLine();
 				if(line==null)break;
-				pass.add(line);
+				if(!line.isEmpty())pass.add(line);
 			}
 		}finally {
 			if(br!=null)br.close();
@@ -38,6 +39,37 @@ public class Pass{
 			}
 		}finally{
 			osw.close();
+		}
+	}
+	public static void addPass() {
+		StringBuilder sb=new StringBuilder("M");
+		SecureRandom r=new SecureRandom();
+		for(int i=0;i<50;i++) {
+			char c=(char) (r.nextInt(81)+42);
+			switch(c) {
+				case '[':
+				case ']':
+				case '\\':
+				case '<':
+				case '>':
+				case '.':
+				case ',':
+				case '^':
+				case '/':
+				case '@':
+				case '?':
+				case '*':
+				case 96:
+					i--;
+					continue;
+			}
+			sb.append(c);
+		}
+		pass.add(sb.toString());
+		try{
+			write();
+		}catch(IOException e){
+			e.printStackTrace();
 		}
 	}
 	public static void exit(String pass) {
