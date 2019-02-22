@@ -12,6 +12,10 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,12 +29,20 @@ public class TubeAPI{
 	/**履歴が入ってるリスト*/
 	public static ArrayList<String> playHistory=new ArrayList<String>();
 	private static String HistoryFile="play.txt";
+	private static long lastPlayDate;
+	private static ExecutorService pool=new ThreadPoolExecutor(0,10,60L,TimeUnit.SECONDS,
+            new SynchronousQueue<Runnable>());
+	protected static int stopTime=480000;
 	public static boolean playTube(BouyomiConection bc,String videoID) {
 		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0)return false;
+		if(System.currentTimeMillis()-lastPlayDate<5000) {
+			if(bc!=null)bc.em="前回の再生から5秒以内には再生できません";
+			return false;
+		}
 		int index=videoID.indexOf('&');
 		String vid=videoID;
 		if(index>0)vid=videoID.substring(0,index);
-		if("v=grrX9elpi_A".equals(vid)) {
+		if("v=grrX9elpi_A".equals(vid)||"v=15E9PJIZUwQ".equals(vid)) {
 			System.out.println("再生禁止="+vid);
 			if(bc!=null)bc.em="再生が禁止されています";
 			return false;
@@ -38,6 +50,7 @@ public class TubeAPI{
 		try{
 			nowPlayVideo=true;
 			if(DefaultVol>=0)VOL=DefaultVol;
+			lastPlayDate=System.currentTimeMillis();
 			//videoID=URLEncoder.encode(videoID,"utf-8");//これ使うと動かない
 			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
 			url.openStream().close();
@@ -57,12 +70,50 @@ public class TubeAPI{
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
+			pool.execute(new Runnable() {
+				@Override
+				public void run(){
+					checkError();
+				}
+			});
 			return true;
 		}catch(IOException e){
 			System.err.println(e.getMessage());
 			//e.printStackTrace();
 		}
 		return false;
+	}
+	public static void checkError() {
+		for(int i=0;i<5;i++) {
+			try{
+				Thread.sleep(500);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+			String s=getLine("GETerror=0");
+			if(s==null)return;
+			try {
+				int ec=Integer.parseInt(s);
+				if(ec>0) {
+					lastPlayDate=0;
+					System.out.println("動画再生エラー="+ec+"動画ID="+lastPlay);
+					String c=Integer.toString(ec);
+					if(!DiscordAPI.chatDefaultHost("再生エラー"+c)) {
+						char[] ca=new char[c.length()*2];
+						int k=0;
+						for(int j=0;j<ca.length;j+=2) {
+							ca[j]=c.charAt(k);
+							ca[j+1]=',';
+							k++;
+						}
+						BouyomiProxy.talk(BouyomiProxy.proxy_port,"再生エラー"+String.valueOf(ca));
+					}
+					return;
+				}
+			}catch(NumberFormatException e) {
+				return;
+			}
+		}
 	}
 	public static int getVol(){
 		try{
@@ -227,7 +278,7 @@ public class TubeAPI{
 				while(true) {
 					try{
 						Thread.sleep(60000);
-						if(nowPlayVideo&&System.currentTimeMillis()-BouyomiProxy.lastComment>8*60000) {
+						if(nowPlayVideo&&System.currentTimeMillis()-BouyomiProxy.lastComment>stopTime) {
 							if("NOT PLAYING".equals(getLine("status")))nowPlayVideo=false;
 							else{
 								System.out.println("動画自動停止");

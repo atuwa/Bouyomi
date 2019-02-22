@@ -11,6 +11,7 @@ public class DiscordAPI{
 	public DiscordAPI(String service_host){
 		server=service_host;
 	}
+	/**@return 成功したときtrue*/
 	public static boolean chatDefaultHost(String c){
 		if(Default==null)Default=new DiscordAPI(service_host);
 		return Default.chat(c);

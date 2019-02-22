@@ -116,6 +116,7 @@ public class Tag{
 			questionnaireName=null;
 			questionnaireList.clear();
 			questionnaire.clear();
+			questionnaireUserList.clear();
 		}
 		if(text.indexOf("アンケート中?")>=0||text.indexOf("アンケート中？")>=0
 				||text.indexOf("アンケ中?")>=0||text.indexOf("アンケ中？")>=0) {

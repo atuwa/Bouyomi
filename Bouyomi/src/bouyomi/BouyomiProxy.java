@@ -112,7 +112,10 @@ public class BouyomiProxy{
 					try{
 						command=br.readLine();//1行取得する
 						if(command==null) System.exit(1);//読み込み失敗した場合終了
-						if("saveConfig".equals(command)) {
+						if(command.indexOf("stopTime")==0) {
+							TubeAPI.stopTime=Integer.parseInt(command.substring(8));
+							System.out.println("自動停止時間"+TubeAPI.stopTime+"ms");
+						}else if("saveConfig".equals(command)) {
 							try{
 								save(Config,"config.txt");
 							}catch(IOException e){

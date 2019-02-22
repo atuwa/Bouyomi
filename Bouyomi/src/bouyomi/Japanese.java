@@ -117,7 +117,7 @@ public class Japanese{
 		System.out.println("ローマ字変換"+text+"="+result);
 		for(int i=0;i<NGword.size();i++) {
 			if(r.indexOf(NGword.get(i))>=0) {
-				chat_server.chat("/NGワードを含みます");
+				//chat_server.chat("/NGワードを含みます");
 				block();
 				return false;
 			}
@@ -137,7 +137,7 @@ public class Japanese{
 		for(int ta=0;ta<taisaku.length;ta++) {
 			for(int i=0;i<NGword.size();i++) {
 				if(t.indexOf(NGword.get(i))>=0) {
-					chat_server.chat("/NGワード対策するな");
+					//chat_server.chat("/NGワード対策するな");
 					block();
 					return false;
 				}
@@ -147,7 +147,7 @@ public class Japanese{
 			//chat_server.chat("/変換できません");
 			return false;
 		}
-		chat_server.chat(r);
+		chat_server.chat("/"+r);
 		return true;
 	}
 	public static void block() {
