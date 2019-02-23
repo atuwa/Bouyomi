@@ -51,6 +51,7 @@ public class Japanese{
 		map.put("pa","ぱ");map.put("pi","ぴ");map.put("pu","ぷ");map.put("pe","ぺ");map.put("po","ぽ");
 		map.put("fa","ふぁ");map.put("fi","ふぃ");map.put("fu","ふ");map.put("fe","ふぇ");map.put("fo","ふぉ");
 		map.put("byi","びゃ");map.put("byi","びぃ");map.put("byu","びゅ");map.put("bye","びぇ");map.put("byo","びょ");
+		map.put("sha","しゃ");map.put("shi","し");map.put("shu","しゅ");map.put("she","しぇ");map.put("sho","しょ");
 		map.put("vyu","ヴゅ");
 
 		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");map.put("~","～");

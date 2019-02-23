@@ -34,7 +34,7 @@ public class TubeAPI{
             new SynchronousQueue<Runnable>());
 	protected static int stopTime=480000;
 	public static boolean playTube(BouyomiConection bc,String videoID) {
-		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0)return false;
+		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0||videoID.indexOf('?')>=0)return false;
 		if(System.currentTimeMillis()-lastPlayDate<5000) {
 			if(bc!=null)bc.em="前回の再生から5秒以内には再生できません";
 			return false;
@@ -98,7 +98,24 @@ public class TubeAPI{
 					lastPlayDate=0;
 					System.out.println("動画再生エラー="+ec+"動画ID="+lastPlay);
 					String c=Integer.toString(ec);
-					if(!DiscordAPI.chatDefaultHost("再生エラー"+c)) {
+					StringBuilder dis=new StringBuilder("再生エラー");
+					dis.append(c);
+					switch(ec) {
+						case 2:
+							dis.append("\n/*リクエストに無効なパラメータ値が含まれています。正常に再生されている可能性もあります");
+							break;
+						case 5:
+							dis.append("\n/*Youtubeのiframeプレイヤーでエラーが発生しました(参考)");
+							break;
+						case 100:
+							dis.append("\n/*動画が見つかりません。削除されているか非公開に設定されているかもしれません(参考)");
+							break;
+						case 101:
+						case 150:
+							dis.append("\n/*動画の所有者が、埋め込み動画プレーヤーでの再生を許可していません(参考)");
+							break;
+					}
+					if(!DiscordAPI.chatDefaultHost(dis.toString())) {
 						char[] ca=new char[c.length()*2];
 						int k=0;
 						for(int j=0;j<ca.length;j+=2) {
@@ -175,7 +192,11 @@ public class TubeAPI{
 				return false;
 			}
 		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
-			return playTube(bc, "v="+url.substring(17));
+			int end=url.indexOf('?');
+			String vid;
+			if(end>=0)vid=url.substring(17,end);
+			else vid=url.substring(17);
+			return playTube(bc, "v="+vid);
 		}else if(url.indexOf("v=")==0) {
 			return playTube(bc, url);
 		}else if(url.indexOf("list=")==0) {
@@ -202,9 +223,20 @@ public class TubeAPI{
 				return playTube(bc, "nico="+url);
 			}
 			bc.em="URLを解析できませんでした";
-			System.out.println("URL解析失敗"+url);
+			System.out.println("URL解析失敗="+url);
 		}
 		return false;
+	}
+	public static String statusAllJson() {
+		StringBuilder sb=new StringBuilder(64);//
+		sb.append("{\n");
+		sb.append("\t\"lastPlay\":\"").append(lastPlay).append("\"\n");
+		sb.append("\t\"stopTime\":").append(stopTime).append("\n");
+		sb.append("\t\"DefaultVol\":").append(DefaultVol).append("\n");
+		sb.append("\t\"Vol\":").append(VOL).append("\n");
+		sb.append("\t\"lastPlayDate\":").append(lastPlayDate).append("\n");
+		sb.append("}\n");
+		return sb.toString();
 	}
 	/*//新しいの。上手いこと動かない
 	public static String extract(String url,String name) {
@@ -245,7 +277,7 @@ public class TubeAPI{
 			return "https://www.youtube.com/watch?"+id;
 		}else if(id.indexOf("list=")==0){//プレイリスト
 			return "https://www.youtube.com/playlist?"+id;
-		}else if(id.indexOf("nico=")==0){//プレイリスト
+		}else if(id.indexOf("nico=")==0){//ニコニコ
 			return "https://www.nicovideo.jp/watch/"+id.substring(5);
 		}
 		return null;//それ以外

@@ -138,7 +138,7 @@ public class BouyomiConection implements Runnable{
 			return;
 		}
 		if(Japanese.trans(text)) {
-			text=text.replaceAll("nn","ん");
+			text=text.replaceAll("nn","n");
 		}
 		//文字データが取得できた時
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
@@ -271,7 +271,7 @@ public class BouyomiConection implements Runnable{
 			}
 			if(text!=null) {
 				text=tag.bot();
-				em=tag.em;
+				if(em==null)em=tag.em;
 				replace();
 			}
 			else if(len>=250)em="長文省略";

@@ -3,16 +3,7 @@ package bouyomi;
 import static bouyomi.BouyomiProxy.*;
 import static bouyomi.TubeAPI.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.function.BiConsumer;
-
 public class Tag{
-	/**アンケート*/
-	public static String questionnaireName;
-	public static ArrayList<String> questionnaireList=new ArrayList<String>();
-	public static HashMap<String,String> questionnaireUserList=new HashMap<String,String>();
-	public static HashMap<String,Integer> questionnaire=new HashMap<String,Integer>();
 	private BouyomiConection con;
 	private String text;
 	public String em;
@@ -65,63 +56,7 @@ public class Tag{
 				em="平仮名変換機能を無効にしました";
 			}
 		}
-		if(questionnaireName!=null)try {
-			if(questionnaire.containsKey(text)) {
-				questionnaire(text);
-			}else{
-				int i=Integer.parseInt(text);
-				if(questionnaireList.size()>i&&i>=0) {
-					String key=questionnaireList.get(i);
-					if(questionnaire.containsKey(key)) {
-						questionnaire(key);
-					}
-				}
-			}
-		}catch(NumberFormatException nfe) {
-
-		}
-		tag=getTag("アンケート");
-		if(tag!=null&&questionnaireName!=null) {
-			em="実行中のアンケートを終了してください";
-		}else if(tag!=null) {
-			String[] keys=tag.split(",");
-			if(keys.length>0) {
-				questionnaireName=keys[0];
-				StringBuilder result=new StringBuilder("/アンケート名");
-				result.append(questionnaireName).append("\n");
-				for(int i=1;i<keys.length;i++) {
-					String k=keys[i];
-					questionnaireList.add(k);
-					questionnaire.put(k,0);
-					result.append(i-1).append(" : ").append(k).append("\n");
-				}
-				result.append("です");
-				DiscordAPI.chatDefaultHost(result.toString());
-				em="アンケートを開始します";
-			}
-		}
-		tag=getTag("集計");
-		if(tag!=null) {
-			StringBuilder result=new StringBuilder("アンケート名");
-			result.append(questionnaireName).append("\n");
-			questionnaire.forEach(new BiConsumer<String,Integer>(){
-				@Override
-				public void accept(String s,Integer u){
-					result.append(s).append(" が").append(u).append("票\n");
-				}
-			});
-			result.append("でした。");
-			DiscordAPI.chatDefaultHost(result.toString());
-			em="アンケートを終了";
-			questionnaireName=null;
-			questionnaireList.clear();
-			questionnaire.clear();
-			questionnaireUserList.clear();
-		}
-		if(text.indexOf("アンケート中?")>=0||text.indexOf("アンケート中？")>=0
-				||text.indexOf("アンケ中?")>=0||text.indexOf("アンケ中？")>=0) {
-			DiscordAPI.chatDefaultHost(questionnaireName==null?"してない":"してる");
-		}
+		Question.tag(this,con);
 		tag=getTag("強制終了");
 		if(tag!=null) {
 			Pass.exit(tag);
@@ -131,17 +66,6 @@ public class Tag{
 			video();
 		}
 		return text;
-	}
-	public void questionnaire(String key) {
-		if(questionnaireUserList.containsKey(con.user)) {
-			String k=questionnaireUserList.get(con.user);
-			Integer value=questionnaire.get(k);
-			questionnaire.put(k,value-1);
-		}
-		Integer value=questionnaire.get(key);
-		questionnaire.put(key,value+1);
-		em="投票";
-		questionnaireUserList.put(con.user,key);
 	}
 	public void music() {
 		String tag=getTag("音楽再生");
@@ -342,6 +266,11 @@ public class Tag{
 				}
 			}
 			if(text.isEmpty())return;
+		}
+		tag=getTag("VideoStatus");
+		if(tag!=null) {
+			em="";
+			DiscordAPI.chatDefaultHost(statusAllJson());
 		}
 	}
 	public String getTag(String... key) {
