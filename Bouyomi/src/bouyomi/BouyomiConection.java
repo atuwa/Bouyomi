@@ -138,7 +138,12 @@ public class BouyomiConection implements Runnable{
 			return;
 		}
 		if(Japanese.trans(text)) {
-			text=text.replaceAll("nn","n");
+			String n=text.replaceAll("nn","n");
+			if(!text.equals(n)) {
+				text=n;
+				baos2.reset();
+				baos2.write(text.getBytes(StandardCharsets.UTF_8));
+			}
 		}
 		//文字データが取得できた時
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
@@ -164,21 +169,23 @@ public class BouyomiConection implements Runnable{
 				addTask="要望リストに記録できませんでした";//失敗した事を追加で言う
 			}
 		}
-		BOT.forEach(new BiConsumer<String,String>(){
+		if(addTask==null)BOT.forEach(new BiConsumer<String,String>(){
 			@Override
 			public void accept(String key,String val){
 				if(addTask!=null)return;
-				int bi=key.indexOf("部分一致:");
-				if(bi!=0)bi=key.indexOf("部分一致：");
-				if(bi==0&&key.length()>5) {
-					key=key.substring(5);
-					if(text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
-						System.out.println("BOT応答キー =部分一致："+key);//ログに残す
-						if(DiscordAPI.chatDefaultHost(val))addTask="";
-						else addTask=val;//追加で言う
-					}
-				}else 	if(text.equals(key)) {//読み上げテキストがキーに一致した時
+				if(text.equals(key)) {//読み上げテキストがキーに一致した時
 					System.out.println("BOT応答キー ="+key);//ログに残す
+					if(DiscordAPI.chatDefaultHost(val))addTask="";
+					else addTask=val;//追加で言う
+				}
+			}
+		});
+		if(addTask==null)PartialMatchBOT.forEach(new BiConsumer<String,String>(){
+			@Override
+			public void accept(String key,String val){
+				if(addTask!=null)return;
+				if(text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
+					System.out.println("BOT応答キー =部分一致："+key);//ログに残す
 					if(DiscordAPI.chatDefaultHost(val))addTask="";
 					else addTask=val;//追加で言う
 				}

@@ -74,9 +74,8 @@ public class Japanese{
 		return true;
 	}
 	public static boolean trans(String text) {
-		if(!active)return false;
-		if(text.length()<5||chat_server==null)return false;
-		if(!isTrans(text))return false;
+		//有効、5文字以上、投稿サーバあり、変換可能。を全て満たす時だけ変換
+		if(!active||text.length()<5||chat_server==null||!isTrans(text))return false;
 		if(block>System.currentTimeMillis())return false;
 		StringBuilder result=new StringBuilder();
 		for(int i=0;i<text.length();i++) {

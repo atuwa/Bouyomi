@@ -15,10 +15,21 @@ public class Question{
 	public static HashMap<String,Integer> questionnaireUserList=new HashMap<String,Integer>();
 	/**タグ判定*/
 	public static void tag(Tag tm,BouyomiConection bc) {
+		if(DiscordAPI.service_host==null)return;//Discord投票システムが設定されてない時はアンケート機能を無効
 		String text=bc.text;
 		if(questionnaireName!=null)try {//アンケート中の時
-			int i=Integer.parseInt(text);//数値に変換
-			questionnaire(bc, i);//成功したときそのIndexに投票
+			boolean b=true;
+			for(int i=0;i<text.length();i++) {
+				char c=text.charAt(i);
+				if(c<0x30||c>0x39) {
+					b=false;
+					break;
+				}
+			}
+			if(b) {
+				int i=Integer.parseInt(text);//数値に変換
+				questionnaire(bc, i);//成功したときそのIndexに投票
+			}
 		}catch(NumberFormatException nfe) {//失敗した時
 			int i=questionnaireList.indexOf(text);//キーワードからIndexを取得
 			questionnaire(bc, i);//そのIndexに投票。キーワードがない時は後ではじかれる
@@ -27,7 +38,9 @@ public class Question{
 		if(tag!=null&&questionnaireName!=null) {
 			bc.em="実行中のアンケートを終了してください";
 		}else if(tag!=null) {
-			String[] keys=tag.split(",");
+			String[] keys;
+			if(tag.isEmpty())keys=new String[]{""};
+			else keys=tag.split(",");
 			if(keys.length>0) {//最低でもタイトルは必須
 				questionnaireName=keys[0];//最初の文字をタイトルに設定
 				StringBuilder result=new StringBuilder("/アンケート名");//出力テキスト
@@ -39,8 +52,9 @@ public class Question{
 					result.append(i-1).append(" : ").append(k).append("\n");
 				}
 				result.append("です");
-				DiscordAPI.chatDefaultHost(result.toString());
-				bc.em="アンケートを開始します";
+				if(DiscordAPI.chatDefaultHost(result.toString())) {
+					bc.em="アンケートを開始します";
+				}else bc.em="開始したけどディスコードに接続できません";
 			}
 		}
 		tag=tm.getTag("集計");

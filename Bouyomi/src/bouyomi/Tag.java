@@ -3,6 +3,8 @@ package bouyomi;
 import static bouyomi.BouyomiProxy.*;
 import static bouyomi.TubeAPI.*;
 
+import java.util.function.BiConsumer;
+
 public class Tag{
 	private BouyomiConection con;
 	private String text;
@@ -27,25 +29,47 @@ public class Tag{
 			if(ei>0&&ki>1) {
 				String key=text.substring(3,ei);
 				String val=text.substring(ei+1,ki);
-				if(!key.equals(val)) {
+				if(!key.equals(val)&&!isReturn(key)) {
 					em=key+" には "+val+" を返します";
-					System.out.println("応答登録（"+key+"="+val+")");//ログに残す
-					BOT.put(key,val);
+					if(key.indexOf("部分一致：")==0||key.indexOf("部分一致:")==0) {
+						System.out.println("部分一致応答登録（"+key+"="+val+")");//ログに残す
+						PartialMatchBOT.put(key.substring(5),val);
+					}else{
+						System.out.println("完全一致応答登録（"+key+"="+val+")");//ログに残す
+						BOT.put(key,val);
+					}
+				}else {
+					em="登録できません";
+					System.out.println("応答登録不可（"+key+"="+val+")");//ログに残す
 				}
 			}
-		}else if(text.indexOf("応答破棄(")==0||text.indexOf("応答破棄（")==0) {//自動応答機能を使う時
-			//System.out.println(text);//ログに残す
-			int ei=text.lastIndexOf(')');
-			int zi=text.lastIndexOf('）');
-			if(ei<zi)ei=zi;
-			if(ei>5) {
-				String key=text.substring(5,ei);
-				em=key+" には応答を返しません";
-				System.out.println("応答破棄（"+key+")");//ログに残す
-				BOT.remove(key);
-			}
 		}
-		String tag=getTag("平仮名変換");
+		String tag=getTag("応答破棄");
+		if(tag!=null) {//自動応答機能を使う時
+			//System.out.println(text);//ログに残す
+			if(BOT.remove(tag)!=null) {
+				em=tag+" には応答を返しません";
+				System.out.println("応答破棄（"+tag+")");//ログに残す
+			}else em=tag+" には応答が設定されてません";
+		}
+		tag=getTag("応答一覧");
+		if(tag!=null) {
+			final StringBuilder sb=new StringBuilder("/");
+			BOT.forEach(new BiConsumer<String,String>(){
+				@Override
+				public void accept(String key,String val){
+					sb.append("key=").append(key).append(" val=").append(val).append("\n");
+				}
+			});
+			PartialMatchBOT.forEach(new BiConsumer<String,String>(){
+				@Override
+				public void accept(String key,String val){
+					sb.append("部分一致").append("key=").append(key).append(" val=").append(val).append("\n");
+				}
+			});
+			DiscordAPI.chatDefaultHost(sb.toString());
+		}
+		tag=getTag("平仮名変換");
 		if(tag!=null) {
 			Config.put("平仮名変換",tag);
 			if(tag.equals("有効")) {

@@ -116,14 +116,7 @@ public class TubeAPI{
 							break;
 					}
 					if(!DiscordAPI.chatDefaultHost(dis.toString())) {
-						char[] ca=new char[c.length()*2];
-						int k=0;
-						for(int j=0;j<ca.length;j+=2) {
-							ca[j]=c.charAt(k);
-							ca[j+1]=',';
-							k++;
-						}
-						BouyomiProxy.talk(BouyomiProxy.proxy_port,"再生エラー"+String.valueOf(ca));
+						BouyomiProxy.talk(BouyomiProxy.proxy_port,"再生エラー"+c);
 					}
 					return;
 				}
