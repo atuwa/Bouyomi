@@ -18,25 +18,15 @@ public class Question{
 		if(DiscordAPI.service_host==null)return;//Discord投票システムが設定されてない時はアンケート機能を無効
 		String text=bc.text;
 		if(questionnaireName!=null)try {//アンケート中の時
-			boolean b=true;
-			for(int i=0;i<text.length();i++) {
-				char c=text.charAt(i);
-				if(c<0x30||c>0x39) {
-					b=false;
-					break;
-				}
-			}
-			if(b) {
-				int i=Integer.parseInt(text);//数値に変換
-				questionnaire(bc, i);//成功したときそのIndexに投票
-			}
+			int i=Integer.parseInt(text);//数値に変換
+			questionnaire(bc, i);//成功したときそのIndexに投票
 		}catch(NumberFormatException nfe) {//失敗した時
 			int i=questionnaireList.indexOf(text);//キーワードからIndexを取得
 			questionnaire(bc, i);//そのIndexに投票。キーワードがない時は後ではじかれる
 		}
 		String tag=tm.getTag("アンケート");
 		if(tag!=null&&questionnaireName!=null) {
-			bc.em="実行中のアンケートを終了してください";
+			bc.addTask.add("実行中のアンケートを終了してください");
 		}else if(tag!=null) {
 			String[] keys;
 			if(tag.isEmpty())keys=new String[]{""};
@@ -53,8 +43,8 @@ public class Question{
 				}
 				result.append("です");
 				if(DiscordAPI.chatDefaultHost(result.toString())) {
-					bc.em="アンケートを開始します";
-				}else bc.em="開始したけどディスコードに接続できません";
+					bc.addTask.add("アンケートを開始します");
+				}else bc.addTask.add("開始したけどディスコードに接続できません");
 			}
 		}
 		tag=tm.getTag("集計");
@@ -66,8 +56,8 @@ public class Question{
 				result.append(k).append(" が").append(questionnaire[i]).append("票\n");
 			}
 			result.append("でした。");
-			DiscordAPI.chatDefaultHost(result.toString());
-			bc.em="アンケートを終了";
+			if(!tag.equals("内容破棄"))DiscordAPI.chatDefaultHost(result.toString());
+			bc.addTask.add("アンケートを終了");
 			questionnaireName=null;
 			questionnaireList.clear();
 			questionnaireUserList.clear();
@@ -81,12 +71,13 @@ public class Question{
 		if(questionnaire.length<=index||index<0)return;//indexが無効な時に無視する。
 		//例えばキーワードがない時、Index指定で範囲外の時
 		//System.out.println("投票"+key);
+		con.text="";
 		if(questionnaireUserList.containsKey(con.user)) {//ユーザが投票済の時
 			Integer k=questionnaireUserList.get(con.user);//ユーザの投票先(index)
 			questionnaire[k]--;
-		}
+			con.addTask.add("上書き投票");
+		}else con.addTask.add("投票");
 		questionnaire[index]++;
-		con.em="投票";
 		questionnaireUserList.put(con.user,index);
 	}
 }

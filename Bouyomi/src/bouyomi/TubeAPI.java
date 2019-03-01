@@ -36,23 +36,29 @@ public class TubeAPI{
 	public static boolean playTube(BouyomiConection bc,String videoID) {
 		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0||videoID.indexOf('?')>=0)return false;
 		if(System.currentTimeMillis()-lastPlayDate<5000) {
-			if(bc!=null)bc.em="前回の再生から5秒以内には再生できません";
+			if(bc!=null)bc.addTask.add("前回の再生から5秒以内には再生できません");
 			return false;
 		}
+		if(videoID.indexOf(' ')>=0||videoID.indexOf('　')>=0) {
+			videoID=videoID.trim();
+		}
+		/*
 		int index=videoID.indexOf('&');
 		String vid=videoID;
 		if(index>0)vid=videoID.substring(0,index);
 		if("v=grrX9elpi_A".equals(vid)||"v=15E9PJIZUwQ".equals(vid)) {
 			System.out.println("再生禁止="+vid);
-			if(bc!=null)bc.em="再生が禁止されています";
+			if(bc!=null)bc.addTask.add("再生が禁止されています");
 			return false;
 		}
+		*/
 		try{
 			nowPlayVideo=true;
 			if(DefaultVol>=0)VOL=DefaultVol;
 			lastPlayDate=System.currentTimeMillis();
 			//videoID=URLEncoder.encode(videoID,"utf-8");//これ使うと動かない
 			URL url=new URL("http://"+video_host+"/operation.html?"+videoID+"&vol="+VOL);
+			//System.out.println(url.toString());
 			url.openStream().close();
 			lastPlay=videoID;
 			if(playHistory.size()>=maxHistory){
@@ -74,12 +80,14 @@ public class TubeAPI{
 				@Override
 				public void run(){
 					checkError();
+					operation("play");
 				}
 			});
 			return true;
 		}catch(IOException e){
-			System.err.println(e.getMessage());
-			//e.printStackTrace();
+			if(bc!=null)bc.addTask.add("再生プログラムとの通信に問題が発生しました");
+			//System.err.println(e.getMessage());
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -102,7 +110,7 @@ public class TubeAPI{
 					dis.append(c);
 					switch(ec) {
 						case 2:
-							dis.append("\n/*リクエストに無効なパラメータ値が含まれています。正常に再生されている可能性もあります");
+							dis.append("\n/*リクエストに無効なパラメータ値が含まれています(参考)");
 							break;
 						case 5:
 							dis.append("\n/*Youtubeのiframeプレイヤーでエラーが発生しました(参考)");
@@ -113,6 +121,7 @@ public class TubeAPI{
 						case 101:
 						case 150:
 							dis.append("\n/*動画の所有者が、埋め込み動画プレーヤーでの再生を許可していません(参考)");
+							dis.append("\nhttps://atuwa.github.io/TubePlay4e/localserver/test.html で再生可能か確認できます");
 							break;
 					}
 					if(!DiscordAPI.chatDefaultHost(dis.toString())) {
@@ -181,7 +190,7 @@ public class TubeAPI{
 				if(index>=0)lid+="&index="+index;
 				return playTube(bc, lid);
 			}else{
-				bc.em="URLを解析できませんでした";
+				bc.addTask.add("URLを解析できませんでした");
 				return false;
 			}
 		}else if(url.indexOf("https://youtu.be/")==0||url.indexOf("http://youtu.be/")==0) {
@@ -196,6 +205,8 @@ public class TubeAPI{
 			return playTube(bc, url);
 		}else if(url.indexOf("nico=")==0) {
 			return playTube(bc, url);
+		}else if(url.indexOf("sc=")==0) {
+			return playTube(bc, url);
 		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0
 				||url.indexOf("http://www.nicovideo.jp/watch/")==0
 				||url.indexOf("https://nicovideo.jp/watch/")==0
@@ -208,14 +219,23 @@ public class TubeAPI{
 				return playTube(bc, "nico="+url);
 			}
 		}else{
-			Pattern p = Pattern.compile("sm[0-9]++");
-			Matcher m = p.matcher(url);
+			Matcher m = Pattern.compile("sm[0-9]++").matcher(url);
 			if(m.find()) {
 				url=m.group();
 				//System.out.println("ニコニコ ID="+url);
 				return playTube(bc, "nico="+url);
 			}
-			bc.em="URLを解析できませんでした";
+			Matcher scm = Pattern.compile("//api.soundcloud.com/tracks/[0-9]++").matcher(url);
+			if(scm.find()) {
+				String s=scm.group();
+				Matcher scm2 = Pattern.compile("[0-9]++").matcher(s);
+				if(scm2.find()) {
+					url=scm2.group();
+					//System.out.println("SC ID="+url);
+					return playTube(bc, "sc="+url);
+				}
+			}
+			bc.addTask.add("URLを解析できませんでした");
 			System.out.println("URL解析失敗="+url);
 		}
 		return false;

@@ -59,8 +59,6 @@ public class Pass{
 				case '@':
 				case '?':
 				case '*':
-				case '(':
-				case ')':
 				case 96:
 					i--;
 					continue;

@@ -147,11 +147,10 @@ public class BouyomiProxy{
 									System.out.println("key="+key+" val="+val);
 								}
 							});
-						}else if(!"exit".equals(command)) talk(proxy_port,command);//「exit」以外だったら読む
-						else{
+						}else if("exit".equals(command)){
 							ss.close();//サーバ終了
 							System.exit(0);//プログラム終了
-						}
+						}else  talk(proxy_port,command);
 					}catch(IOException e){//コンソールから取得できない時終了
 						System.exit(1);
 					}
@@ -299,6 +298,7 @@ public class BouyomiProxy{
 	}
 	/**文字列を送信*/
 	public static void talk(int port,String message){
+		//System.out.println(message);
 		short volume=-1;//音量　棒読みちゃん設定
 		short speed=-1;//速度　棒読みちゃん設定
 		short tone=-1;//音程　棒読みちゃん設定

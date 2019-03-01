@@ -12,7 +12,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.function.BiConsumer;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,10 +26,9 @@ public class BouyomiConection implements Runnable{
 		soc=s;
 	}
 	String text=null;
-	private Object addTask=null;
+	public ArrayList<String> addTask=new ArrayList<String>();
 	private char fb;//最初の文字
 	private int len;
-	public String em=null;//置き換えメッセージ
 	private int type;
 	public String user;
 	/**受け取った文字データ*/
@@ -37,6 +36,7 @@ public class BouyomiConection implements Runnable{
 	/**送信データ入れ*/
 	private ByteArrayOutputStream baos;
 	public boolean mute;
+	private String readText;
 	private void read() throws IOException {
 		InputStream is=soc.getInputStream();//Discord取得ソフトから読み込むストリーム
 		int ch1=is.read();//コマンドバイトを取得
@@ -96,13 +96,13 @@ public class BouyomiConection implements Runnable{
 			if(index>0) {
 				user=text.substring(0,index);
 				text=text.substring(index+key.length());
+				readText=text;
 				fb=text.charAt(0);
-			}
+			}else readText=text;
 		}
 	}
 	private void replace() throws IOException {
 		//System.out.println("len="+len);
-		if(em!=null)return;
 		//text=text.replaceAll("https?://[\\x21-\\x7F]++","URL省略");
 		{//URL省略処理
 			//URL判定基準を正規表現で指定
@@ -131,10 +131,10 @@ public class BouyomiConection implements Runnable{
 	            text=sb.toString();
 	        }
 		}
-		if(em==null)ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
+		ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 		if(text.length()>=90){//長文省略基準90文字以上
-			em="長文省略";
 			System.out.println("長文省略("+text.length()+"文字)");
+			text="長文省略";
 			return;
 		}
 		if(Japanese.trans(text)) {
@@ -149,12 +149,11 @@ public class BouyomiConection implements Runnable{
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 		if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
 			System.out.println(text);//ログに残す
-			em="b)現在忘却機能は使えません";//代わりに「使えない」と言う
+			text="b)現在忘却機能は使えません";//代わりに「使えない」と言う
 		}else if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
 			System.out.println(text);//ログに残す
 		}else if(text.indexOf("機能要望")>=0){//「機能要望」が含まれる時
 			System.out.println(text);//ログに残す
-			addTask="要望リストに記録しました";//残した事を追加で言う
 			try{
 				FileOutputStream fos=new FileOutputStream("Req.txt",true);//追加モードでファイルを開く
 				try{
@@ -164,33 +163,31 @@ public class BouyomiConection implements Runnable{
 				}finally {
 					fos.close();
 				}
+				addTask.add("要望リストに記録しました");//残した事を追加で言う
 			}catch(IOException e) {
 				e.printStackTrace();
-				addTask="要望リストに記録できませんでした";//失敗した事を追加で言う
+				addTask.add("要望リストに記録できませんでした");//失敗した事を追加で言う
 			}
 		}
-		if(addTask==null)BOT.forEach(new BiConsumer<String,String>(){
-			@Override
-			public void accept(String key,String val){
-				if(addTask!=null)return;
-				if(text.equals(key)) {//読み上げテキストがキーに一致した時
-					System.out.println("BOT応答キー ="+key);//ログに残す
-					if(DiscordAPI.chatDefaultHost(val))addTask="";
-					else addTask=val;//追加で言う
-				}
-			}
-		});
-		if(addTask==null)PartialMatchBOT.forEach(new BiConsumer<String,String>(){
-			@Override
-			public void accept(String key,String val){
-				if(addTask!=null)return;
+		if(!BotRes(BOT,false))BotRes(PartialMatchBOT,true);
+	}
+	private boolean BotRes(HashMap<String, String> BOT,boolean pm) {
+		if(addTask.isEmpty())for(Entry<String, String> e:BOT.entrySet()){
+			String key=e.getKey();
+			String val=e.getValue();
+			if(pm) {
 				if(text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
 					System.out.println("BOT応答キー =部分一致："+key);//ログに残す
-					if(DiscordAPI.chatDefaultHost(val))addTask="";
-					else addTask=val;//追加で言う
+					if(!DiscordAPI.chatDefaultHost(val))addTask.add(val);//追加で言う
+					return true;
 				}
+			}else if(text.equals(key)) {//読み上げテキストがキーに一致した時
+				System.out.println("BOT応答キー ="+key);//ログに残す
+				if(!DiscordAPI.chatDefaultHost(val))addTask.add(val);//追加で言う
+				return true;
 			}
-		});
+		}
+		return false;
 	}
 	/**連続短縮*/
 	private void ContinuationOmitted() throws IOException {
@@ -277,16 +274,15 @@ public class BouyomiConection implements Runnable{
 				return;
 			}
 			if(text!=null) {
-				text=tag.bot();
-				if(em==null)em=tag.em;
+				tag.bot();
 				replace();
 			}
-			else if(len>=250)em="長文省略";
-			if(em!=null) {//メッセージが書き換えられていた時
+			else if(len>=250)text="長文省略";
+			if(text!=null&&!text.equals(readText)) {//メッセージが書き換えられていた時
 				type=0;//文字コードをUTF-8に設定
 				baos2.reset();//読み込んだメッセージのバイナリを破棄
-				if(!em.isEmpty()) {//文字がある場合
-					byte[] t=em.getBytes(StandardCharsets.UTF_8);//UTF-8でバイナリ化
+				if(!text.isEmpty()) {//文字がある場合
+					byte[] t=text.getBytes(StandardCharsets.UTF_8);//UTF-8でバイナリ化
 					baos2.write(t);//バイナリデータをメッセージバイナリに書き込み
 				}
 			}
@@ -298,12 +294,13 @@ public class BouyomiConection implements Runnable{
 			baos.write((len >>>  16) & 0xFF);
 			baos.write((len >>>  24) & 0xFF);
 			baos2.writeTo(baos);//メッセージバイナリデータを送信データに追加
+			//System.out.println(baos2.toString("utf-8"));//TODO 読み上げテキストをログ出力
 			//System.out.println("W"+baos.size());
 			if(len>0)send(bouyomi_port,baos.toByteArray());//作ったデータを送信
 			//System.out.println("Write");
 		}catch(Throwable e){
 			e.printStackTrace();//例外が発生したらログに残す
-			System.out.println(text);
+			System.out.println("例外の原因="+text);
 		}finally{//切断は確実に
 			try{
 				soc.close();//Discord受信ソフトから切断
@@ -312,10 +309,9 @@ public class BouyomiConection implements Runnable{
 			}
 			//System.out.println((System.nanoTime()-start)+"ns");//TODO 処理時間計測用
 		}
-		if(addTask!=null) {//追加で言うデータがある時
-			if(addTask instanceof ArrayList) {//データがArrayListの時
-				for(Object s:(ArrayList<?>)addTask)talk(bouyomi_port,s.toString());//すべて送信
-			}else if(!addTask.toString().isEmpty())talk(bouyomi_port,addTask.toString());//送信
+		if(!addTask.isEmpty()) {//データがArrayListの時
+			for(String s:addTask)talk(bouyomi_port,s);//すべて送信
 		}
+		//if(!addTask.toString().isEmpty())talk(bouyomi_port,addTask.toString());//送信
 	}
 }
