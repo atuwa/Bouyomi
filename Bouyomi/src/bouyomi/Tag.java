@@ -3,56 +3,9 @@ package bouyomi;
 import static bouyomi.BouyomiProxy.*;
 import static bouyomi.TubeAPI.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.function.BiConsumer;
 
 public class Tag{
-	private static String[] counterWords=null;
-	private static int[] counter;
-	private static long counterReset;
-	private static long counterStart;
-	static {
-		loadCountWords();
-	}
-	private static void loadCountWords(){
-		File f=new File("count.txt");
-		if(!f.exists())return;
-		ArrayList<String> al=new ArrayList<String>();
-		BufferedReader br=null;
-		try{
-			FileInputStream fis=new FileInputStream(f);
-			InputStreamReader isr=new InputStreamReader(fis,StandardCharsets.UTF_8);
-			br=new BufferedReader(isr);
-			while(true) {
-				String r=br.readLine();
-				if(r==null)break;
-				al.add(r);
-			}
-		}catch(FileNotFoundException e){
-			e.printStackTrace();
-		}catch(IOException e){
-			e.printStackTrace();
-		}finally {
-			if(br!=null) try{
-				br.close();
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-		}
-		counterWords=al.toArray(new String[al.size()]);
-		counter=new int[counterWords.length];
-		counterStart=System.currentTimeMillis();
-		counterReset=counterStart+86400000;
-	}
 	private BouyomiConection con;
 	public Tag(BouyomiConection bc) {
 		con=bc;
@@ -64,28 +17,7 @@ public class Tag{
 			con.text="";
 			return;
 		}
-		if(counterWords!=null&&counterWords.length>0) {
-			for(int i=0;i<counterWords.length;i++) {
-				if(con.text.indexOf(counterWords[i])>=0) {
-					counter[i]++;
-					if(System.currentTimeMillis()>counterReset) {
-						SimpleDateFormat df=new SimpleDateFormat("dd日HH時");
-						String sdt=df.format(new Date(counterStart));
-						counterStart=System.currentTimeMillis();
-						counterReset=counterStart+86400000;
-						StringBuilder c=new StringBuilder("一日で");
-						for(int n=0;n<counterWords.length;n++) {
-							c.append(counterWords[n]).append("が").append(counter[n]).append("回\n");
-						}
-						c.deleteCharAt(c.length()-1);
-						c.append("書き込まれました\n");
-						c.append(sdt).append("開始");
-						c.append(df.format(new Date(counterStart))).append("現在初期化");
-						DiscordAPI.chatDefaultHost(c.toString());
-					}
-				}
-			}
-		}
+		Counter.count(con);
 		if(con.text.indexOf("応答(")==0||con.text.indexOf("応答（")==0) {//自動応答機能を使う時
 			//System.out.println(text);//ログに残す
 			int ei=con.text.indexOf('=');
@@ -242,7 +174,10 @@ public class Tag{
 			else if(tag.isEmpty()) {//0文字
 				String url=IDtoURL(lastPlay);
 				if(url==null)con.addTask.add("非対応形式です");
-				else DiscordAPI.chatDefaultHost(url);
+				else{
+					if(con.mute)System.out.println(url);
+					else DiscordAPI.chatDefaultHost(url);
+				}
 			}else{
 				try {
 					int dc=Integer.parseInt(tag);//取得要求数
@@ -256,7 +191,8 @@ public class Tag{
 							if(url==null)url=s;
 							sb.append(url).append("\n");
 						}
-						DiscordAPI.chatDefaultHost(sb.toString());
+						if(con.mute)System.out.println(sb.toString());
+						else DiscordAPI.chatDefaultHost(sb.toString());
 					}
 				}catch(NumberFormatException e) {
 
@@ -282,7 +218,8 @@ public class Tag{
 							String s=playHistory.get(i);
 							sb.append(s).append("\n");
 						}
-						DiscordAPI.chatDefaultHost(sb.toString());
+						if(con.mute)System.out.println(sb.toString());
+						else DiscordAPI.chatDefaultHost(sb.toString());
 					}
 				}catch(NumberFormatException e) {
 

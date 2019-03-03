@@ -147,10 +147,7 @@ public class BouyomiConection implements Runnable{
 		}
 		//文字データが取得できた時
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
-		if(text.indexOf("忘却(")>=0||text.toUpperCase().indexOf("(FORGET")>=0) {//忘却機能を使おうとした時
-			System.out.println(text);//ログに残す
-			text="b)現在忘却機能は使えません";//代わりに「使えない」と言う
-		}else if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
+		if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
 			System.out.println(text);//ログに残す
 		}else if(text.indexOf("機能要望")>=0){//「機能要望」が含まれる時
 			System.out.println(text);//ログに残す
@@ -309,7 +306,7 @@ public class BouyomiConection implements Runnable{
 			}
 			//System.out.println((System.nanoTime()-start)+"ns");//TODO 処理時間計測用
 		}
-		if(!addTask.isEmpty()) {//データがArrayListの時
+		if(!mute&&!addTask.isEmpty()) {//データがArrayListの時
 			for(String s:addTask)talk(bouyomi_port,s);//すべて送信
 		}
 		//if(!addTask.toString().isEmpty())talk(bouyomi_port,addTask.toString());//送信

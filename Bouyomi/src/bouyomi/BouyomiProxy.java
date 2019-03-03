@@ -165,6 +165,7 @@ public class BouyomiProxy{
 				}catch(IOException e){
 					e.printStackTrace();
 				}
+				Counter.write();
 			}
 		});
 		TubeAPI.setAutoStop();
