@@ -67,17 +67,30 @@ public class Question{
 			DiscordAPI.chatDefaultHost(questionnaireName==null?"してない":"してる");
 		}
 	}
+	public static int to_i(String s) {
+		StringBuilder sb=new StringBuilder();
+		for(int i=0;i<s.length();i++) {
+			char c=s.charAt(i);
+			if(c>=0x30&&c<0x3A)sb.append(c);//半角数字
+			else if(c>=0xEFBC90&&c<0xEFBC9A)sb.append(c);//全角数字
+		}
+		try {
+			return Integer.parseInt(sb.toString());//何故か全角対応
+		}catch(NumberFormatException nfe) {}
+		return 0;
+	}
 	public static void questionnaire(BouyomiConection con,int index) {
 		if(questionnaire.length<=index||index<0)return;//indexが無効な時に無視する。
 		//例えばキーワードがない時、Index指定で範囲外の時
 		//System.out.println("投票"+key);
 		con.text="";
-		if(questionnaireUserList.containsKey(con.user)) {//ユーザが投票済の時
-			Integer k=questionnaireUserList.get(con.user);//ユーザの投票先(index)
+		String user=con.userid==null?con.user:con.userid;
+		if(user!=null&&questionnaireUserList.containsKey(user)) {//ユーザが投票済の時
+			Integer k=questionnaireUserList.get(user);//ユーザの投票先(index)
 			questionnaire[k]--;
 			con.addTask.add("上書き投票");
 		}else con.addTask.add("投票");
 		questionnaire[index]++;
-		questionnaireUserList.put(con.user,index);
+		if(user!=null)questionnaireUserList.put(user,index);
 	}
 }

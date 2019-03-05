@@ -9,6 +9,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,7 +20,6 @@ public class Counter{
 
 	private static String[] counterWords=null;
 	private static int[] counter;
-	private static long counterReset;
 	private static long counterStart;
 	static {
 		loadCountWords();
@@ -62,8 +64,12 @@ public class Counter{
 
 			}
 		}
-		counterStart=System.currentTimeMillis();
-		counterReset=counterStart+86400000;
+		try{
+			BasicFileAttributes b=Files.readAttributes(f.toPath(),BasicFileAttributes.class,LinkOption.NOFOLLOW_LINKS);
+			counterStart=b.creationTime().toMillis();
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 	public static void write() {
 		File f=new File("count.txt");
@@ -104,11 +110,6 @@ public class Counter{
 				for(String c:cw) {
 					if(text.indexOf(c)>=0) {
 						counter[i]++;
-						if(System.currentTimeMillis()>counterReset) {
-							counterStart=System.currentTimeMillis();
-							counterReset=counterStart+86400000;
-							DiscordAPI.chatDefaultHost(countString()+"初期化");
-						}
 						break;
 					}
 				}
@@ -116,7 +117,7 @@ public class Counter{
 		}
 	}
 	public static String countString() {
-		SimpleDateFormat df=new SimpleDateFormat("dd日HH時");
+		SimpleDateFormat df=new SimpleDateFormat("MM月dd日HH時");
 		String sdt=df.format(new Date(counterStart));
 		StringBuilder c=new StringBuilder("/");
 		for(int n=0;n<counterWords.length;n++) {

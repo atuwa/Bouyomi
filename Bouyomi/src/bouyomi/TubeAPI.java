@@ -28,12 +28,13 @@ public class TubeAPI{
 	public static int maxHistory=32;//32個履歴を保持する
 	/**履歴が入ってるリスト*/
 	public static ArrayList<String> playHistory=new ArrayList<String>();
-	private static String HistoryFile="play.txt";
+	static String HistoryFile="play.txt";
 	private static long lastPlayDate;
 	private static ExecutorService pool=new ThreadPoolExecutor(0,10,60L,TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
 	protected static int stopTime=480000;
-	public static boolean playTube(BouyomiConection bc,String videoID) {
+
+	public static synchronized boolean playTube(BouyomiConection bc,String videoID) {
 		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0||videoID.indexOf('?')>=0)return false;
 		if(System.currentTimeMillis()-lastPlayDate<5000) {
 			if(bc!=null)bc.addTask.add("前回の再生から5秒以内には再生できません");
@@ -69,7 +70,14 @@ public class TubeAPI{
 				FileOutputStream fos=new FileOutputStream(HistoryFile,true);//追加モードでファイルを開く
 				try{
 					String d=new SimpleDateFormat("yyyy/MM/dd HH時mm分ss秒").format(new Date());
-					fos.write((videoID+"\t再生時刻"+d+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
+					StringBuilder s=new StringBuilder(videoID);
+					s.append("\t再生時刻").append(d);
+					if(bc!=null&&bc.user!=null) {
+						s.append("\t").append(bc.user);
+						if(bc.userid!=null)s.append("\t").append(bc.userid);
+					}
+					s.append("\n");
+					fos.write(s.toString().getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
 				}finally {
 					fos.close();
 				}
@@ -134,7 +142,7 @@ public class TubeAPI{
 			}
 		}
 	}
-	public static int getVol(){
+	public static synchronized int getVol(){
 		try{
 			String l=getLine("GETvolume");
 			if(l==null)return -1;
@@ -145,7 +153,7 @@ public class TubeAPI{
 		}
 		return -1;
 	}
-	public static String getLine(String op) {
+	public static synchronized String getLine(String op) {
 		if(!op.contains("="))op+="=0";
 		BufferedReader br=null;
 		try{
@@ -166,7 +174,7 @@ public class TubeAPI{
 		}
 		return null;
 	}
-	public static boolean play(BouyomiConection bc,String url) {
+	public static synchronized boolean play(BouyomiConection bc,String url) {
 		if(url.indexOf("https://www.youtube.com/")==0||
 				url.indexOf("https://m.youtube.com/")==0||
 				url.indexOf("https://youtube.com/")==0||
@@ -240,7 +248,7 @@ public class TubeAPI{
 		}
 		return false;
 	}
-	public static String statusAllJson() {
+	public static synchronized String statusAllJson() {
 		StringBuilder sb=new StringBuilder(64);//
 		sb.append("{\n");
 		sb.append("\t\"lastPlay\":\"").append(lastPlay).append("\"\n");
@@ -274,7 +282,7 @@ public class TubeAPI{
 	}
 	/**@param op 実行するコマンド
 	 * @return 正常に実行された時trueが返る*/
-	public static boolean operation(String op) {
+	public static synchronized boolean operation(String op) {
 		if(!op.contains("="))op+="=0";
 		try{
 			URL url=new URL("http://"+video_host+"/operation.html?"+op);

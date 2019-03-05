@@ -2,6 +2,7 @@ package bouyomi;
 
 import static bouyomi.BouyomiProxy.*;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
 
 public class BouyomiConection implements Runnable{
 
+	static String logFile;
 	/**このインスタンスの接続先*/
 	private Socket soc;
 	//コンストラクタ
@@ -30,13 +32,55 @@ public class BouyomiConection implements Runnable{
 	private char fb;//最初の文字
 	private int len;
 	private int type;
-	public String user;
+	public String user,userid;
 	/**受け取った文字データ*/
 	private ByteArrayOutputStream baos2;
 	/**送信データ入れ*/
 	private ByteArrayOutputStream baos;
 	public boolean mute;
 	private String readText;
+	private static BufferedOutputStream logFileOS;
+	private static void log(String s) {
+		if(logFileOS==null) {
+			Runtime.getRuntime().addShutdownHook(new Thread("closeLogFile") {
+				public void run() {
+					try{
+						if(logFileOS!=null)logFileOS.close();
+					}catch(IOException e){
+						e.printStackTrace();
+					}
+				}
+			});
+			new Thread("AutoFlushLog") {
+				public void run() {
+					while(true) {
+						try{
+							Thread.sleep(5*60*1000);
+							try{
+								if(logFileOS!=null) {
+									logFileOS.flush();
+									//System.out.println("定期ログフラッシュ");
+								}
+							}catch(IOException e){
+								e.printStackTrace();
+							}
+						}catch(InterruptedException e){
+							e.printStackTrace();
+						}
+					}
+				}
+			}.start();
+		}
+		try{
+			if(logFileOS==null) {
+				FileOutputStream fos=new FileOutputStream(logFile,true);//追加モードでファイルを開く
+				logFileOS=new BufferedOutputStream(fos);
+			}
+			logFileOS.write((s+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
 	private void read() throws IOException {
 		InputStream is=soc.getInputStream();//Discord取得ソフトから読み込むストリーム
 		int ch1=is.read();//コマンドバイトを取得
@@ -45,8 +89,9 @@ public class BouyomiConection implements Runnable{
 			//System.out.println("datatype ch1"+ch1+"ch2"+ch2);
 			return;
 		}
-		short s=(short) ((ch2<<8)+(ch1<<0));
-		if(s!=1){//読み上げコマンド以外の時
+		int s=((ch2<<8)+(ch1<<0));
+		if(s==1||s==0xF001);
+		else{//読み上げコマンド以外の時
 			if(s==0x10||s==0x20||s==0x30||s==0x40){//応答が必要ないコマンドの時
 				send(bouyomi_port,new byte[] { (byte) ch1, (byte) ch2 });//棒読みちゃんに送信
 				return;
@@ -55,8 +100,10 @@ public class BouyomiConection implements Runnable{
 			throw new IOException();//対応していないコマンドは例外を出して終了
 		}
 		baos=new ByteArrayOutputStream();//送信データバッファ
-		baos.write(ch1);//コマンド指定バイトを送信データバッファに書き込む
-		baos.write(ch2);
+		baos.write(1);
+		baos.write(0);
+		//baos.write(ch1);//コマンド指定バイトを送信データバッファに書き込む
+		//baos.write(ch2);
 		byte[] d=new byte[8];
 		int len=is.read(d);//この段階では変数lenは読み込みバイト数
 		type=is.read();//文字コード読み込み
@@ -90,6 +137,7 @@ public class BouyomiConection implements Runnable{
 		}
 		if(d[7]==0)text=baos2.toString("utf-8");//UTF-8でデコード
 		else if(d[7]==1)text=baos2.toString("utf-16");//UTF-16でデコード
+		//System.out.println(text);
 		if(text!=null) {
 			String key="濰濱濲濳濴濵濶濷濸濹濺濻濼濽濾濿";
 			int index=text.indexOf(key);
@@ -98,12 +146,42 @@ public class BouyomiConection implements Runnable{
 				text=text.substring(index+key.length());
 				readText=text;
 				fb=text.charAt(0);
-			}else readText=text;
+				log(user+"\t"+text);
+			}else{
+				readText=text;
+				log(text);
+			}
 		}
+		if(s==0xF001) {
+			userid=readString(is);
+			user=readString(is);
+		}
+	}
+	private String readString(InputStream is) throws IOException{
+		int ch1=is.read();//文字数を受信
+		int ch2=is.read();
+		int ch3=is.read();
+		int ch4=is.read();
+		if((ch1|ch2|ch3|ch4)<0){//文字数のデータが足りない時
+			System.out.println("DataLen");
+			throw new IOException("DataLen");//例外を出して終了
+		}
+		//ここで変数lenはバイト数になる
+		len=((ch1<<0)+(ch2<<8)+(ch3<<16)+(ch4<<24));//文字数データから数値に
+		ByteArrayOutputStream baos0=new ByteArrayOutputStream();//メッセージバイナリ書き込み先
+		for(int i=0;i<len;i++){//メッセージデータ取得
+			int j=is.read();
+			if(j<0){//すべてのメッセージを取得できない時
+				System.out.println("DataRead");
+				throw new IOException("DataRead");//例外を出して終了
+			}
+			baos0.write(j);
+		}
+		return baos0.toString("utf-8");//UTF-8でデコード
 	}
 	private void replace() throws IOException {
 		//System.out.println("len="+len);
-		//text=text.replaceAll("https?://[\\x21-\\x7F]++","URL省略");
+		//text=text.replaceAll("file://[\\x21-\\x7F]++","ファイル");
 		{//URL省略処理
 			//URL判定基準を正規表現で指定
 			Matcher m=Pattern.compile("https?://[\\x21-\\x7F]++").matcher(text);
@@ -130,6 +208,50 @@ public class BouyomiConection implements Runnable{
 	            m.appendTail(sb);
 	            text=sb.toString();
 	        }
+		}
+		{//画像URI処理
+			//判定基準を正規表現で指定
+			Matcher m=Pattern.compile("file://[\\x21-\\x7F]++").matcher(text);
+			m.reset();
+			boolean result = m.find();
+			if (result) {
+				StringBuffer sb = new StringBuffer();
+				do {
+					String g=m.group();
+					String r="ファイル";
+					if(g.endsWith(".png")||g.endsWith(".gif")||g.endsWith(".jpg")||g.endsWith(".jpeg")) {
+						r="画像";
+					}else 	if(g.endsWith(".bmp")||g.endsWith(".xcf")) {
+						r="画像";
+					}else 	if(g.endsWith(".txt")) {
+						r="テキストファイル";
+					}else 	if(g.endsWith(".js")||g.endsWith(".java")) {
+						r="ソースファイル";
+					}else 	if(g.endsWith(".mp4")||g.endsWith(".avi")) {
+						r="動画";
+					}else 	if(g.endsWith(".wav")||g.endsWith(".mp3")) {
+						r="音楽";
+					}else {
+						int li=g.lastIndexOf('.');
+						if(li>=0&&li+1<g.length()) {
+							String s=g.substring(li+1);
+							char[] ca=new char[s.length()*2];
+							int j=0;
+							for(int i=0;i<ca.length;i+=2) {
+								ca[i]=s.charAt(j);
+								ca[i+1]=',';
+								j++;
+							}
+							r=String.valueOf(ca)+"ファイル";
+						}
+					}
+					//System.out.println("ファイル="+r);
+					m.appendReplacement(sb,"　"+r);//2回目以降
+					result = m.find();
+				} while (result);
+				m.appendTail(sb);
+				text=sb.toString().trim();
+			}
 		}
 		ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 		if(text.length()>=90){//長文省略基準90文字以上
@@ -261,7 +383,7 @@ public class BouyomiConection implements Runnable{
 			Tag tag;
 			if(text==null)tag=null;
 			else tag=new Tag(this);
-			if(fb=='/'||fb=='\\'||text.indexOf("```")==0){//最初の文字がスラッシュの時は終了
+			if(fb=='/'||fb=='\\'||(text!=null&&text.indexOf("```")==0)){//最初の文字がスラッシュの時は終了
 				//System.out.println("スラッシュで始まる");
 				mute=true;
 				if(text!=null) {

@@ -3,6 +3,13 @@ package bouyomi;
 import static bouyomi.BouyomiProxy.*;
 import static bouyomi.TubeAPI.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.function.BiConsumer;
 
 public class Tag{
@@ -311,6 +318,67 @@ public class Tag{
 			con.text="";
 			DiscordAPI.chatDefaultHost(statusAllJson());
 		}
+		if(DiscordAPI.service_host!=null) {
+			tag=getTag("最頻再生動画");
+			if(tag!=null) {
+				String s=most(0);
+				if(s==null) {
+					if(!con.mute)DiscordAPI.chatDefaultHost("取得失敗");
+				}else {
+					String id=s.substring(0,s.indexOf('('));
+					s+="\n"+IDtoURL(id);
+					System.out.println(s);
+					if(!con.mute)DiscordAPI.chatDefaultHost("/"+s);
+				}
+			}
+			tag=getTag("最頻再生者");
+			if(tag!=null) {
+				String s=most(2);
+				System.out.println(s);
+				if(con.mute);
+				else if(s==null)DiscordAPI.chatDefaultHost("取得失敗");
+				else DiscordAPI.chatDefaultHost("/"+s);
+			}
+		}
+	}
+	private String most(int index){
+		if(index<0)return null;
+		try {
+			FileInputStream fis=new FileInputStream(new File(HistoryFile));
+			InputStreamReader isr=new InputStreamReader(fis,StandardCharsets.UTF_8);
+			BufferedReader br=new BufferedReader(isr);
+			class Counter{
+				public int count=1;
+			}
+			HashMap<String, Counter> co=new HashMap<String,Counter>();
+			try {
+				while(br.ready()) {
+					String line=br.readLine();
+					if(line==null)break;
+					String[] arr=line.split("\t");
+					if(index>=arr.length)continue;
+					String key=arr[index];
+					Counter v=co.get(key);
+					if(v==null)co.put(key,new Counter());
+					else v.count++;
+				}
+				String most=null;
+				int most_i=0;
+				for(String s:co.keySet()) {
+					Counter v=co.get(s);
+					if(v.count>most_i) {
+						most_i=v.count;
+						most=s;
+					}
+				}
+				return most+"("+most_i+"回)";
+			}finally{
+				br.close();
+			}
+		}catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	public String getTag(String... key) {
 		for(String s:key) {

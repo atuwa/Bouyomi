@@ -109,6 +109,17 @@ public class BouyomiProxy{
 		if(!command.isEmpty())MusicPlayerAPI.host=command;
 		System.out.println("mp3とwavファイルを再生するサーバ"+(MusicPlayerAPI.host==null?"無し":MusicPlayerAPI.host));
 
+		if(args.length>7) {
+			if(args[7].equals("-"))command="";
+			else command=args[7];
+		}else {
+			System.out.println("ログファイル");
+			command=br.readLine();//1行取得する
+		}
+		//0文字だったら無し、それ以外だったらそれ
+		if(!command.isEmpty())BouyomiConection.logFile=command;
+		System.out.println("ログ"+(BouyomiConection.logFile==null?"無し":BouyomiConection.logFile));
+
 		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
 		new Thread(){

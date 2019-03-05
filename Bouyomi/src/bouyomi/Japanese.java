@@ -143,10 +143,7 @@ public class Japanese{
 				}
 			}
 		}
-		if(isTrans(r)) {
-			//chat_server.chat("/変換できません");
-			return false;
-		}
+		if(isTrans(r))return false;
 		chat_server.chat("/"+r);
 		return true;
 	}
