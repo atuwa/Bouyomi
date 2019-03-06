@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.function.BiConsumer;
 
 public class Tag{
-	private BouyomiConection con;
+	public BouyomiConection con;
 	public Tag(BouyomiConection bc) {
 		con=bc;
 	}
@@ -24,7 +24,7 @@ public class Tag{
 			con.text="";
 			return;
 		}
-		Counter.count(con);
+		Counter.count(this);
 		if(con.text.indexOf("応答(")==0||con.text.indexOf("応答（")==0) {//自動応答機能を使う時
 			//System.out.println(text);//ログに残す
 			int ei=con.text.indexOf('=');
@@ -338,6 +338,13 @@ public class Tag{
 				if(con.mute);
 				else if(s==null)DiscordAPI.chatDefaultHost("取得失敗");
 				else DiscordAPI.chatDefaultHost("/"+s);
+			}
+			tag=getTag("ユーザID","ユーザＩＤ");
+			if(tag!=null) {
+				System.out.println(con.userid);
+				if(con.mute);
+				else if(con.userid==null)DiscordAPI.chatDefaultHost("取得失敗");
+				else DiscordAPI.chatDefaultHost("/"+con.userid);
 			}
 		}
 	}

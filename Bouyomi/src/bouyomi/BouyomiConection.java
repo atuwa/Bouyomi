@@ -76,7 +76,7 @@ public class BouyomiConection implements Runnable{
 				FileOutputStream fos=new FileOutputStream(logFile,true);//追加モードでファイルを開く
 				logFileOS=new BufferedOutputStream(fos);
 			}
-			logFileOS.write((s+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
+			logFileOS.write((s.replace('\n',' ')+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -217,9 +217,10 @@ public class BouyomiConection implements Runnable{
 			if (result) {
 				StringBuffer sb = new StringBuffer();
 				do {
-					String g=m.group();
+					String g=m.group().toLowerCase();
 					String r="ファイル";
-					if(g.endsWith(".png")||g.endsWith(".gif")||g.endsWith(".jpg")||g.endsWith(".jpeg")) {
+					if(g.endsWith(".png")||g.endsWith(".gif")||g.endsWith(".jpg")||g.endsWith(".jpeg")
+							||g.endsWith(".webp")) {
 						r="画像";
 					}else 	if(g.endsWith(".bmp")||g.endsWith(".xcf")) {
 						r="画像";
@@ -234,6 +235,7 @@ public class BouyomiConection implements Runnable{
 					}else {
 						int li=g.lastIndexOf('.');
 						if(li>=0&&li+1<g.length()) {
+							System.out.println("未定義ファイル"+g);
 							String s=g.substring(li+1);
 							char[] ca=new char[s.length()*2];
 							int j=0;
@@ -246,13 +248,15 @@ public class BouyomiConection implements Runnable{
 						}
 					}
 					//System.out.println("ファイル="+r);
-					m.appendReplacement(sb,"　"+r);//2回目以降
+					m.appendReplacement(sb," "+r);//2回目以降
 					result = m.find();
 				} while (result);
 				m.appendTail(sb);
 				text=sb.toString().trim();
 			}
 		}
+		//巨大数処理
+		text=text.replaceAll("[0-9]{8,}+","数字省略");
 		ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 		if(text.length()>=90){//長文省略基準90文字以上
 			System.out.println("長文省略("+text.length()+"文字)");
@@ -416,6 +420,12 @@ public class BouyomiConection implements Runnable{
 			//System.out.println(baos2.toString("utf-8"));//TODO 読み上げテキストをログ出力
 			//System.out.println("W"+baos.size());
 			if(len>0)send(bouyomi_port,baos.toByteArray());//作ったデータを送信
+			/*
+			if("ちんちんリスト".equals(text)) {
+				if("503113319410827266".equals(userid))DiscordAPI.chatDefaultHost(text);
+				else System.out.println("UID="+userid);
+			}
+			*/
 			//System.out.println("Write");
 		}catch(Throwable e){
 			e.printStackTrace();//例外が発生したらログに残す

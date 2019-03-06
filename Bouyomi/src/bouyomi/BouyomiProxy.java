@@ -22,6 +22,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import bouyomi.Counter.CountData;
+import bouyomi.Counter.CountData.Count;
+
 /**棒読みちゃん専用のプロキシです*/
 public class BouyomiProxy{
 	/**自動応答辞書*/
@@ -133,6 +136,36 @@ public class BouyomiProxy{
 						}else if(command.indexOf("stopTime")==0) {
 							TubeAPI.stopTime=Integer.parseInt(command.substring(8));
 							System.out.println("自動停止時間"+TubeAPI.stopTime+"ms");
+						}else if(command.equals("setCounter")) {
+							System.out.println("ユーザIDを入力");
+							command=br.readLine();//1行取得する
+							CountData cd=Counter.usercount.get(command);
+							for(String id:Counter.usercount.keySet()) {
+								CountData c=Counter.usercount.get(id);
+								if(c!=null&&c.name.equals(command))cd=c;
+							}
+							if(cd==null) {
+								System.out.println("新規登録");
+								System.out.println("ID="+command);
+								String id=command;
+								System.out.println("ユーザ名を入力");
+								command=br.readLine();//1行取得する
+								if(command.isEmpty())continue;
+								cd=new CountData(command);
+								Counter.usercount.put(id,cd);
+							}
+							System.out.println("ユーザ名="+cd.name);
+							System.out.println("カウント単語を入力");
+							String w=br.readLine();
+							Count c=cd.count.get(w);
+							if(c==null)continue;
+							try{
+								System.out.println("現在の数値"+c.count);
+								c.count=Long.parseLong(command=br.readLine());
+								System.out.println(w+"のカウントを"+c.count+"に変更");
+							}catch(NumberFormatException e) {
+
+							}
 						}else if("saveConfig".equals(command)) {
 							try{
 								save(Config,"config.txt");
