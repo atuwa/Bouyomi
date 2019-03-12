@@ -275,6 +275,8 @@ public class BouyomiConection implements Runnable{
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 		if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
 			System.out.println(text);//ログに残す
+		}else if(text.indexOf("忘却(")>=0||text.indexOf("忘却（")>=0) {//忘却機能を使おうとした時
+			System.out.println(text);//ログに残す
 		}else if(text.indexOf("機能要望")>=0){//「機能要望」が含まれる時
 			System.out.println(text);//ログに残す
 			try{
@@ -327,6 +329,7 @@ public class BouyomiConection implements Runnable{
 		if(type==0)counter=null;
 		for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
+			if(r=='ゝ'&&i>1)r=text.charAt(i-1);
 			//連続カウントが9以上で次の文字が最後に書き込まれた文字と一致した場合次へ
 			if(cc>8&&r==lc) {
 				counter=null;
@@ -439,7 +442,15 @@ public class BouyomiConection implements Runnable{
 			//System.out.println((System.nanoTime()-start)+"ns");//TODO 処理時間計測用
 		}
 		if(!mute&&!addTask.isEmpty()) {//データがArrayListの時
-			for(String s:addTask)talk(bouyomi_port,s);//すべて送信
+			StringBuilder sb=new StringBuilder();
+			for(String s:addTask) {
+				sb.append(s).append("。");
+				if(sb.length()>60) {
+					talk(bouyomi_port,sb.toString());//一旦送信
+					sb=new StringBuilder();
+				}
+			}
+			talk(bouyomi_port,sb.toString());//すべて送信
 		}
 		//if(!addTask.toString().isEmpty())talk(bouyomi_port,addTask.toString());//送信
 	}

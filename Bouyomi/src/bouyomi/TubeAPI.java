@@ -37,6 +37,7 @@ public class TubeAPI{
 	public static synchronized boolean playTube(BouyomiConection bc,String videoID) {
 		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0||videoID.indexOf('?')>=0)return false;
 		if(System.currentTimeMillis()-lastPlayDate<5000) {
+			System.out.println("前回の再生から5秒以内には再生できませんID="+videoID);
 			if(bc!=null)bc.addTask.add("前回の再生から5秒以内には再生できません");
 			return false;
 		}
@@ -215,24 +216,11 @@ public class TubeAPI{
 			return playTube(bc, url);
 		}else if(url.indexOf("sc=")==0) {
 			return playTube(bc, url);
-		}else if(url.indexOf("https://www.nicovideo.jp/watch/")==0
-				||url.indexOf("http://www.nicovideo.jp/watch/")==0
-				||url.indexOf("https://nicovideo.jp/watch/")==0
-				||url.indexOf("http://nicovideo.jp/watch/")==0) {
-			Pattern p = Pattern.compile("sm[0-9]++");
-			Matcher m = p.matcher(url);
-			if(m.find()) {
-				url=m.group();
-				//System.out.println("ニコニコ ID="+url);
-				return playTube(bc, "nico="+url);
-			}
 		}else{
 			Matcher m = Pattern.compile("sm[0-9]++").matcher(url);
-			if(m.find()) {
-				url=m.group();
-				//System.out.println("ニコニコ ID="+url);
-				return playTube(bc, "nico="+url);
-			}
+			if(m.find())return playTube(bc, "nico="+m.group());
+			m = Pattern.compile("so[0-9]++").matcher(url);
+			if(m.find())return playTube(bc, "nico="+m.group());
 			Matcher scm = Pattern.compile("//api.soundcloud.com/tracks/[0-9]++").matcher(url);
 			if(scm.find()) {
 				String s=scm.group();
@@ -244,7 +232,7 @@ public class TubeAPI{
 				}
 			}
 			bc.addTask.add("URLを解析できませんでした");
-			System.out.println("URL解析失敗="+url);
+			System.err.println("URL解析失敗="+url);
 		}
 		return false;
 	}

@@ -49,18 +49,22 @@ public class Question{
 		}
 		tag=tm.getTag("集計");
 		if(tag!=null) {
-			StringBuilder result=new StringBuilder("アンケート名");
-			result.append(questionnaireName).append("\n");
-			for(int i=0;i<questionnaire.length;i++) {
-				String k=questionnaireList.get(i);
-				result.append(k).append(" が").append(questionnaire[i]).append("票\n");
+			if(questionnaireName==null) {
+				bc.addTask.add("アンケートが実施されていません");
+			}else {
+				StringBuilder result=new StringBuilder("アンケート名");
+				result.append(questionnaireName).append("\n");
+				for(int i=0;i<questionnaire.length;i++) {
+					String k=questionnaireList.get(i);
+					result.append(k).append(" が").append(questionnaire[i]).append("票\n");
+				}
+				result.append("でした。");
+				if(!tag.equals("内容破棄"))DiscordAPI.chatDefaultHost(result.toString());
+				bc.addTask.add("アンケートを終了");
+				questionnaireName=null;
+				questionnaireList.clear();
+				questionnaireUserList.clear();
 			}
-			result.append("でした。");
-			if(!tag.equals("内容破棄"))DiscordAPI.chatDefaultHost(result.toString());
-			bc.addTask.add("アンケートを終了");
-			questionnaireName=null;
-			questionnaireList.clear();
-			questionnaireUserList.clear();
 		}
 		if(text.indexOf("アンケート中?")>=0||text.indexOf("アンケート中？")>=0
 				||text.indexOf("アンケ中?")>=0||text.indexOf("アンケ中？")>=0) {

@@ -276,7 +276,7 @@ public class Tag{
 						else con.addTask.add("音量を変更できませんでした");//失敗した時これを読む
 					}
 				}catch(NumberFormatException e) {
-
+					con.addTask.add("音量を変更できませんでした");//失敗した時これを読む
 				}
 			}
 			if(con.text.isEmpty())return;
@@ -341,7 +341,7 @@ public class Tag{
 			}
 			tag=getTag("ユーザID","ユーザＩＤ");
 			if(tag!=null) {
-				System.out.println(con.userid);
+				System.out.println("ID取得「"+con.user+"」のID="+con.userid);
 				if(con.mute);
 				else if(con.userid==null)DiscordAPI.chatDefaultHost("取得失敗");
 				else DiscordAPI.chatDefaultHost("/"+con.userid);
@@ -401,7 +401,7 @@ public class Tag{
 		if(index<0)return null;//タグを含まない時
 		int ki=con.text.indexOf(')');//半角
 		int zi=con.text.indexOf('）');//全角
-		if(ki<zi)ki=zi;
+		if(ki<0)ki=zi;
 		if(ki<0)return null;//閉じカッコが無い時
 		if(ki<index+key.length()+1)return null;//閉じカッコの位置がおかしい時
 		if(ki==index+key.length()+1) {
@@ -414,7 +414,7 @@ public class Tag{
 		return tag.trim();
 	}
 	public void removeTag(String tagName,String val) {
-		//System.out.println("元データ　"+text);
+		//System.out.println("元データ　"+con.text);
 		StringBuilder sb0=new StringBuilder(tagName);
 		sb0.append("(").append(val);//これ半角しか削除できない
 		String remove=sb0.toString();
@@ -432,6 +432,6 @@ public class Tag{
 		if(index>0)sb.append(con.text.substring(0,index));//タグで始まる時以外
 		if(con.text.length()>index+remove.length())sb.append(con.text.substring(index+remove.length()+1));
 		con.text=sb.toString();
-		//System.out.println("タグ消去結果　"+text);
+		//System.out.println("タグ消去結果　"+con.text);
 	}
 }

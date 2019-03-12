@@ -278,7 +278,7 @@ public class Counter{
 						writeBuffer[7] = (byte)(v >>>  0);
 						bi=bi.add(new BigInteger(writeBuffer));
 					}
-					sb.append(c.name).append("の書き込み(").append(bi.toString()).append("回)\n");
+					sb.append(c.name).append("(").append(bi.toString()).append("回)\n");
 					/*
 					for(String w:c.count.keySet()) {
 						sb.append(w).append("が").append(c.count.get(w).count).append("回\n");
@@ -293,10 +293,24 @@ public class Counter{
 			}
 			if(cd!=null) {
 				StringBuilder sb=new StringBuilder("/");
-				sb.append(cd.name).append("の書き込み\n");
-				for(String w:cd.count.keySet()) {
-					sb.append(w).append("が").append(cd.count.get(w).count).append("回\n");
+				sb.append(cd.name).append("の書き込み(合計");
+				StringBuilder sb0=new StringBuilder();
+				BigInteger bi=new BigInteger(new byte[32]);
+				byte writeBuffer[] = new byte[8];
+				for(String w:cd.count.keySet()){
+					long v=cd.count.get(w).count;
+					writeBuffer[0] = (byte)(v >>> 56);
+					writeBuffer[1] = (byte)(v >>> 48);
+					writeBuffer[2] = (byte)(v >>> 40);
+					writeBuffer[3] = (byte)(v >>> 32);
+					writeBuffer[4] = (byte)(v >>> 24);
+					writeBuffer[5] = (byte)(v >>> 16);
+					writeBuffer[6] = (byte)(v >>>  8);
+					writeBuffer[7] = (byte)(v >>>  0);
+					bi=bi.add(new BigInteger(writeBuffer));
+					sb0.append(w).append("が").append(v).append("回\n");
 				}
+				sb.append(bi.toString()).append("回)\n").append(sb0);
 				DiscordAPI.chatDefaultHost(sb.toString());
 			}else if(!s.isEmpty())DiscordAPI.chatDefaultHost("/データ無し");
 		}
