@@ -37,7 +37,7 @@ public class Question{
 				result.append(questionnaireName).append("\n");
 				questionnaire=new int[keys.length-1];//最低大きさ0の配列
 				for(int i=1;i<keys.length;i++) {
-					String k=keys[i];
+					String k=keys[i].trim();
 					questionnaireList.add(k);
 					result.append(i-1).append(" : ").append(k).append("\n");
 				}

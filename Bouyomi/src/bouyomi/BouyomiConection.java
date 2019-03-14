@@ -275,8 +275,10 @@ public class BouyomiConection implements Runnable{
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
 		if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
 			System.out.println(text);//ログに残す
+			System.out.println(user);
 		}else if(text.indexOf("忘却(")>=0||text.indexOf("忘却（")>=0) {//忘却機能を使おうとした時
 			System.out.println(text);//ログに残す
+			System.out.println(user);
 		}else if(text.indexOf("機能要望")>=0){//「機能要望」が含まれる時
 			System.out.println(text);//ログに残す
 			try{

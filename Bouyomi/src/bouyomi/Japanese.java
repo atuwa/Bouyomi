@@ -1,14 +1,12 @@
 package bouyomi;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 //こけえもんのローマ字を翻訳する
 public class Japanese{
 	public static DiscordAPI chat_server;
 	private static HashMap<String,String> map=new HashMap<String,String>();
-	//ひらがなにする人 に変なことを言わせたくない
-	public static ArrayList<String> NGword=new ArrayList<String>();
 	public static long lastMatch;
 	public static long block;
 	private static int blockCunt;
@@ -55,12 +53,6 @@ public class Japanese{
 		map.put("vyu","ヴゅ");
 
 		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");map.put("~","～");
-
-		NGword.add("まんこ");NGword.add("ちんこ");NGword.add("ちんぽ");NGword.add("tんぽ");
-		NGword.add("おぱい");NGword.add("うんち");NGword.add("うんこ");NGword.add("ほも");
-		NGword.add("せくす");NGword.add("せいし");NGword.add("せいえき");NGword.add("ざめん");
-		NGword.add("きんたま");NGword.add("まんまん");NGword.add("みるく");NGword.add("ぱいぱん");
-		NGword.add("おなに");NGword.add("ぺにす");NGword.add("ちんちん");
 
 		map.put("-","ー");
 	}
@@ -113,37 +105,8 @@ public class Japanese{
 			}else result.append(ms);
 		}
 		String r=result.toString();
-		//NGワードなしで使うならここでchat_server.chat(r);するといい
-		System.out.println("ローマ字変換"+text+"="+result);
-		for(int i=0;i<NGword.size();i++) {
-			if(r.indexOf(NGword.get(i))>=0) {
-				//chat_server.chat("/NGワードを含みます");
-				block();
-				return false;
-			}
-		}
-		char[] taisaku=new char[] {' ','^','/','ー','_','\\','っ'};
-		StringBuilder t=new StringBuilder();
-		for(int i=0;i<r.length();i++) {
-			char c=r.charAt(i);
-			boolean flag=false;
-			for(char ch:taisaku) {
-				if(c==ch)flag=true;
-			}
-			if(flag);
-			else t.append(c);
-		}
-		//System.out.println(t.toString());
-		for(int ta=0;ta<taisaku.length;ta++) {
-			for(int i=0;i<NGword.size();i++) {
-				if(t.indexOf(NGword.get(i))>=0) {
-					//chat_server.chat("/NGワード対策するな");
-					block();
-					return false;
-				}
-			}
-		}
 		if(isTrans(r))return false;
+		if(Pattern.compile("[a-z]").matcher(r).find())return false;
 		chat_server.chat("/"+r);
 		return true;
 	}

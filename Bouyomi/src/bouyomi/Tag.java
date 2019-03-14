@@ -315,7 +315,7 @@ public class Tag{
 		}
 		tag=getTag("VideoStatus");
 		if(tag!=null) {
-			con.text="";
+			//con.text="";
 			DiscordAPI.chatDefaultHost(statusAllJson());
 		}
 		if(DiscordAPI.service_host!=null) {
