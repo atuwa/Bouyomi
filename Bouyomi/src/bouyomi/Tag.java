@@ -159,6 +159,7 @@ public class Tag{
 			MusicPlayerAPI.stop();
 			con.addTask.add("音楽を停止します。");
 		}
+		module.call(this);
 	}
 	/**動画再生機能*/
 	public void video() {

@@ -39,6 +39,7 @@ public class BouyomiProxy{
 	public static int bouyomi_port,proxy_port;//棒読みちゃんのポート(サーバはlocalhost固定)
 	public static long lastComment=System.currentTimeMillis();
 	private static String BOTpath;
+	public static ModuleLoader module;
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
 		InputStreamReader isr=new InputStreamReader(System.in);
@@ -122,6 +123,18 @@ public class BouyomiProxy{
 		//0文字だったら無し、それ以外だったらそれ
 		if(!command.isEmpty())BouyomiConection.logFile=command;
 		System.out.println("ログ"+(BouyomiConection.logFile==null?"無し":BouyomiConection.logFile));
+
+		if(args.length>8) {
+			if(args[8].equals("-"))command="";
+			else command=args[8];
+		}
+		//0文字だったら無し、それ以外だったらそれ
+		if(!command.isEmpty()) {
+			module=new ModuleLoader();
+			module.load(new File(command));
+			if(!module.isActive())module=null;
+		}
+		System.out.println("モジュール"+(module==null?"無し":module.path));
 
 		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
