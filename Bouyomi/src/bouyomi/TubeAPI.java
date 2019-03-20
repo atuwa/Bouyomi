@@ -217,10 +217,7 @@ public class TubeAPI{
 		}else if(url.indexOf("sc=")==0) {
 			return playTube(bc, url);
 		}else{
-			Matcher m = Pattern.compile("sm[0-9]++").matcher(url);
-			if(m.find())return playTube(bc, "nico="+m.group());
-			m = Pattern.compile("so[0-9]++").matcher(url);
-			if(m.find())return playTube(bc, "nico="+m.group());
+			if(playNico(bc, url, "sm","so","nm"))return true;
 			Matcher scm = Pattern.compile("//api.soundcloud.com/tracks/[0-9]++").matcher(url);
 			if(scm.find()) {
 				String s=scm.group();
@@ -233,6 +230,13 @@ public class TubeAPI{
 			}
 			bc.addTask.add("URLを解析できませんでした");
 			System.err.println("URL解析失敗="+url);
+		}
+		return false;
+	}
+	public static boolean playNico(BouyomiConection bc,String url,String... sm) {
+		for(String s:sm) {
+			Matcher m = Pattern.compile(s+"[0-9]++").matcher(url);
+			if(m.find())return playTube(bc, "nico="+m.group());
 		}
 		return false;
 	}

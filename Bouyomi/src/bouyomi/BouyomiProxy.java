@@ -374,14 +374,15 @@ public class BouyomiProxy{
 		System.arraycopy(messageData,0,data,15,length);
 		send(port,data);
 	}
-	public static boolean isReturn(String value) {
-		if(BOT.containsValue(value))return true;
+	public static boolean isRegister(String key,String value) {
+		if(BOT.containsValue(key))return true;
+		if(BOT.containsKey(value))return true;
 		class R implements BiConsumer<String,String>{
 			public boolean end;
 			@Override
 			public void accept(String key,String val){
 				if(end)return;
-				if(value.indexOf(val)>=0)end=true;
+				if(key.indexOf(val)>=0)end=true;
 			}
 		}
 		R r=new R();

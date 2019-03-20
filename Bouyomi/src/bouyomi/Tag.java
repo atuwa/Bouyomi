@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
 
@@ -35,7 +36,9 @@ public class Tag{
 			if(ei>0&&ki>1) {
 				String key=con.text.substring(3,ei);
 				String val=con.text.substring(ei+1,ki);
-				if(!key.equals(val)&&!isReturn(key)) {
+				removeTag("応答",key+"="+val);
+				removeTag("応答",key+"＝"+val);
+				if(!key.equals(val)&&!isRegister(key,val)) {
 					con.addTask.add(key+" には "+val+" を返します");
 					if(key.indexOf("部分一致：")==0||key.indexOf("部分一致:")==0) {
 						System.out.println("部分一致応答登録（"+key+"="+val+")");//ログに残す
@@ -100,6 +103,12 @@ public class Tag{
 			video();
 		}
 		Question.tag(this,con);
+		//おまけ機能
+		if(DiscordAPI.service_host!=null&&(con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ"))){
+			int r=new SecureRandom().nextInt(1000)+1;
+			DiscordAPI.chatDefaultHost((r==1?"/あたり (":"/はずれ (")+r+(con.user==null?")":")抽選者："+con.user));
+			if(r==1)con.addTask.add("おめでとう当たったよ");
+		}
 	}
 	public void music() {
 		String tag=getTag("音楽再生");
@@ -258,14 +267,17 @@ public class Tag{
 				try{
 					int Nvol=-10;
 					switch(tag.charAt(0)){
+						case '＋':
+						case '－':
 						case '+':
 						case '-':
-						case 'ー':
+							tag=tag.replace('＋','+');
+							tag=tag.replace('－','-');
 							Nvol=getVol();//+記号で始まる時今の音量を取得
 					}
 					int vol=Integer.parseInt(tag);//要求された音量
 					if(Nvol==-1) {
-						con.addTask.add("音量を変更できませんでした");//失敗した時これを読む
+						con.addTask.add("音量を変更できませんでした。音量を取得できませんでした");//失敗した時これを読む
 					}else {
 						if(Nvol>=0)vol=Nvol+vol;//音量が取得させていたらそれに指定された音量を足す
 						if(vol>100)vol=100;//音量が100以上の時100にする
@@ -273,10 +285,10 @@ public class Tag{
 						System.out.println("動画音量"+vol);//ログに残す
 						VOL=vol;//再生時に使う音量をこれにする
 						if(operation("vol="+vol))con.addTask.add("音量を"+vol+"にします");//動画再生プログラムにコマンド送信
-						else con.addTask.add("音量を変更できませんでした");//失敗した時これを読む
+						else con.addTask.add("音量を変更できませんでした。通信に失敗しました");//失敗した時これを読む
 					}
 				}catch(NumberFormatException e) {
-					con.addTask.add("音量を変更できませんでした");//失敗した時これを読む
+					con.addTask.add("音量を変更できませんでした。数値を解析できません");//失敗した時これを読む
 				}
 			}
 			if(con.text.isEmpty())return;

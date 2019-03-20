@@ -147,7 +147,7 @@ public class BouyomiConection implements Runnable{
 				readText=text;
 				fb=text.charAt(0);
 				log(user+"\t"+text);
-			}else{
+			}else if(s!=0xF001){
 				readText=text;
 				log(text);
 			}
@@ -155,6 +155,7 @@ public class BouyomiConection implements Runnable{
 		if(s==0xF001) {
 			userid=readString(is);
 			user=readString(is);
+			log(user+"\t"+text);
 		}
 	}
 	private String readString(InputStream is) throws IOException{
@@ -184,7 +185,7 @@ public class BouyomiConection implements Runnable{
 		//text=text.replaceAll("file://[\\x21-\\x7F]++","ファイル");
 		{//URL省略処理
 			//URL判定基準を正規表現で指定
-			Matcher m=Pattern.compile("https?://[\\x21-\\x7F]++").matcher(text);
+			Matcher m=Pattern.compile("https?://[\\x21-\\xFF]++").matcher(text);
 			m.reset();
 			boolean result = m.find();
 	        if (result) {

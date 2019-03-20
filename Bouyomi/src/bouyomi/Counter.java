@@ -32,8 +32,8 @@ public class Counter{
 	public static HashMap<String,CountData> usercount=new HashMap<String,CountData>();
 
 	public static class CountData implements Comparable<CountData>{
-		public CountData(String key){
-			name=key;
+		public CountData(String name){
+			this.name=name;
 		}
 		public CountData(DataInputStream is) throws IOException{
 			if(is!=null)read(is);
@@ -310,7 +310,14 @@ public class Counter{
 					bi=bi.add(new BigInteger(writeBuffer));
 					sb0.append(w).append("が").append(v).append("回\n");
 				}
-				sb.append(bi.toString()).append("回)\n").append(sb0);
+				sb.append(bi.toString()).append("回)\n");
+				String uid=null;
+				for(String id:usercount.keySet()) {
+					CountData c=usercount.get(id);
+					if(c==cd)uid=id;
+				}
+				sb.append("ユーザID=").append(uid).append("\n");
+				sb.append(sb0);
 				DiscordAPI.chatDefaultHost(sb.toString());
 			}else if(!s.isEmpty())DiscordAPI.chatDefaultHost("/データ無し");
 		}
@@ -331,6 +338,9 @@ public class Counter{
 					}
 				}
 			}
+		}
+		if(tag.con.userid!=null&&!usercount.containsKey(tag.con.userid)) {
+			usercount.put(tag.con.userid,new CountData(tag.con.user));
 		}
 	}
 	public static String countString() {
