@@ -13,7 +13,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -297,25 +296,7 @@ public class BouyomiConection implements Runnable{
 				addTask.add("要望リストに記録できませんでした");//失敗した事を追加で言う
 			}
 		}
-		if(!BotRes(BOT,false))BotRes(PartialMatchBOT,true);
-	}
-	private boolean BotRes(HashMap<String, String> BOT,boolean pm) {
-		if(addTask.isEmpty())for(Entry<String, String> e:BOT.entrySet()){
-			String key=e.getKey();
-			String val=e.getValue();
-			if(pm) {
-				if(text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
-					System.out.println("BOT応答キー =部分一致："+key);//ログに残す
-					if(!DiscordAPI.chatDefaultHost(val))addTask.add(val);//追加で言う
-					return true;
-				}
-			}else if(text.equals(key)) {//読み上げテキストがキーに一致した時
-				System.out.println("BOT応答キー ="+key);//ログに残す
-				if(!DiscordAPI.chatDefaultHost(val))addTask.add(val);//追加で言う
-				return true;
-			}
-		}
-		return false;
+		BOT.call(this);
 	}
 	/**連続短縮*/
 	private void ContinuationOmitted() throws IOException {
@@ -398,12 +379,12 @@ public class BouyomiConection implements Runnable{
 				mute=true;
 				if(text!=null) {
 					text=text.substring(1);
-					tag.bot();
+					tag.call();
 				}
 				return;
 			}
 			if(text!=null) {
-				tag.bot();
+				tag.call();
 				replace();
 			}
 			else if(len>=250)text="長文省略";

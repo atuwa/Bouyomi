@@ -27,18 +27,10 @@ import bouyomi.Counter.CountData.Count;
 
 /**棒読みちゃん専用のプロキシです*/
 public class BouyomiProxy{
-	/**自動応答辞書*/
-	public static HashMap<String,String> BOT=new HashMap<String,String>();
-	//Google翻訳から持ってきた変数名
-	public static HashMap<String,String> PartialMatchBOT=new HashMap<String,String>();
 	public static HashMap<String,String> Config=new HashMap<String,String>();
-	static {
-		BOT.put("ちくわ大明神","b) 誰だいまの");//デフォルトの自動応答
-	}
 	private static String command;//コンソールに入力されたテキスト
 	public static int bouyomi_port,proxy_port;//棒読みちゃんのポート(サーバはlocalhost固定)
 	public static long lastComment=System.currentTimeMillis();
-	private static String BOTpath;
 	public static ModuleLoader module;
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
@@ -66,7 +58,7 @@ public class BouyomiProxy{
 			command=br.readLine();//1行取得する
 		}
 		//0文字だったらデフォルト、それ以外だったらそれ
-		BOTpath=command.isEmpty()?"BOT.dic":command;//相対パス
+		BOT.BOTpath=command.isEmpty()?"BOT.dic":command;//相対パス
 		if(args.length>3) {
 			if(args[3].equals("-"))command="";
 			else command=args[3];
@@ -186,24 +178,13 @@ public class BouyomiProxy{
 								e.printStackTrace();
 							}
 						}else if("saveBOT".equals(command)) {
-							saveBOT();
+							BOT.saveBOT();
 						}else if("loadBOT".equals(command)) {
-							loadBOT();
+							BOT.loadBOT();
 						}else if("addPass".equals(command)) {
 							Pass.addPass();
 						}else if("listBOT".equals(command)) {
-							BOT.forEach(new BiConsumer<String,String>(){
-								@Override
-								public void accept(String key,String val){
-									System.out.println("key="+key+" val="+val);
-								}
-							});
-							PartialMatchBOT.forEach(new BiConsumer<String,String>(){
-								@Override
-								public void accept(String key,String val){
-									System.out.println("key="+key+" val="+val);
-								}
-							});
+							BOT.printList();
 						}else if("exit".equals(command)){
 							ss.close();//サーバ終了
 							System.exit(0);//プログラム終了
@@ -216,7 +197,7 @@ public class BouyomiProxy{
 		}.start();
 		Runtime.getRuntime().addShutdownHook(new Thread("save") {
 			public void run() {
-				saveBOT();
+				BOT.saveBOT();
 				try{
 					save(Config,"config.txt");
 				}catch(IOException e){
@@ -226,7 +207,7 @@ public class BouyomiProxy{
 			}
 		});
 		TubeAPI.setAutoStop();
-		loadBOT();
+		BOT.loadBOT();
 		try{
 			load(Config,"config.txt");
 			if("無効".equals(Config.get("平仮名変換"))){
@@ -254,36 +235,6 @@ public class BouyomiProxy{
 			}catch(IOException e){//例外は無視
 
 			}
-		}
-	}
-	public static void loadBOT() {
-		try{
-			load(BOT,BOTpath);
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-		try{
-			File f=new File(BOTpath);
-			String pf=f.getParent();
-			String fp=new File(pf,"PM-"+f.getName()).getAbsolutePath();
-			load(PartialMatchBOT,fp);
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-	}
-	public static void saveBOT() {
-		try{
-			save(BOT,BOTpath);
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-		try{
-			File f=new File(BOTpath);
-			String pf=f.getParent();
-			String fp=new File(pf,"PM-"+f.getName()).getAbsolutePath();
-			save(PartialMatchBOT,fp);
-		}catch(IOException e){
-			e.printStackTrace();
 		}
 	}
 	public static void load(HashMap<String,String> map,String path) throws IOException {
@@ -386,20 +337,5 @@ public class BouyomiProxy{
 		data[14]=(byte) ((length>>>24)&0xFF); // 長さ 4桁目
 		System.arraycopy(messageData,0,data,15,length);
 		send(port,data);
-	}
-	public static boolean isRegister(String key,String value) {
-		if(BOT.containsValue(key))return true;
-		if(BOT.containsKey(value))return true;
-		class R implements BiConsumer<String,String>{
-			public boolean end;
-			@Override
-			public void accept(String key,String val){
-				if(end)return;
-				if(key.indexOf(val)>=0)end=true;
-			}
-		}
-		R r=new R();
-		PartialMatchBOT.forEach(r);
-		return r.end;
 	}
 }

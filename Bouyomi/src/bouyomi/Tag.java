@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.function.BiConsumer;
 
 public class Tag{
 	public BouyomiConection con;
@@ -19,71 +18,15 @@ public class Tag{
 		con=bc;
 	}
 	/**自作プロキシの追加機能*/
-	public void bot() {
+	public void call() {
 		if(con.text.equals("!help")) {
 			DiscordAPI.chatDefaultHost("説明 https://github.com/atuwa/Bouyomi/wiki");
 			con.text="";
 			return;
 		}
 		Counter.count(this);
-		if(con.text.indexOf("応答(")==0||con.text.indexOf("応答（")==0) {//自動応答機能を使う時
-			//System.out.println(text);//ログに残す
-			int ei=con.text.indexOf('=');
-			if(ei<0)ei=con.text.indexOf('＝');
-			int ki=con.text.lastIndexOf(')');
-			int zi=con.text.lastIndexOf('）');
-			if(ki<zi)ki=zi;
-			if(ei>0&&ki>1) {
-				String key=con.text.substring(3,ei);
-				String val=con.text.substring(ei+1,ki);
-				removeTag("応答",key+"="+val);
-				removeTag("応答",key+"＝"+val);
-				if(!key.equals(val)&&!isRegister(key,val)) {
-					con.addTask.add(key+" には "+val+" を返します");
-					if(key.indexOf("部分一致：")==0||key.indexOf("部分一致:")==0) {
-						System.out.println("部分一致応答登録（"+key+"="+val+")");//ログに残す
-						PartialMatchBOT.put(key.substring(5),val);
-					}else{
-						System.out.println("完全一致応答登録（"+key+"="+val+")");//ログに残す
-						BOT.put(key,val);
-					}
-				}else {
-					con.addTask.add("登録できません");
-					System.out.println("応答登録不可（"+key+"="+val+")");//ログに残す
-				}
-			}
-		}
-		String tag=getTag("応答破棄");
-		if(tag!=null) {//自動応答機能を使う時
-			//System.out.println(text);//ログに残す
-			if(tag.indexOf("部分一致：")==0||tag.indexOf("部分一致:")==0) {
-				if(PartialMatchBOT.remove(tag.substring(5))!=null) {
-					con.addTask.add(tag+" には応答を返しません");
-					System.out.println("部分一致応答破棄（"+tag+")");//ログに残す
-				}else con.addTask.add(tag+" には応答が設定されてません");
-			}else if(BOT.remove(tag)!=null) {
-				con.addTask.add(tag+" には応答を返しません");
-				System.out.println("応答破棄（"+tag+")");//ログに残す
-			}else con.addTask.add(tag+" には応答が設定されてません");
-		}
-		tag=getTag("応答一覧");
-		if(tag!=null) {
-			final StringBuilder sb=new StringBuilder("/");
-			BOT.forEach(new BiConsumer<String,String>(){
-				@Override
-				public void accept(String key,String val){
-					sb.append("key=").append(key).append(" val=").append(val).append("\n");
-				}
-			});
-			PartialMatchBOT.forEach(new BiConsumer<String,String>(){
-				@Override
-				public void accept(String key,String val){
-					sb.append("部分一致").append("key=").append(key).append(" val=").append(val).append("\n");
-				}
-			});
-			DiscordAPI.chatDefaultHost(sb.toString());
-		}
-		tag=getTag("平仮名変換");
+		BOT.tag(this);
+		String tag=getTag("平仮名変換");
 		if(tag!=null) {
 			Config.put("平仮名変換",tag);
 			if(tag.equals("有効")) {
@@ -103,6 +46,7 @@ public class Tag{
 			video();
 		}
 		Question.tag(this,con);
+		module.call(this);
 		//おまけ機能
 		if(DiscordAPI.service_host!=null&&(con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ"))){
 			int r=new SecureRandom().nextInt(1000)+1;
@@ -159,7 +103,6 @@ public class Tag{
 			MusicPlayerAPI.stop();
 			con.addTask.add("音楽を停止します。");
 		}
-		module.call(this);
 	}
 	/**動画再生機能*/
 	public void video() {

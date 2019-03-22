@@ -1,5 +1,6 @@
 package bouyomi;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -52,11 +53,14 @@ public class Question{
 			if(questionnaireName==null) {
 				bc.addTask.add("アンケートが実施されていません");
 			}else {
-				StringBuilder result=new StringBuilder("アンケート名");
-				result.append(questionnaireName).append("\n");
+				StringBuilder result=new StringBuilder("アンケート名").append(questionnaireName);
+				long all=0;
+				for(int i=0;i<questionnaire.length;i++)all+=questionnaire[i];
+				result.append("(合計").append(all).append("票)\n");
+				DecimalFormat fomat=new DecimalFormat("##0.##");
 				for(int i=0;i<questionnaire.length;i++) {
 					String k=questionnaireList.get(i);
-					result.append(k).append(" が").append(questionnaire[i]).append("票\n");
+					result.append(k).append(" が").append(questionnaire[i]).append("票/*(").append(fomat.format(questionnaire[i]/(double)all*100D)).append("%)*/\n");
 				}
 				result.append("でした。");
 				if(!tag.equals("内容破棄"))DiscordAPI.chatDefaultHost(result.toString());
