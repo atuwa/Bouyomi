@@ -2,7 +2,6 @@ package bouyomi;
 
 import static bouyomi.BouyomiProxy.*;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -18,7 +17,6 @@ import java.util.regex.Pattern;
 
 public class BouyomiConection implements Runnable{
 
-	static String logFile;
 	/**このインスタンスの接続先*/
 	private Socket soc;
 	//コンストラクタ
@@ -38,48 +36,6 @@ public class BouyomiConection implements Runnable{
 	private ByteArrayOutputStream baos;
 	public boolean mute;
 	private String readText;
-	private static BufferedOutputStream logFileOS;
-	private static void log(String s) {
-		if(logFileOS==null) {
-			Runtime.getRuntime().addShutdownHook(new Thread("closeLogFile") {
-				public void run() {
-					try{
-						if(logFileOS!=null)logFileOS.close();
-					}catch(IOException e){
-						e.printStackTrace();
-					}
-				}
-			});
-			new Thread("AutoFlushLog") {
-				public void run() {
-					while(true) {
-						try{
-							Thread.sleep(5*60*1000);
-							try{
-								if(logFileOS!=null) {
-									logFileOS.flush();
-									//System.out.println("定期ログフラッシュ");
-								}
-							}catch(IOException e){
-								e.printStackTrace();
-							}
-						}catch(InterruptedException e){
-							e.printStackTrace();
-						}
-					}
-				}
-			}.start();
-		}
-		try{
-			if(logFileOS==null) {
-				FileOutputStream fos=new FileOutputStream(logFile,true);//追加モードでファイルを開く
-				logFileOS=new BufferedOutputStream(fos);
-			}
-			logFileOS.write((s.replace('\n',' ')+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
 	private void read() throws IOException {
 		InputStream is=soc.getInputStream();//Discord取得ソフトから読み込むストリーム
 		int ch1=is.read();//コマンドバイトを取得
@@ -145,16 +101,16 @@ public class BouyomiConection implements Runnable{
 				text=text.substring(index+key.length());
 				readText=text;
 				fb=text.charAt(0);
-				log(user+"\t"+text);
+				if(logger!=null)logger.log(user+"\t"+text);
 			}else if(s!=0xF001){
 				readText=text;
-				log(text);
+				if(logger!=null)logger.log(text);
 			}
 		}
 		if(s==0xF001) {
 			userid=readString(is);
 			user=readString(is);
-			log(user+"\t"+text);
+			if(logger!=null)logger.log(user+"\t"+text);
 		}
 	}
 	private String readString(InputStream is) throws IOException{
@@ -378,7 +334,8 @@ public class BouyomiConection implements Runnable{
 				//System.out.println("スラッシュで始まる");
 				mute=true;
 				if(text!=null) {
-					text=text.substring(1);
+					if(text!=null&&text.indexOf("```")==0)text=text.substring(3);
+					else text=text.substring(1);
 					tag.call();
 				}
 				return;

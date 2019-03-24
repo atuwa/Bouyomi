@@ -18,17 +18,18 @@ public class ModuleLoader{
 			loader=new URLClassLoader(new URL[] {f.toURI().toURL()});
 			for(String s:f.list()) {
 				int i=s.lastIndexOf(".class");
-				if(i<=0)continue;
+				if(i<=0||s.indexOf('$')>=0)continue;
 				String name=s.substring(0,i);
-				//System.out.println(f.getName()+"."+name);
+				System.out.println("モジュール"+name);
 				try{
 					Class<?> c=loader.loadClass(f.getName()+"."+name);
 					Object o=c.newInstance();
 					if(o instanceof IModule)modules.add((IModule)o);
+					if(o instanceof IAutoSave)IAutoSave.Register((IAutoSave)o);
 				}catch(ClassNotFoundException e){
 					e.printStackTrace();
 				}catch(InstantiationException e){
-					e.printStackTrace();
+					//e.printStackTrace();
 				}catch(IllegalAccessException e){
 					e.printStackTrace();
 				}catch(NoClassDefFoundError e) {

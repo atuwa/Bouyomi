@@ -135,6 +135,7 @@ public class BOT{
 				}
 			}
 		}
+		t.isTagTrim=false;
 		String tag=t.getTag("応答破棄");
 		if(tag!=null) {//自動応答機能を使う時
 			//System.out.println(text);//ログに残す
@@ -148,6 +149,7 @@ public class BOT{
 				System.out.println("応答破棄（"+tag+")");//ログに残す
 			}else con.addTask.add(tag+" には応答が設定されてません");
 		}
+		t.isTagTrim=true;
 		tag=t.getTag("応答一覧");
 		if(tag!=null) {
 			final StringBuilder sb=new StringBuilder("/");

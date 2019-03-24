@@ -14,6 +14,7 @@ import java.util.HashMap;
 
 public class Tag{
 	public BouyomiConection con;
+	public boolean isTagTrim=true;
 	public Tag(BouyomiConection bc) {
 		con=bc;
 	}
@@ -50,7 +51,7 @@ public class Tag{
 		//おまけ機能
 		if(DiscordAPI.service_host!=null&&(con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ"))){
 			int r=new SecureRandom().nextInt(1000)+1;
-			DiscordAPI.chatDefaultHost((r==1?"/あたり (":"/はずれ (")+r+(con.user==null?")":")抽選者："+con.user));
+			DiscordAPI.chatDefaultHost((r==1?"/ボロン (":"/はずれ (")+r+(con.user==null?")":")抽選者："+con.user));
 			if(r==1)con.addTask.add("おめでとう当たったよ");
 		}
 	}
@@ -367,7 +368,7 @@ public class Tag{
 		String tag=con.text.substring(index+key.length()+1,ki);
 		//System.out.println("タグ取得k="+key+"v="+tag);
 		removeTag(key,tag);
-		return tag.trim();
+		return isTagTrim?tag.trim():tag;
 	}
 	public void removeTag(String tagName,String val) {
 		//System.out.println("元データ　"+con.text);
