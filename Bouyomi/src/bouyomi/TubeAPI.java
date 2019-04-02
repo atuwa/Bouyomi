@@ -24,7 +24,7 @@ public class TubeAPI{
 	public static boolean nowPlayVideo;
 	public static String video_host=null;
 	public static int VOL=30,DefaultVol=-1;
-	public static String lastPlay;
+	public static String lastPlay,lastPlayUser;
 	public static int maxHistory=32;//32個履歴を保持する
 	/**履歴が入ってるリスト*/
 	public static ArrayList<String> playHistory=new ArrayList<String>();
@@ -63,6 +63,8 @@ public class TubeAPI{
 			//System.out.println(url.toString());
 			url.openStream().close();
 			lastPlay=videoID;
+			if(bc!=null&&bc.user!=null&&!bc.user.isEmpty())lastPlayUser=bc.user;
+			else lastPlayUser=null;
 			if(playHistory.size()>=maxHistory){
 				playHistory.remove(maxHistory-1);
 			}
@@ -228,7 +230,7 @@ public class TubeAPI{
 					return playTube(bc, "sc="+url);
 				}
 			}
-			bc.addTask.add("URLを解析できませんでした");
+			bc.addTask.add("動画アイディーを抽出できませんでした");
 			System.err.println("URL解析失敗="+url);
 		}
 		return false;

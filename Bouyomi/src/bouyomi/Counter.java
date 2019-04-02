@@ -22,12 +22,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 public class Counter{
 
 	private static String[] counterWords=null;
 	private static int[] counter;
 	private static long counterStart;
+	private static int lastWriteHashCode;
 	/**k=ユーザIDv=データ*/
 	public static HashMap<String,CountData> usercount=new HashMap<String,CountData>();
 
@@ -44,6 +46,15 @@ public class Counter{
 			public Count() {}
 			public Count(long l) {
 				count=l;
+			}
+			@Override
+			public boolean equals(Object o) {
+				if(o instanceof Count)return ((Count)o).count==count;
+				return false;
+			}
+			@Override
+			public int hashCode() {
+				return Long.hashCode(count);
 			}
 		}
 		/**ユーザー名*/
@@ -107,6 +118,19 @@ public class Counter{
 			}
 			return bi.compareTo(b)*-1;
 		}
+		@Override
+		public boolean equals(Object o) {
+			if(o instanceof CountData) {
+				CountData cd=(CountData)o;
+				if(!cd.name.equals(name))return false;
+				return cd.count.equals(count);
+			}
+			return false;
+		}
+		@Override
+		public int hashCode() {
+			return name.hashCode()+count.hashCode();
+		}
 	}
 	public static void writeUserData() {
 		try{
@@ -162,9 +186,21 @@ public class Counter{
 		c.name=key;
 		c.add(word);
 	}
-	static {
+	public static void init(){
 		loadCountWords();
 		readUserData();
+		IAutoSave.Register(new IAutoSave() {
+			@Override
+			public void autoSave(){
+				int hc=counter.hashCode();
+				if(lastWriteHashCode==hc)return;
+				lastWriteHashCode=hc;
+				write();
+			}
+			public void shutdownHook() {
+				write();
+			}
+		});
 	}
 	private static void loadCountWords(){
 		File f=new File("count.txt");
@@ -308,7 +344,7 @@ public class Counter{
 					writeBuffer[6] = (byte)(v >>>  8);
 					writeBuffer[7] = (byte)(v >>>  0);
 					bi=bi.add(new BigInteger(writeBuffer));
-					sb0.append(w).append("が").append(v).append("回\n");
+					sb0.append(w.split(",")[0]).append("が").append(v).append("回\n");
 				}
 				sb.append(bi.toString()).append("回)\n");
 				String uid=null;
@@ -331,7 +367,8 @@ public class Counter{
 			for(int i=0;i<counterWords.length;i++) {
 				String[] cw=counterWords[i].split(",");
 				for(String c:cw) {
-					if(text.indexOf(c)>=0) {
+					if(Pattern.matches(c,text)){
+					//if(text.indexOf(c)>=0) {
 						counter[i]++;
 						addData(tag.con,counterWords[i]);
 						break;
@@ -339,8 +376,13 @@ public class Counter{
 				}
 			}
 		}
-		if(tag.con.userid!=null&&!usercount.containsKey(tag.con.userid)) {
-			usercount.put(tag.con.userid,new CountData(tag.con.user));
+		if(tag.con.userid!=null&&tag.con.user!=null) {
+			CountData now=usercount.get(tag.con.userid);
+			if(now!=null) {
+				now.name=tag.con.user;
+			}else {
+				usercount.put(tag.con.userid,new CountData(tag.con.user));
+			}
 		}
 	}
 	public static String countString() {
@@ -348,7 +390,7 @@ public class Counter{
 		String sdt=df.format(new Date(counterStart));
 		StringBuilder c=new StringBuilder("/");
 		for(int n=0;n<counterWords.length;n++) {
-			c.append(counterWords[n]).append("が").append(counter[n]).append("回\n");
+			c.append(counterWords[n].split(",")[0]).append("が").append(counter[n]).append("回\n");
 		}
 		c.deleteCharAt(c.length()-1);
 		c.append("書き込まれました\n");

@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
+
+import bouyomi.ListMap.Value;
 
 /**実験中機能(今は使われてない)*/
 public class Dic{
@@ -15,7 +18,7 @@ public class Dic{
 	/**文字統一辞書(今は使われてない)*/
 	public static HashMap<String,String> FW=new HashMap<String,String>();
 	/**教育単純置換辞書(今は使われてない)*/
-	public static HashMap<String,String> Study=new HashMap<String,String>();
+	public static ListMap<String,String> Study=new ListMap<String,String>();
 	static {
 		FW.put("０","0");FW.put("１","1");FW.put("２","2");FW.put("３","3");FW.put("４","4");
 		FW.put("５","5");FW.put("６","6");FW.put("７","7");FW.put("８","8");FW.put("９","9");
@@ -47,9 +50,28 @@ public class Dic{
 		FW.put("ﾔ","ヤ");FW.put("ﾕ","ユ");FW.put("ﾖ","ヨ");
 		FW.put("ﾜ","ワ");FW.put("ｦ","ヲ");FW.put("ﾝ","ン");
 	}
+	private static void tag(String text) {
+		int index=text.indexOf("教育(");
+		if(index<0)index=text.indexOf("教育（");
+		if(index<0)return;//タグを含まない時
+		int ki=text.indexOf(')');//半角
+		int zi=text.indexOf('）');//全角
+		if(ki<0)ki=zi;
+		if(ki<0)return;//閉じカッコが無い時
+		if(ki<index+3)return;//閉じカッコの位置がおかしい時
+		if(ki==index+3)return;//0文字
+		String tag=text.substring(index+3,ki);
+		int ee=tag.indexOf('=');
+		if(ee+1>tag.length())return;
+		String key=tag.substring(0,ee);
+		String value=tag.substring(ee+1);
+		Study.put(key,value);
+	}
 	//ReplaceStudy.dic
 	/**実験中機能(今は使われてない)*/
 	public static String ReplaceStudy(String text) throws IOException {
+		tag(text);
+		if(Study.isEmpty())return text;
 		class CL implements BiConsumer<String,String>{
 			public String d;
 			public CL(String s) {
@@ -88,6 +110,12 @@ public class Dic{
 				String value=rl.substring(index+1);
 				Study.put(key,value);
 			}
+			Study.rawList().sort(new Comparator<ListMap.Value<String,String>>() {
+				@Override
+				public int compare(Value<String, String> o1,Value<String, String> o2){
+					return o2.getKey().length()-o1.getKey().length();
+				}
+			});
 		}catch(IOException e){
 			e.printStackTrace();
 		}finally {

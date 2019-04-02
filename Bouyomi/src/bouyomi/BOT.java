@@ -83,12 +83,14 @@ public class BOT{
 		}
 	}
 	private static boolean BotRes(BouyomiConection bc,HashMap<String, String> BOT,boolean pm) {
+		//System.out.println(bc.text);
 		if(bc.addTask.isEmpty())for(Entry<String, String> e:BOT.entrySet()){
 			String key=e.getKey();
 			String val=e.getValue();
 			if(pm) {
 				if(bc.text.indexOf(key)>=0) {//読み上げテキストにキーが含まれている時
 					if(key.equals(LastMatch))MatchCount++;
+					else MatchCount=0;
 					if(MatchCount>5)return true;
 					System.out.println("BOT応答キー =部分一致："+key);//ログに残す
 					if(!DiscordAPI.chatDefaultHost(val))bc.addTask.add(val);//追加で言う
@@ -97,6 +99,7 @@ public class BOT{
 				}
 			}else if(bc.text.equals(key)) {//読み上げテキストがキーに一致した時
 				if(key.equals(LastMatch))MatchCount++;
+				else MatchCount=0;
 				if(MatchCount>5)return true;
 				System.out.println("BOT応答キー ="+key);//ログに残す
 				if(!DiscordAPI.chatDefaultHost(val))bc.addTask.add(val);//追加で言う

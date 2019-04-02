@@ -24,7 +24,7 @@ public class BouyomiConection implements Runnable{
 	public BouyomiConection(Socket s){
 		soc=s;
 	}
-	String text=null;
+	public String text=null;
 	public ArrayList<String> addTask=new ArrayList<String>();
 	private char fb;//最初の文字
 	private int len;
@@ -184,7 +184,7 @@ public class BouyomiConection implements Runnable{
 						r="テキストファイル";
 					}else 	if(g.endsWith(".js")||g.endsWith(".java")) {
 						r="ソースファイル";
-					}else 	if(g.endsWith(".mp4")||g.endsWith(".avi")) {
+					}else 	if(g.endsWith(".mp4")||g.endsWith(".avi")||g.endsWith(".mov")) {
 						r="動画";
 					}else 	if(g.endsWith(".wav")||g.endsWith(".mp3")) {
 						r="音楽";
@@ -210,14 +210,6 @@ public class BouyomiConection implements Runnable{
 				m.appendTail(sb);
 				text=sb.toString().trim();
 			}
-		}
-		//巨大数処理
-		text=text.replaceAll("[0-9]{8,}+","数字省略");
-		ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
-		if(text.length()>=90){//長文省略基準90文字以上
-			System.out.println("長文省略("+text.length()+"文字)");
-			text="長文省略";
-			return;
 		}
 		if(Japanese.trans(text)) {
 			String n=text.replaceAll("nn","n");
@@ -253,6 +245,15 @@ public class BouyomiConection implements Runnable{
 			}
 		}
 		BOT.call(this);
+		//text=Dic.ReplaceStudy(text);
+		//巨大数処理
+		text=text.replaceAll("[0-9]{8,}+","数字省略");
+		ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
+		if(text.length()>=90){//長文省略基準90文字以上
+			System.out.println("長文省略("+text.length()+"文字)");
+			text="長文省略";
+			return;
+		}
 	}
 	/**連続短縮*/
 	private void ContinuationOmitted() throws IOException {

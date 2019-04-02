@@ -129,6 +129,20 @@ public class BouyomiProxy{
 		}
 		System.out.println("モジュール"+(module==null?"無し":module.path));
 
+		if(args.length>9) {
+			if(args[9].equals("-"))command="";
+			else command=args[9];
+		}
+		//0文字だったら無し、それ以外だったらそれ
+		if(!command.isEmpty()) {
+			try{
+				Dic.loadStudy(command);
+			}catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println("教育"+(command.isEmpty()?"無し":command));
+
 		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
 		new Thread("CommandReader"){
@@ -205,11 +219,11 @@ public class BouyomiProxy{
 				}catch(IOException e){
 					e.printStackTrace();
 				}
-				Counter.write();
 			}
 		});
 		TubeAPI.setAutoStop();
 		BOT.loadBOT();
+		Counter.init();
 		try{
 			load(Config,"config.txt");
 			if("無効".equals(Config.get("平仮名変換"))){

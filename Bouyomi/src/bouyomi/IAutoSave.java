@@ -11,19 +11,21 @@ public interface IAutoSave{
 		new Thread("AutoSave") {
 			@Override
 			public void run() {
-				try{
-					Thread.sleep(5*60*1000);
-					synchronized(list){
-						for(IAutoSave a:list) {
-							try{
-								a.autoSave();
-							}catch(IOException e){
-								e.printStackTrace();
+				while(true) {
+					try{
+						Thread.sleep(5*60*1000);
+						synchronized(list){
+							for(IAutoSave a:list) {
+								try{
+									a.autoSave();
+								}catch(IOException e){
+									e.printStackTrace();
+								}
 							}
 						}
+					}catch(InterruptedException e){
+						e.printStackTrace();
 					}
-				}catch(InterruptedException e){
-					e.printStackTrace();
 				}
 			}
 		}.start();

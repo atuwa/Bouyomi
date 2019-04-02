@@ -9,7 +9,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.HashMap;
 
 public class Tag{
@@ -48,12 +47,6 @@ public class Tag{
 		}
 		Question.tag(this,con);
 		module.call(this);
-		//おまけ機能
-		if(DiscordAPI.service_host!=null&&(con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ"))){
-			int r=new SecureRandom().nextInt(1000)+1;
-			DiscordAPI.chatDefaultHost((r==1?"/ボロン (":"/はずれ (")+r+(con.user==null?")":")抽選者："+con.user));
-			if(r==1)con.addTask.add("おめでとう当たったよ");
-		}
 	}
 	public void music() {
 		String tag=getTag("音楽再生");
@@ -136,6 +129,7 @@ public class Tag{
 				String url=IDtoURL(lastPlay);
 				if(url==null)con.addTask.add("非対応形式です");
 				else{
+					if(lastPlayUser!=null)url="再生者："+lastPlayUser+"\n"+url;
 					if(con.mute)System.out.println(url);
 					else DiscordAPI.chatDefaultHost(url);
 				}
@@ -165,9 +159,11 @@ public class Tag{
 		if(tag!=null) {
 			if(lastPlay==null)con.addTask.add("再生されていません");//再生中の動画情報がない時
 			else if(tag.isEmpty()) {//0文字
+				String url=lastPlay;
+				if(lastPlayUser!=null)url="再生者："+lastPlayUser+"\n"+url;
 				if(con.mute) {
-					System.out.println(lastPlay);
-				}else DiscordAPI.chatDefaultHost("/"+lastPlay);
+					System.out.println(url);
+				}else DiscordAPI.chatDefaultHost("/"+url);
 			}else{
 				try {
 					int dc=Integer.parseInt(tag);//取得要求数
