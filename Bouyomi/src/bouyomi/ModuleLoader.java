@@ -26,13 +26,9 @@ public class ModuleLoader{
 					Object o=c.newInstance();
 					if(o instanceof IModule)modules.add((IModule)o);
 					if(o instanceof IAutoSave)IAutoSave.Register((IAutoSave)o);
-				}catch(ClassNotFoundException e){
-					e.printStackTrace();
-				}catch(InstantiationException e){
+				}catch(InstantiationException | IllegalAccessException e){
 					//e.printStackTrace();
-				}catch(IllegalAccessException e){
-					e.printStackTrace();
-				}catch(NoClassDefFoundError e) {
+				}catch(ClassNotFoundException | NoClassDefFoundError e) {
 					e.printStackTrace();
 				}
 			}
