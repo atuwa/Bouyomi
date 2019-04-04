@@ -357,6 +357,13 @@ public class Counter{
 				DiscordAPI.chatDefaultHost(sb.toString());
 			}else if(!s.isEmpty())DiscordAPI.chatDefaultHost("/データ無し");
 		}
+		String nn=tag.getTag("ニックネーム");
+		if(nn!=null&&!nn.isEmpty()) {
+			String un=getUserName(nn);
+			if(un==null)un="知らん";
+			if(tag.con.mute)un="/"+un;
+			DiscordAPI.chatDefaultHost(un);
+		}
 		String text=tag.con.text;
 		if(counterWords!=null&&counterWords.length>0) {
 			if(text.equals("カウント取得")){

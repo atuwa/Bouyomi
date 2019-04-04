@@ -1,6 +1,7 @@
 package bouyomi;
 
 import java.util.AbstractCollection;
+import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,7 @@ import java.util.function.Consumer;
 
 /** Listを使ったMapです。順序が保証されますがHashMapより遅いです。<br>
  * Listは標準ではjava.util.ArrayListが使用されます。変更するにはmakeList()をOverrideしてください。*/
-public class ListMap<K, V> implements Map<K, V>{
+public class ListMap<K, V> extends AbstractMap<K, V>{
 	public static class Value<K, V> implements Entry<K, V>{
 		private K key;
 		private V value;

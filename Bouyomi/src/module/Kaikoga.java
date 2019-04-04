@@ -18,9 +18,11 @@ public class Kaikoga implements IModule,IAutoSave{
 
 	//k=id v=count
 	private ListMap<String,String> kaikogaDB=new ListMap<String,String>();
+	private int lastWriteHashCode;
 	public Kaikoga() {
 		try{
 			BouyomiProxy.load(kaikogaDB,"kaikoga.db");
+			lastWriteHashCode=kaikogaDB.hashCode();
 		}catch(IOException e){
 			e.printStackTrace();
 		}
@@ -30,8 +32,8 @@ public class Kaikoga implements IModule,IAutoSave{
 		if(DiscordAPI.service_host==null)return;//Discordに送信できないときはこの機能は動かない
 		BouyomiConection con=tag.con;
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
-			int r=new SecureRandom().nextInt(10)+1;//一時的に当選率10%
-			String s=(r==1?"ボロン (":r<5?"おしい(":"はずれ (")+r+(con.user==null?")":")/*抽選者："+con.user);
+			int r=new SecureRandom().nextInt(100)+1;//当選率5%
+			String s=(r<=5?"ボロン (":r<=15?"おしい(":"はずれ (")+r+(con.user==null?")":")/*抽選者："+con.user);
 			DiscordAPI.chatDefaultHost(s);
 			System.out.println(s);
 			if(r==1) {
@@ -81,15 +83,18 @@ public class Kaikoga implements IModule,IAutoSave{
 	}
 	@Override
 	public void autoSave() {
+		int hc=kaikogaDB.hashCode();
+		if(hc==lastWriteHashCode)return;
+		lastWriteHashCode=hc;
+		shutdownHook();
+	}
+	@Override
+	public void shutdownHook(){
 		if(kaikogaDB.isEmpty())return;
 		try{
 			BouyomiProxy.save(kaikogaDB,"kaikoga.db");
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-	}
-	@Override
-	public void shutdownHook(){
-		autoSave();
 	}
 }
