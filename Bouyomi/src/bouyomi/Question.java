@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 /**アンケート機能*/
 public class Question{
+	//TODO 集計結果を多い順に並べ替え
 	public static Question now;
 	/**アンケート名*/
 	public String questionnaireName;

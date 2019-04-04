@@ -398,4 +398,9 @@ public class Counter{
 		c.append(df.format(new Date())).append("現在");
 		return c.toString();
 	}
+	public static String getUserName(String id) {
+		CountData cd=usercount.get(id);
+		if(cd==null)return null;
+		return cd.name;
+	}
 }

@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -253,7 +254,7 @@ public class BouyomiProxy{
 			}
 		}
 	}
-	public static void load(HashMap<String,String> map,String path) throws IOException {
+	public static void load(Map<String,String> map,String path) throws IOException {
 		map.clear();
 		FileInputStream fos=new FileInputStream(path);
 		InputStreamReader isr=new InputStreamReader(fos,StandardCharsets.UTF_8);
@@ -275,7 +276,7 @@ public class BouyomiProxy{
 			br.close();
 		}
 	}
-	public static void save(HashMap<String,String> map,String path) throws IOException {
+	public static void save(Map<String,String> map,String path) throws IOException {
 		FileOutputStream fos=new FileOutputStream(path);
 		final OutputStreamWriter osw=new OutputStreamWriter(fos,StandardCharsets.UTF_8);
 		try {

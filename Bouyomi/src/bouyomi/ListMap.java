@@ -4,6 +4,7 @@ import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -305,5 +306,41 @@ public class ListMap<K, V> implements Map<K, V>{
 	public Set<Entry<K, V>> entrySet(){
 		if(es!=null)return es;
 		return es=new EntrySet();
+	}
+	/**ソートする*/
+	public void sortKey(final Comparator<K> c) {
+		Comparator<Value<K,V>> c0=new Comparator<Value<K,V>>(){
+			@SuppressWarnings("unchecked")
+			@Override
+			public int compare(Value<K, V> o1,Value<K, V> o2){
+				if(c==null) {
+					K k=o1.getKey();
+					if(k instanceof Comparable) {
+						return ((Comparable<K>)k).compareTo(o2.getKey());
+					}
+					return 0;
+				}
+				return c.compare(o1.getKey(),o2.getKey());
+			}
+		};
+		list.sort(c0);
+	}
+	/**ソートする*/
+	public void sortValue(final Comparator<V> c) {
+		Comparator<Value<K,V>> c0=new Comparator<Value<K,V>>(){
+			@SuppressWarnings("unchecked")
+			@Override
+			public int compare(Value<K, V> o1,Value<K, V> o2){
+				if(c==null) {
+					V v=o1.getValue();
+					if(v instanceof Comparable) {
+						return ((Comparable<V>)v).compareTo(o2.getValue());
+					}
+					return 0;
+				}
+				return c.compare(o1.getValue(),o2.getValue());
+			}
+		};
+		list.sort(c0);
 	}
 }
