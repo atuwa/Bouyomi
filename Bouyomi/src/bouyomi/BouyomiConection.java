@@ -17,10 +17,10 @@ import java.util.regex.Pattern;
 
 public class BouyomiConection implements Runnable{
 
-	/**このインスタンスの接続先*/
+	/** このインスタンスの接続先 */
 	private Socket soc;
 	//コンストラクタ
-	/**接続単位で別のインスタンス*/
+	/** 接続単位で別のインスタンス */
 	public BouyomiConection(Socket s){
 		soc=s;
 	}
@@ -30,13 +30,13 @@ public class BouyomiConection implements Runnable{
 	private int len;
 	private int type;
 	public String user,userid;
-	/**受け取った文字データ*/
+	/** 受け取った文字データ */
 	private ByteArrayOutputStream baos2;
-	/**送信データ入れ*/
+	/** 送信データ入れ */
 	private ByteArrayOutputStream baos;
 	public boolean mute;
 	private String readText;
-	private void read() throws IOException {
+	private void read() throws IOException{
 		InputStream is=soc.getInputStream();//Discord取得ソフトから読み込むストリーム
 		int ch1=is.read();//コマンドバイトを取得
 		int ch2=is.read();
@@ -64,7 +64,8 @@ public class BouyomiConection implements Runnable{
 		type=is.read();//文字コード読み込み
 		if(len!=8||type<0){//読み込みバイト数が足りない時
 			System.out.println("notLen9("+len+")");
-			for(int i=0;i<len;i++)System.out.println(d[i]);
+			for(int i=0;i<len;i++)
+				System.out.println(d[i]);
 			throw new IOException();
 		}
 		baos.write(d);//その他パラメータを送信データバッファに書き込み
@@ -90,27 +91,27 @@ public class BouyomiConection implements Runnable{
 			}
 			baos2.write(j);
 		}
-		if(d[7]==0)text=baos2.toString("utf-8");//UTF-8でデコード
-		else if(d[7]==1)text=baos2.toString("utf-16");//UTF-16でデコード
+		if(d[7]==0) text=baos2.toString("utf-8");//UTF-8でデコード
+		else if(d[7]==1) text=baos2.toString("utf-16");//UTF-16でデコード
 		//System.out.println(text);
-		if(text!=null) {
+		if(text!=null){
 			String key="濰濱濲濳濴濵濶濷濸濹濺濻濼濽濾濿";
 			int index=text.indexOf(key);
-			if(index>0) {
+			if(index>0){
 				user=text.substring(0,index);
 				text=text.substring(index+key.length());
 				readText=text;
 				fb=text.charAt(0);
-				if(logger!=null)logger.log(user+"\t"+text);
+				if(logger!=null) logger.log(user+"\t"+text);
 			}else if(s!=0xF001){
 				readText=text;
-				if(logger!=null)logger.log(text);
+				if(logger!=null) logger.log(text);
 			}
 		}
-		if(s==0xF001) {
+		if(s==0xF001){
 			userid=readString(is);
 			user=readString(is);
-			if(logger!=null)logger.log(user+"\t"+text);
+			if(logger!=null) logger.log(user+"\t"+text);
 		}
 	}
 	private String readString(InputStream is) throws IOException{
@@ -135,67 +136,70 @@ public class BouyomiConection implements Runnable{
 		}
 		return baos0.toString("utf-8");//UTF-8でデコード
 	}
-	private void replace() throws IOException {
+	private void urlcut(){
+		//URL省略処理
+		//URL判定基準を正規表現で指定
+		Matcher m=Pattern.compile("https?://\\S++").matcher(text);
+		//Matcher m=Pattern.compile("https?://[\\x21-\\xFF]++").matcher(text);//古いの
+		m.reset();
+		boolean result=m.find();
+		if(result){
+			int co=0;//URLの数
+			do{
+				co++;
+				result=m.find();
+			}while(result);
+			m.reset();
+			result=m.find();
+			boolean b=true;
+			StringBuffer sb=new StringBuffer();
+			do{
+				if(b){//初回
+					b=false;
+					if(co==1) m.appendReplacement(sb,"URL省略");//対象が一つの時
+					else m.appendReplacement(sb,co+"URL省略");
+				}else m.appendReplacement(sb,"");//2回目以降
+				result=m.find();
+			}while(result);
+			m.appendTail(sb);
+			text=sb.toString();
+		}
+	}
+	private void replace() throws IOException{
 		//System.out.println("len="+len);
 		//text=text.replaceAll("file://[\\x21-\\x7F]++","ファイル");
-		{//URL省略処理
-			//URL判定基準を正規表現で指定
-			Matcher m=Pattern.compile("https?://[\\x21-\\xFF]++").matcher(text);
-			m.reset();
-			boolean result = m.find();
-	        if (result) {
-				int co=0;//URLの数
-	            do {
-	            	co++;
-	                result = m.find();
-	            } while (result);
-		        m.reset();
-		        result = m.find();
-	        	boolean b=true;
-	            StringBuffer sb = new StringBuffer();
-	            do {
-	                if(b) {//初回
-	                	b=false;
-	                	if(co==1)m.appendReplacement(sb, "URL省略");//対象が一つの時
-	                	else m.appendReplacement(sb, co+"URL省略");
-	                }else m.appendReplacement(sb, "");//2回目以降
-	                result = m.find();
-	            } while (result);
-	            m.appendTail(sb);
-	            text=sb.toString();
-	        }
-		}
+		urlcut();
 		{//画像URI処理
 			//判定基準を正規表現で指定
 			Matcher m=Pattern.compile("file://[\\x21-\\x7F]++").matcher(text);
 			m.reset();
-			boolean result = m.find();
-			if (result) {
-				StringBuffer sb = new StringBuffer();
-				do {
+			boolean result=m.find();
+			if(result){
+				StringBuffer sb=new StringBuffer();
+				do{
 					String g=m.group().toLowerCase();
 					String r="ファイル";
 					if(g.endsWith(".png")||g.endsWith(".gif")||g.endsWith(".jpg")||g.endsWith(".jpeg")
-							||g.endsWith(".webp")) {
+							||g.endsWith(".webp")){
 						r="画像";
-					}else 	if(g.endsWith(".bmp")||g.endsWith(".xcf")) {
+					}else if(g.endsWith(".bmp")||g.endsWith(".xcf")){
 						r="画像";
-					}else 	if(g.endsWith(".txt")) {
+					}else if(g.endsWith(".txt")){
 						r="テキストファイル";
-					}else 	if(g.endsWith(".js")||g.endsWith(".java")) {
+					}else if(g.endsWith(".js")||g.endsWith(".java")){
 						r="ソースファイル";
-					}else 	if(g.endsWith(".mp4")||g.endsWith(".avi")||g.endsWith(".mov")) {
+					}else if(g.endsWith(".mp4")||g.endsWith(".avi")||g.endsWith(".mov")){
 						r="動画";
-					}else 	if(g.endsWith(".wav")||g.endsWith(".mp3")) {
+					}else if(g.endsWith(".wav")||g.endsWith(".mp3")){
 						r="音楽";
-					}else {
+					}else{
 						int li=g.lastIndexOf('.');
-						if(li>=0&&li+1<g.length()) {
+						if(li>=0&&li+1<g.length()){
 							System.out.println("未定義ファイル"+g);
 							String s=g.substring(li+1);
 							char[] ca=new char[s.length()*2];
 							int j=0;
-							for(int i=0;i<ca.length;i+=2) {
+							for(int i=0;i<ca.length;i+=2){
 								ca[i]=s.charAt(j);
 								ca[i+1]=',';
 								j++;
@@ -205,15 +209,15 @@ public class BouyomiConection implements Runnable{
 					}
 					//System.out.println("ファイル="+r);
 					m.appendReplacement(sb," "+r);//2回目以降
-					result = m.find();
-				} while (result);
+					result=m.find();
+				}while(result);
 				m.appendTail(sb);
 				text=sb.toString().trim();
 			}
 		}
-		if(Japanese.trans(text)) {
+		if(Japanese.trans(text)){
 			String n=text.replaceAll("nn","n");
-			if(!text.equals(n)) {
+			if(!text.equals(n)){
 				text=n;
 				baos2.reset();
 				baos2.write(text.getBytes(StandardCharsets.UTF_8));
@@ -221,10 +225,10 @@ public class BouyomiConection implements Runnable{
 		}
 		//文字データが取得できた時
 		//text=text.toUpperCase(Locale.JAPANESE);//大文字に統一する時
-		if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0) {//教育機能を使おうとした時
+		if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0){//教育機能を使おうとした時
 			System.out.println(text);//ログに残す
 			System.out.println(user);
-		}else if(text.indexOf("忘却(")>=0||text.indexOf("忘却（")>=0) {//忘却機能を使おうとした時
+		}else if(text.indexOf("忘却(")>=0||text.indexOf("忘却（")>=0){//忘却機能を使おうとした時
 			System.out.println(text);//ログに残す
 			System.out.println(user);
 		}else if(text.indexOf("機能要望")>=0){//「機能要望」が含まれる時
@@ -233,13 +237,13 @@ public class BouyomiConection implements Runnable{
 				FileOutputStream fos=new FileOutputStream("Req.txt",true);//追加モードでファイルを開く
 				try{
 					fos.write((text+"\n").getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
-				}catch(IOException e) {
+				}catch(IOException e){
 					e.printStackTrace();
-				}finally {
+				}finally{
 					fos.close();
 				}
 				addTask.add("要望リストに記録しました");//残した事を追加で言う
-			}catch(IOException e) {
+			}catch(IOException e){
 				e.printStackTrace();
 				addTask.add("要望リストに記録できませんでした");//失敗した事を追加で言う
 			}
@@ -255,8 +259,8 @@ public class BouyomiConection implements Runnable{
 			return;
 		}
 	}
-	/**連続短縮*/
-	private void ContinuationOmitted() throws IOException {
+	/** 連続短縮 */
+	private void ContinuationOmitted() throws IOException{
 		type=0;//文字コードをUTF-8に設定
 		baos2.reset();//読み込んだメッセージのバイナリを破棄
 		//メッセージバイナリバッファにUTF-8で書き込む
@@ -266,31 +270,31 @@ public class BouyomiConection implements Runnable{
 		char cc=0;//連続カウント(9以下)
 		byte comment=0;
 		//int clen=0;
-		HashMap<Character, Short> counter=new HashMap<Character,Short>();
-		if(type==0)counter=null;
-		for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
+		HashMap<Character, Short> counter=new HashMap<Character, Short>();
+		if(type==0) counter=null;
+		for(int i=0;i<text.length();i++){//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
-			if(r=='ゝ'&&i>1)r=text.charAt(i-1);
+			if(r=='ゝ'&&i>1) r=text.charAt(i-1);
 			//連続カウントが9以上で次の文字が最後に書き込まれた文字と一致した場合次へ
-			if(cc>8&&r==lc) {
+			if(cc>8&&r==lc){
 				counter=null;
 				continue;
 			}
-			if(r==lc)cc++;//次の文字が最後に書き込まれた文字と一致した場合連続カウントを増やす
+			if(r==lc) cc++;//次の文字が最後に書き込まれた文字と一致した場合連続カウントを増やす
 			else cc=0;//次の文字が最後に書き込まれた文字と異なる場合カウントをリセットする
-			if(comment==0&&(r=='/'||r=='／')) {//C言語風コメントアウト
+			if(comment==0&&(r=='/'||r=='／')){//C言語風コメントアウト
 				comment=1;
-			}else if(comment==1) {
-				if(r=='*'||r=='＊')comment=-1;
+			}else if(comment==1){
+				if(r=='*'||r=='＊') comment=-1;
 				else comment=0;
-			}else if(comment==-1&&(r=='*'||r=='＊'))comment=-2;
-			else if(comment==-2) {
-				if(r=='/'||r=='／') {
+			}else if(comment==-1&&(r=='*'||r=='＊')) comment=-2;
+			else if(comment==-2){
+				if(r=='/'||r=='／'){
 					comment=0;
 					continue;
 				}else comment=-1;
 			}
-			if(comment<0)continue;
+			if(comment<0) continue;
 			/*
 			if(lc=='。'||lc=='、')clen++;
 			if(clen>10&&len>100) {
@@ -305,14 +309,14 @@ public class BouyomiConection implements Runnable{
 			bw.flush();//バッファの内容をすべてバイナリに変換
 			text=baos2.toString("utf-8");//UTF-8でデコード
 			baos2.reset();//読み込んだメッセージのバイナリを破棄
-			for(int i=0;i<text.length();i++) {//文字データを1文字ずつ読み込む
+			for(int i=0;i<text.length();i++){//文字データを1文字ずつ読み込む
 				char r=text.charAt(i);//現在位置の文字を取得
 				Character c=Character.valueOf(r);
 				Short v=counter.get(c);
-				if(v==null)counter.put(c,(short) 1);
+				if(v==null) counter.put(c,(short) 1);
 				else{
 					short val=(short) (v.shortValue()+1);
-					if(val>6)continue;
+					if(val>6) continue;
 					else counter.put(c,val);
 				}
 				bw.write(r);//文字バッファに書き込む
@@ -329,27 +333,26 @@ public class BouyomiConection implements Runnable{
 			read();//受信処理
 			lastComment=System.currentTimeMillis();
 			Tag tag;
-			if(text==null)tag=null;
+			if(text==null) tag=null;
 			else tag=new Tag(this);
 			if(fb=='/'||fb=='\\'||(text!=null&&text.indexOf("```")==0)){//最初の文字がスラッシュの時は終了
 				//System.out.println("スラッシュで始まる");
 				mute=true;
-				if(text!=null) {
-					if(text!=null&&text.indexOf("```")==0)text=text.substring(3);
+				if(text!=null){
+					if(text!=null&&text.indexOf("```")==0) text=text.substring(3);
 					else text=text.substring(1);
 					tag.call();
 				}
 				return;
 			}
-			if(text!=null) {
+			if(text!=null){
 				tag.call();
 				replace();
-			}
-			else if(len>=250)text="長文省略";
-			if(text!=null&&!text.equals(readText)) {//メッセージが書き換えられていた時
+			}else if(len>=250) text="長文省略";
+			if(text!=null&&!text.equals(readText)){//メッセージが書き換えられていた時
 				type=0;//文字コードをUTF-8に設定
 				baos2.reset();//読み込んだメッセージのバイナリを破棄
-				if(!text.isEmpty()) {//文字がある場合
+				if(!text.isEmpty()){//文字がある場合
 					byte[] t=text.getBytes(StandardCharsets.UTF_8);//UTF-8でバイナリ化
 					baos2.write(t);//バイナリデータをメッセージバイナリに書き込み
 				}
@@ -357,14 +360,14 @@ public class BouyomiConection implements Runnable{
 			//if(text!=null)System.out.println(text);
 			len=baos2.size();//メッセージバイナリのバイト数を取得
 			baos.write(type);//文字コードを送信データに追加
-			baos.write((len >>> 0) & 0xFF);//テキストの文字数を送信データに追加
-			baos.write((len >>> 8) & 0xFF);
-			baos.write((len >>>  16) & 0xFF);
-			baos.write((len >>>  24) & 0xFF);
+			baos.write((len>>>0)&0xFF);//テキストの文字数を送信データに追加
+			baos.write((len>>>8)&0xFF);
+			baos.write((len>>>16)&0xFF);
+			baos.write((len>>>24)&0xFF);
 			baos2.writeTo(baos);//メッセージバイナリデータを送信データに追加
 			//System.out.println(baos2.toString("utf-8"));//TODO 読み上げテキストをログ出力
 			//System.out.println("W"+baos.size());
-			if(len>0)send(bouyomi_port,baos.toByteArray());//作ったデータを送信
+			if(len>0) send(bouyomi_port,baos.toByteArray());//作ったデータを送信
 			/*
 			if("ちんちんリスト".equals(text)) {
 				if("503113319410827266".equals(userid))DiscordAPI.chatDefaultHost(text);
@@ -383,11 +386,11 @@ public class BouyomiConection implements Runnable{
 			}
 			//System.out.println((System.nanoTime()-start)+"ns");//TODO 処理時間計測用
 		}
-		if(!mute&&!addTask.isEmpty()) {//データがArrayListの時
+		if(!mute&&!addTask.isEmpty()){//データがArrayListの時
 			StringBuilder sb=new StringBuilder();
-			for(String s:addTask) {
+			for(String s:addTask){
 				sb.append(s).append("。");
-				if(sb.length()>60) {
+				if(sb.length()>60){
 					talk(bouyomi_port,sb.toString());//一旦送信
 					sb=new StringBuilder();
 				}

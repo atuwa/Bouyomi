@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Counter{
@@ -185,6 +186,7 @@ public class Counter{
 		}
 		c.name=key;
 		c.add(word);
+		ICountEvent.add(bc,word);
 	}
 	public static void init(){
 		loadCountWords();
@@ -297,7 +299,7 @@ public class Counter{
 				CountData[] arr=es.toArray(new CountData[es.size()]);
 				Arrays.sort(arr);
 				StringBuilder sb=new StringBuilder("/");
-				int end=Math.min(arr.length,5);
+				int end=Math.min(arr.length,7);
 				for(int i=0;i<end;i++) {
 					CountData c=arr[i];
 					BigInteger bi=new BigInteger(new byte[32]);
@@ -374,10 +376,12 @@ public class Counter{
 			for(int i=0;i<counterWords.length;i++) {
 				String[] cw=counterWords[i].split(",");
 				for(String c:cw) {
-					if(Pattern.matches(c,text)){
+			        Pattern p = Pattern.compile(c);
+			        Matcher m = p.matcher(text);
+					if(m.find()){
 					//if(text.indexOf(c)>=0) {
 						counter[i]++;
-						addData(tag.con,counterWords[i]);
+						addData(tag.con,cw[0]);
 						break;
 					}
 				}
@@ -409,5 +413,17 @@ public class Counter{
 		CountData cd=usercount.get(id);
 		if(cd==null)return null;
 		return cd.name;
+	}
+	public static interface ICountEvent{
+		public static final ArrayList<ICountEvent> list=new ArrayList<ICountEvent>();
+		public static void Register(ICountEvent a) {
+			synchronized(list) {
+				list.add(a);
+			}
+		}
+		public static void add(BouyomiConection bc, String word) {
+			for(ICountEvent e:list)e.count(bc,word);
+		}
+		public void count(BouyomiConection bc, String word);
 	}
 }

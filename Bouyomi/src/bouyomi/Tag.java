@@ -24,6 +24,7 @@ public class Tag{
 			con.text="";
 			return;
 		}
+		module.call(this);
 		Counter.count(this);
 		BOT.tag(this);
 		String tag=getTag("平仮名変換");
@@ -46,7 +47,6 @@ public class Tag{
 			video();
 		}
 		Question.tag(this,con);
-		module.call(this);
 	}
 	public void music() {
 		String tag=getTag("音楽再生");

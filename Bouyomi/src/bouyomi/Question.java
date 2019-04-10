@@ -2,12 +2,15 @@ package bouyomi;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**アンケート機能*/
-public class Question{
+public class Question extends Thread{
 	//TODO 集計結果を多い順に並べ替え
 	public static Question now;
+	public long startTime=System.currentTimeMillis();
+	public long endTime=-1;
 	/**アンケート名*/
 	public String questionnaireName;
 	/**データ*/
@@ -16,6 +19,26 @@ public class Question{
 	public ArrayList<String> questionnaireList=new ArrayList<String>();
 	/**ユーザの投票したIndex*/
 	public HashMap<String,Integer> questionnaireUserList=new HashMap<String,Integer>();
+	private boolean end;
+	public Question() {
+		super("アンケート自動集計");
+	}
+	@Override
+	public void run() {
+		while(!end) {
+			if(endTime>0) {
+				if(endTime<System.currentTimeMillis()) {
+					DiscordAPI.chatDefaultHost("時間になったので集計()");
+					break;
+				}
+			}
+			try{
+				Thread.sleep(10000);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+		}
+	}
 	public void start(String tag,BouyomiConection bc) {
 		String[] keys;
 		if(tag.isEmpty())keys=new String[]{""};
@@ -37,14 +60,31 @@ public class Question{
 		}
 	}
 	public void end(String tag,BouyomiConection bc) {
+		end=true;
 		StringBuilder result=new StringBuilder("アンケート名").append(questionnaireName);
 		long all=0;
 		for(int i=0;i<questionnaire.length;i++)all+=questionnaire[i];
 		result.append("(合計").append(all).append("票)\n");
 		DecimalFormat fomat=new DecimalFormat("##0.##");
-		for(int i=0;i<questionnaire.length;i++) {
-			String k=questionnaireList.get(i);
-			result.append(k).append(" が").append(questionnaire[i]).append("票/*(").append(fomat.format(questionnaire[i]/(double)all*100D)).append("%)*/\n");
+		class Val implements Comparable<Val>{
+			private final String k;
+			private final int v;
+			public Val(String key,int value) {
+				k=key;
+				v=value;
+			}
+			@Override
+			public int compareTo(Val o){
+				return o.v-v;
+			}
+		}
+		Val[] v=new Val[questionnaire.length];
+		for(int i=0;i<v.length;i++)v[i]=new Val(questionnaireList.get(i),questionnaire[i]);
+		Arrays.sort(v);
+		for(int i=0;i<v.length;i++) {
+			result.append(v[i].k).append(" が").append(v[i].v).append("票");
+			if(all>0)result.append("/*(").append(fomat.format(v[i].v/(double)all*100D)).append("%)*/");
+			result.append("\n");
 		}
 		result.append("でした。");
 		if(!tag.equals("内容破棄"))DiscordAPI.chatDefaultHost(result.toString());
@@ -87,6 +127,28 @@ public class Question{
 			else {
 				now=new Question();
 				now.start(tag,bc);
+				now.start();
+			}
+		}
+		tag=tm.getTag("締切時間","自動集計");
+		if(tag!=null&&now!=null) {
+			if(tag.isEmpty()){
+				long e=now.endTime-System.currentTimeMillis();
+				e=e/1000;
+				DiscordAPI.chatDefaultHost(e+"秒後に集計します");
+			}
+			try{
+				int i=Integer.parseInt(tag);
+				if(i<0) {
+					now.endTime=-1;
+					tm.con.addTask.add("自動で集計しません");
+				}else {
+					tm.con.addTask.add(i+"分後に集計します");
+					i=i*60000;
+					now.endTime=System.currentTimeMillis()+i;
+				}
+			}catch(NumberFormatException nfe) {
+				tm.con.addTask.add("数字だけいれて");
 			}
 		}
 		tag=tm.getTag("集計");

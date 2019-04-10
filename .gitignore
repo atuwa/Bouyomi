@@ -25,3 +25,6 @@ target/
 bin/
 *.txt
 *.db
+jar/
+.settings/
+*.list

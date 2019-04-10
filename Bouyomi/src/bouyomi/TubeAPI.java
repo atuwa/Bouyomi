@@ -77,7 +77,7 @@ public class TubeAPI{
 					s.append("\t再生時刻").append(d);
 					if(bc!=null&&bc.user!=null) {
 						s.append("\t").append(bc.user);
-						//if(bc.userid!=null)s.append("\t").append(bc.userid);
+						if(bc.userid!=null)s.append("\t").append(bc.userid);
 					}
 					s.append("\n");
 					fos.write(s.toString().getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化

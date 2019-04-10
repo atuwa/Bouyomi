@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -34,6 +35,7 @@ public class BouyomiProxy{
 	public static long lastComment=System.currentTimeMillis();
 	public static ModuleLoader module;
 	public static SaveProxyData logger;
+	public static Admin admin;
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
 		InputStreamReader isr=new InputStreamReader(System.in);
@@ -144,7 +146,6 @@ public class BouyomiProxy{
 		}
 		System.out.println("教育"+(command.isEmpty()?"無し":command));
 
-		System.out.println("exitで終了");
 		ServerSocket ss=new ServerSocket(proxy_port);//サーバ開始
 		new Thread("CommandReader"){
 			public void run(){
@@ -225,6 +226,7 @@ public class BouyomiProxy{
 		TubeAPI.setAutoStop();
 		BOT.loadBOT();
 		Counter.init();
+		admin=new Admin();
 		try{
 			load(Config,"config.txt");
 			if("無効".equals(Config.get("平仮名変換"))){
@@ -241,6 +243,7 @@ public class BouyomiProxy{
 			e.printStackTrace();
 		}
 		Pass.read();
+		System.out.println("exitで終了");
 		//スレッドプールを用意(最低1スレッド維持、空きスレッド60秒維持)
 		ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());
@@ -252,6 +255,23 @@ public class BouyomiProxy{
 			}catch(IOException e){//例外は無視
 
 			}
+		}
+	}
+	public static void load(List<String> list,String path) throws IOException {
+		list.clear();
+		FileInputStream fos=new FileInputStream(path);
+		InputStreamReader isr=new InputStreamReader(fos,StandardCharsets.UTF_8);
+		BufferedReader br=new BufferedReader(isr);
+		try {
+			while(true) {
+				String line=br.readLine();
+				if(line==null)break;
+				list.add(line);
+			}
+		}catch(FileNotFoundException fnf){
+
+		}finally {
+			br.close();
 		}
 	}
 	public static void load(Map<String,String> map,String path) throws IOException {
@@ -274,6 +294,18 @@ public class BouyomiProxy{
 
 		}finally {
 			br.close();
+		}
+	}
+	public static void save(List<String> list,String path) throws IOException {
+		FileOutputStream fos=new FileOutputStream(path);
+		final OutputStreamWriter osw=new OutputStreamWriter(fos,StandardCharsets.UTF_8);
+		try {
+			for(String s:list) {
+				osw.write(s);
+			}
+		}finally {
+			osw.flush();
+			osw.close();
 		}
 	}
 	public static void save(Map<String,String> map,String path) throws IOException {

@@ -6,34 +6,56 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 
+import bouyomi.Counter.ICountEvent;
+
 public class ModuleLoader{
 	public ArrayList<IModule> modules=new ArrayList<IModule>();
+	private ArrayList<URL> jars=new ArrayList<URL>();
 	public URLClassLoader loader;
 	public File path;
 	public void load(File f) {
 		if(!f.isDirectory())return;
 		path=f;
-		//System.out.println(f);
 		try{
-			loader=new URLClassLoader(new URL[] {f.toURI().toURL()});
-			for(String s:f.list()) {
-				int i=s.lastIndexOf(".class");
-				if(i<=0||s.indexOf('$')>=0)continue;
-				String name=s.substring(0,i);
-				System.out.println("モジュール"+name);
-				try{
-					Class<?> c=loader.loadClass(f.getName()+"."+name);
-					Object o=c.newInstance();
-					if(o instanceof IModule)modules.add((IModule)o);
-					if(o instanceof IAutoSave)IAutoSave.Register((IAutoSave)o);
-				}catch(InstantiationException | IllegalAccessException e){
-					//e.printStackTrace();
-				}catch(ClassNotFoundException | NoClassDefFoundError e) {
-					e.printStackTrace();
-				}
+			jars.add(f.toURI().toURL());
+		}catch(MalformedURLException e1){
+			e1.printStackTrace();
+		}
+		File jd=new File("jar");
+		jd.mkdir();
+		isJar(jd);
+		loader=new URLClassLoader(jars.toArray(new URL[jars.size()]));
+		for(String s:f.list()) {
+			int i=s.lastIndexOf(".class");
+			if(i<=0||s.indexOf('$')>=0)continue;
+			String name=s.substring(0,i);
+			System.out.println("モジュール"+name);
+			try{
+				Class<?> c=loader.loadClass(f.getName()+"."+name);
+				load(c.newInstance());
+			}catch(InstantiationException | IllegalAccessException e){
+				//e.printStackTrace();
+			}catch(ClassNotFoundException | NoClassDefFoundError e) {
+				e.printStackTrace();
 			}
-		}catch(MalformedURLException e){
-			e.printStackTrace();
+		}
+	}
+	public void load(Object o) {
+		if(o instanceof IModule)modules.add((IModule)o);
+		if(o instanceof IAutoSave)IAutoSave.Register((IAutoSave)o);
+		if(o instanceof ICountEvent)ICountEvent.Register((ICountEvent)o);
+	}
+	private void isJar(File f) {
+		if(f.isDirectory()) {
+			for(File g:f.listFiles())isJar(g);
+		}
+		if(f.getName().endsWith(".jar")) {
+			try{
+				jars.add(f.toURI().toURL());
+				System.out.println("ライブラリ"+f.getName());
+			}catch(MalformedURLException e){
+				e.printStackTrace();
+			}
 		}
 	}
 	public boolean isActive() {
