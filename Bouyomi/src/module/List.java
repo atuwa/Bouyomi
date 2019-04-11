@@ -30,8 +30,8 @@ public class List implements IModule,ICountEvent{
 	@Override
 	public void call(Tag tag){
 		if(driver==null)return;
-		String user=tag.getTag("ちんちんリスト");
-		if(tag.con.text.equals("ちんちんリスト")||user!=null) {
+		String user=tag.getTag("カウントリスト");
+		if(tag.con.text.equals("カウントリスト")||user!=null) {
 			try{
 				Long.parseLong(user);
 			}catch(NumberFormatException t) {
@@ -42,10 +42,6 @@ public class List implements IModule,ICountEvent{
 			try{
 				connection=driver.connect(url,new Properties());
 				statement=connection.createStatement();
-				//select * from tintin limiti 5 offset [DBのちんちんの数 -5(取得する数だけ引く)]
-				//		でユーザーのちんちんリストが
-				//		select * from tintin where user_id = [ID] limiti 5 offset [そのユーザーのちんちんの数 -5]
-				//				select COUNT(*) from
 				int load=5;
 				String sql;
 				if(user==null)sql="select * from count limit "+load+" offset "+(counts(null)-load);
@@ -83,10 +79,6 @@ public class List implements IModule,ICountEvent{
 			}
 			tag.con.text="";
 			tag.con.mute=true;
-		}
-		if(tag.con.text.equals("test")) {
-			System.out.println(counts(null));
-			System.out.println(counts("503113319410827266"));
 		}
 	}
 	private int counts(String id) {
