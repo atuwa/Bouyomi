@@ -2,20 +2,16 @@ package module;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Random;
 
 import bouyomi.BouyomiConection;
 import bouyomi.BouyomiProxy;
 import bouyomi.Counter;
+import bouyomi.DailyUpdate;
+import bouyomi.DailyUpdate.IDailyUpdate;
 import bouyomi.DiscordAPI;
 import bouyomi.IAutoSave;
 import bouyomi.IModule;
@@ -38,80 +34,26 @@ public class Kaikoga implements IModule,IAutoSave{
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-		class KakurituUpdate extends Thread{
-			public KakurituUpdate(){
-				super("KakurituUpdate");
-				file="kaikoga.ritu";
-				read();
-			}
-			private long lastUpdate;
-			private String file;
+		IDailyUpdate update=new IDailyUpdate(){
 			@Override
-			public void run() {
-				SimpleDateFormat f=new SimpleDateFormat("DDD");
-				while(true) {
-					String up=f.format(new Date(lastUpdate));
-					String now=f.format(new Date());
-					if(!up.equals(now)) {
-						kakuritu=rundom.nextInt(10)+1;
-						lastUpdate=System.currentTimeMillis();
-						write();
-						DiscordAPI.chatDefaultHost("カイコガボロン率が"+kakuritu+"%に変更されました");
-					}
-					try{
-						Thread.sleep(60000);
-					}catch(InterruptedException e){
-						e.printStackTrace();
-					}
-				}
+			public void update() {
+				kakuritu=rundom.nextInt(10)+1;
+				DiscordAPI.chatDefaultHost("カイコガボロン率が"+kakuritu+"%に変更されました");
 			}
-			private void read() {
-				try{
-					File f=new File(file);
-					if(!f.exists()) {
-						kakuritu=rundom.nextInt(10)+1;
-						return;
-					}
-					FileInputStream fis=new FileInputStream(f);
-					DataInputStream dis=new DataInputStream(fis);
-					try{
-						kakuritu=(int) dis.readLong();
-						lastUpdate=dis.readLong();
-					}catch(IOException e){
-						e.printStackTrace();
-					}finally {
-						try{
-							dis.close();
-						}catch(IOException e){
-							e.printStackTrace();
-						}
-					}
-				}catch(FileNotFoundException e){
-					e.printStackTrace();
-				}
+			@Override
+			public void init() {
+				kakuritu=rundom.nextInt(10)+1;
 			}
-			public void write() {
-				try{
-					FileOutputStream fos=new FileOutputStream(new File(file));
-					DataOutputStream dos=new DataOutputStream(fos);
-					try{
-						dos.writeLong(kakuritu);
-						dos.writeLong(lastUpdate);
-					}catch(IOException e){
-						e.printStackTrace();
-					}finally {
-						try{
-							dos.close();
-						}catch(IOException e){
-							e.printStackTrace();
-						}
-					}
-				}catch(FileNotFoundException e){
-					e.printStackTrace();
-				}
+			@Override
+			public void read(DataInputStream dis) throws IOException {
+				kakuritu=(int) dis.readLong();
 			}
-		}
-		new KakurituUpdate().start();
+			@Override
+			public void write(DataOutputStream dos) throws IOException {
+				dos.writeLong(kakuritu);
+			}
+		};
+		DailyUpdate.Ragister("KaikogaKakuritu",update);
 	}
 	@Override
 	public void call(Tag tag){
@@ -158,18 +100,21 @@ public class Kaikoga implements IModule,IAutoSave{
 		}
 		str=tag.getTag("ボロン率");
 		if(str!=null) {
-			DiscordAPI.chatDefaultHost("現在のボロン率は"+kakuritu+"%に変更されました");
+			DiscordAPI.chatDefaultHost("現在のボロン率は"+kakuritu+"%です");
 		}
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
 			int r=rundom.nextInt(100)+1;//当選率可変
-			String s=(r<=kakuritu ? "ボロン (" : r<=(kakuritu+10) ? "おしい(" : "はずれ (")+r+(con.user==null ? ")" : ")/*抽選者："+con.user);
-			DiscordAPI.chatDefaultHost(s);
+			String s=(r<=kakuritu ? "ボロン (" : r<=(kakuritu+10) ? "おしい(" : "はずれ (")+r+(con.user==null ? ")/*" : ")/*抽選者："+con.user+" ");
+			s+="確率"+kakuritu+"%";
+			if(!con.mute)DiscordAPI.chatDefaultHost(s);
 			System.out.println(s);
 			if(r<=kakuritu) hit(con,con.userid);
 			//if(r<5)con.addTask.add("おしい");
 		}
 		if(tag.getTag("カイコガランキング")!=null||"カイコガランキング".equals(con.text)){
-			DiscordAPI.chatDefaultHost(rank());
+			String s=rank();
+			if(con.mute)System.out.println(s);
+			else DiscordAPI.chatDefaultHost(s);
 		}
 	}
 	private void hit(BouyomiConection con,String id){
@@ -200,7 +145,7 @@ public class Kaikoga implements IModule,IAutoSave{
 		DecimalFormat fo=new DecimalFormat("##0.00%");
 		StringBuilder sb=new StringBuilder("ボロンした合計");
 		sb.append(all).append("回/*\n");
-		for(int index=0;index<Math.min(500,kaikogaDB.size());index++){
+		for(int index=0;index<Math.min(5,kaikogaDB.size());index++){
 			Value<String, String> v=kaikogaDB.rawList().get(index);
 			String name=Counter.getUserName(v.getKey());
 			sb.append(name).append(" が").append(v.getValue()).append("回");

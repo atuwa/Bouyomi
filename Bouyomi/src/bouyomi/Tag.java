@@ -24,7 +24,7 @@ public class Tag{
 			con.text="";
 			return;
 		}
-		module.call(this);
+		if(module!=null)module.call(this);
 		Counter.count(this);
 		BOT.tag(this);
 		String tag=getTag("平仮名変換");

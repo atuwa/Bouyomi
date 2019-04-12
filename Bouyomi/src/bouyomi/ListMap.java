@@ -124,8 +124,7 @@ public class ListMap<K, V> extends AbstractMap<K, V>{
 			int index=list.indexOf(old);
 			list.remove(index);
 			list.add(index,nv);
-		}
-		list.add(nv);
+		}else list.add(nv);
 		return old==null?null:old.getValue();
 	}
 	public V remove(Entry<?,?> e){
@@ -321,9 +320,9 @@ public class ListMap<K, V> extends AbstractMap<K, V>{
 			@Override
 			public int compare(Value<K, V> o1,Value<K, V> o2){
 				if(c==null) {
-					K k=o1.getKey();
+					K k=o2.getKey();
 					if(k instanceof Comparable) {
-						return ((Comparable<K>)k).compareTo(o2.getKey());
+						return ((Comparable<K>)k).compareTo(o1.getKey());
 					}
 					return 0;
 				}
@@ -339,9 +338,9 @@ public class ListMap<K, V> extends AbstractMap<K, V>{
 			@Override
 			public int compare(Value<K, V> o1,Value<K, V> o2){
 				if(c==null) {
-					V v=o1.getValue();
+					V v=o2.getValue();
 					if(v instanceof Comparable) {
-						return ((Comparable<V>)v).compareTo(o2.getValue());
+						return ((Comparable<V>)v).compareTo(o1.getValue());
 					}
 					return 0;
 				}

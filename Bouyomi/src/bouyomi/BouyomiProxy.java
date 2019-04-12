@@ -125,12 +125,11 @@ public class BouyomiProxy{
 			else command=args[8];
 		}
 		//0文字だったら無し、それ以外だったらそれ
+		File modulePath=null;
 		if(!command.isEmpty()) {
 			module=new ModuleLoader();
-			module.load(new File(command));
-			if(!module.isActive())module=null;
+			modulePath=new File(command);
 		}
-		System.out.println("モジュール"+(module==null?"無し":module.path));
 
 		if(args.length>9) {
 			if(args[9].equals("-"))command="";
@@ -213,6 +212,7 @@ public class BouyomiProxy{
 			}
 		}.start();
 		IAutoSave.thread();
+		DailyUpdate.init();
 		Runtime.getRuntime().addShutdownHook(new Thread("save") {
 			public void run() {
 				BOT.saveBOT();
@@ -243,6 +243,11 @@ public class BouyomiProxy{
 			e.printStackTrace();
 		}
 		Pass.read();
+		if(module!=null) {
+			module.load(modulePath);
+			if(!module.isActive())module=null;
+		}
+		System.out.println("モジュール"+(module==null||!module.isActive()?"無し":module.path));
 		System.out.println("exitで終了");
 		//スレッドプールを用意(最低1スレッド維持、空きスレッド60秒維持)
 		ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,

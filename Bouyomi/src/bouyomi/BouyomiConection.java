@@ -254,7 +254,7 @@ public class BouyomiConection implements Runnable{
 		text=text.replaceAll("[0-9]{8,}+","数字省略");
 		ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 		if(text.length()>=90){//長文省略基準90文字以上
-			System.out.println("長文省略("+text.length()+"文字)");
+			System.out.println("長文省略("+text.length()+(user==null?"文字)":"文字)"+user));
 			text="長文省略";
 			return;
 		}
