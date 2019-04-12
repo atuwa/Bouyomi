@@ -112,15 +112,21 @@ public class ListMap<K, V> extends AbstractMap<K, V>{
 	}
 	@Override
 	public V put(K key,V value){
-		V old=null;
+		Value<K, V> old=null;
 		for(Value<K, V> v:list){
 			if(v.equalsKey(key)){
-				old=v.getValue();
+				old=v;
 				break;
 			}
 		}
-		list.add(new Value<K, V>(key,value));
-		return old;
+		Value<K, V> nv=new Value<K, V>(key,value);
+		if(old!=null) {
+			int index=list.indexOf(old);
+			list.remove(index);
+			list.add(index,nv);
+		}
+		list.add(nv);
+		return old==null?null:old.getValue();
 	}
 	public V remove(Entry<?,?> e){
 		Value<K, V> r=null;

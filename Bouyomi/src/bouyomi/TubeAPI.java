@@ -78,6 +78,7 @@ public class TubeAPI{
 					if(bc!=null&&bc.user!=null) {
 						s.append("\t").append(bc.user);
 						if(bc.userid!=null)s.append("\t").append(bc.userid);
+						else s.append("\t-");
 					}
 					s.append("\n");
 					fos.write(s.toString().getBytes(StandardCharsets.UTF_8));//改行文字を追加してバイナリ化
@@ -94,6 +95,12 @@ public class TubeAPI{
 					operation("play");
 				}
 			});
+			pool.execute(new Runnable() {
+				@Override
+				public void run(){
+					checkTitle();
+				}
+			});
 			return true;
 		}catch(IOException e){
 			if(bc!=null)bc.addTask.add("再生プログラムとの通信に問題が発生しました");
@@ -101,6 +108,20 @@ public class TubeAPI{
 			e.printStackTrace();
 		}
 		return false;
+	}
+	public static void checkTitle() {
+		for(int i=0;i<5;i++) {
+			try{
+				Thread.sleep(500);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+			String s=getLine("GETtitle=0");
+			if(s!=null&&!s.isEmpty()&&!s.equals(lastPlay)) {
+				DiscordAPI.chatDefaultHost("/動画タイトル："+s);
+				break;
+			}
+		}
 	}
 	public static void checkError() {
 		for(int i=0;i<5;i++) {
@@ -110,11 +131,9 @@ public class TubeAPI{
 				e.printStackTrace();
 			}
 			String s=getLine("GETerror=0");
-			if(s==null)return;
-			try {
+			if(s!=null)try {
 				int ec=Integer.parseInt(s);
-				if(ec>0) {
-					lastPlayDate=0;
+				if(ec>0&&ec!=2) {
 					System.out.println("動画再生エラー="+ec+"動画ID="+lastPlay);
 					String c=Integer.toString(ec);
 					StringBuilder dis=new StringBuilder("再生エラー");
@@ -138,10 +157,10 @@ public class TubeAPI{
 					if(!DiscordAPI.chatDefaultHost(dis.toString())) {
 						BouyomiProxy.talk(BouyomiProxy.proxy_port,"再生エラー"+c);
 					}
-					return;
+					break;
 				}
 			}catch(NumberFormatException e) {
-				return;
+
 			}
 		}
 	}

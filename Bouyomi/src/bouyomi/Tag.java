@@ -121,6 +121,13 @@ public class Tag{
 			}
 			if(con.text.isEmpty())return;//1文字も残ってない時は終わり
 		}
+		tag=getTag("動画タイトル");
+		if(tag!=null) {
+			String s=getLine("GETtitle=0");
+			if(s==null||s.isEmpty()) {
+				DiscordAPI.chatDefaultHost("/動画タイトルが取得できませんでした");
+			}else DiscordAPI.chatDefaultHost("/動画タイトル："+s);
+		}
 		tag=getTag("動画URL");
 		if(tag==null)tag=getTag("動画ＵＲＬ");//全角英文字
 		if(tag!=null) {
@@ -349,6 +356,7 @@ public class Tag{
 	}
 	/**タグ取得*/
 	public String getTag(String key) {
+		if(con.text.length()<1)return null;
 		int index=con.text.indexOf(key+"(");
 		if(index<0)index=con.text.indexOf(key+"（");
 		if(index<0)return null;//タグを含まない時
