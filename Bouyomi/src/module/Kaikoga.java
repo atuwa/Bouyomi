@@ -47,6 +47,7 @@ public class Kaikoga implements IModule,IAutoSave{
 			@Override
 			public void read(DataInputStream dis) throws IOException {
 				kakuritu=(int) dis.readLong();
+				System.out.println("起動時のボロン率"+kakuritu);
 			}
 			@Override
 			public void write(DataOutputStream dos) throws IOException {

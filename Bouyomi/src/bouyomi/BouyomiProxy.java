@@ -248,6 +248,7 @@ public class BouyomiProxy{
 			if(!module.isActive())module=null;
 		}
 		System.out.println("モジュール"+(module==null||!module.isActive()?"無し":module.path));
+		DailyUpdate.updater.start();
 		System.out.println("exitで終了");
 		//スレッドプールを用意(最低1スレッド維持、空きスレッド60秒維持)
 		ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
@@ -307,6 +308,7 @@ public class BouyomiProxy{
 		try {
 			for(String s:list) {
 				osw.write(s);
+				osw.append('\n');
 			}
 		}finally {
 			osw.flush();
