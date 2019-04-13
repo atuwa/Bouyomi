@@ -112,8 +112,9 @@ public class Kaikoga implements IModule,IAutoSave{
 			if(r<=kakuritu) hit(con,con.userid);
 			//if(r<5)con.addTask.add("おしい");
 		}
-		if(tag.getTag("カイコガランキング")!=null||"カイコガランキング".equals(con.text)){
-			String s=rank();
+		String t=tag.getTag("カイコガランキング");
+		if(t!=null||"カイコガランキング".equals(con.text)){
+			String s=rank(t);
 			if(con.mute)System.out.println(s);
 			else DiscordAPI.chatDefaultHost(s);
 		}
@@ -132,7 +133,7 @@ public class Kaikoga implements IModule,IAutoSave{
 		}
 		kaikogaDB.put(id,n);
 	}
-	public String rank(){
+	public String rank(String s){
 		kaikogaDB.sortValue(null);
 		long all=0;
 		for(Value<String, String> v:kaikogaDB.rawList()){
@@ -146,18 +147,37 @@ public class Kaikoga implements IModule,IAutoSave{
 		DecimalFormat fo=new DecimalFormat("##0.00%");
 		StringBuilder sb=new StringBuilder("ボロンした合計");
 		sb.append(all).append("回/*\n");
+		if(s!=null) {
+			String v=null;
+			int i=-1;
+			for(int in=0;in<kaikogaDB.rawList().size();in++) {
+				Value<String, String> va=kaikogaDB.rawList().get(in);
+				if(va.equalsKey(s)){
+					v=va.getValue();
+					i=in;
+					break;
+				}
+			}
+			if(v!=null)appendUser(sb,fo,all,s,v);
+			if(i<0)sb.append("ランキング外です");
+			else sb.append(i+1).append("位です");
+			return sb.toString();
+		}
 		for(int index=0;index<Math.min(5,kaikogaDB.size());index++){
 			Value<String, String> v=kaikogaDB.rawList().get(index);
-			String name=Counter.getUserName(v.getKey());
-			sb.append(name).append(" が").append(v.getValue()).append("回");
-			try{
-				double i=Integer.parseInt(v.getValue());
-				sb.append("(").append(fo.format(i/all)).append(")\n");
-			}catch(NumberFormatException nfe){
-				sb.append("\n");
-			}
+			appendUser(sb,fo,all,v.getKey(),v.getValue());
 		}
 		return sb.toString();
+	}
+	private void appendUser(StringBuilder sb,DecimalFormat fo,long all,String id,String value) {
+		String name=Counter.getUserName(id);
+		sb.append(name).append(" が").append(value).append("回");
+		try{
+			double i=Integer.parseInt(value);
+			sb.append("(").append(fo.format(i/all)).append(")\n");
+		}catch(NumberFormatException nfe){
+			sb.append("\n");
+		}
 	}
 	@Override
 	public void autoSave(){

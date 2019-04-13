@@ -39,12 +39,12 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 	}
 	@Override
 	public void update() {
-		now=rundom.nextInt(cerelon.length)+1;
+		now=rundom.nextInt(10)+1;
 		DiscordAPI.chatDefaultHost("Celeron率が"+now+"%に変更されました");
 	}
 	@Override
 	public void init() {
-		now=rundom.nextInt(cerelon.length);
+		now=rundom.nextInt(10);
 	}
 	@Override
 	public void read(DataInputStream dis) throws IOException {
@@ -61,16 +61,33 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 	}
 	@Override
 	public void call(Tag tag){
-		if(tag.con.text.equals("Celeron")) {
+		if(tag.con.text.toLowerCase().equals("celeron")) {
 			int r=rundom.nextInt(1000)+1;
 			String c;
 			if(r<=now*10) {
 				int index=r-1;
 				while(index>=cerelon.length)index-=cerelon.length;
-				c="あたり "+r+"/*確率"+now+"% "+cerelon[index];
-			}
-			else c="はずれ "+r+"/*確率"+now+"% "+get(r-now);
-			DiscordAPI.chatDefaultHost(c);
+				c="あたり "+r+"/*"+cerelon[index];
+			}else c="はずれ "+r+"/*"+get(r-now);
+			if(tag.con.user!=null)c+=" 抽選者："+tag.con.user;
+			c+=" 確率"+now+"%";
+			System.out.println(c);
+			if(!tag.con.mute)DiscordAPI.chatDefaultHost(c);
+		}
+		String p=tag.getTag("Celeron率変更");
+		if(p!=null) {
+			if(tag.isAdmin()){
+				try {
+					int i=Integer.parseInt(p);
+					if(i>=0) {
+						if(i>100)i=100;
+						now=i;
+						DiscordAPI.chatDefaultHost("Celeron率を"+now+"%に変更しました");
+					}
+				}catch(NumberFormatException t) {
+					DiscordAPI.chatDefaultHost("変更できませんでした");
+				}
+			}else DiscordAPI.chatDefaultHost("権限がありません");
 		}
 	}
 	@Override

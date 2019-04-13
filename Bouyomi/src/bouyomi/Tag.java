@@ -124,7 +124,8 @@ public class Tag{
 		tag=getTag("動画タイトル");
 		if(tag!=null) {
 			String s=getLine("GETtitle=0");
-			if(s==null||s.isEmpty()) {
+			if(con.mute)System.out.println(s);
+			else if(s==null||s.isEmpty()) {
 				DiscordAPI.chatDefaultHost("/動画タイトルが取得できませんでした");
 			}else DiscordAPI.chatDefaultHost("/動画タイトル："+s);
 		}
@@ -394,5 +395,8 @@ public class Tag{
 		if(con.text.length()>index+remove.length())sb.append(con.text.substring(index+remove.length()+1));
 		con.text=sb.toString();
 		//System.out.println("タグ消去結果　"+con.text);
+	}
+	public boolean isAdmin(){
+		return BouyomiProxy.admin.isAdmin(con.userid);
 	}
 }

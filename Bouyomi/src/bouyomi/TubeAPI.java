@@ -118,6 +118,7 @@ public class TubeAPI{
 			}
 			String s=getLine("GETtitle=0");
 			if(s!=null&&!s.isEmpty()&&!s.equals(lastPlay)) {
+				System.out.println("動画タイトル："+s);
 				DiscordAPI.chatDefaultHost("/動画タイトル："+s);
 				break;
 			}
@@ -189,7 +190,7 @@ public class TubeAPI{
 			e.printStackTrace();
 		}finally {
 			try{
-				br.close();
+				if(br!=null)br.close();
 			}catch(IOException e){
 				e.printStackTrace();
 			}
