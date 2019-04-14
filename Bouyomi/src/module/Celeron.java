@@ -83,6 +83,7 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 						if(i>100)i=100;
 						now=i;
 						DiscordAPI.chatDefaultHost("Celeron率を"+now+"%に変更しました");
+						DailyUpdate.updater.write();
 					}
 				}catch(NumberFormatException t) {
 					DiscordAPI.chatDefaultHost("変更できませんでした");

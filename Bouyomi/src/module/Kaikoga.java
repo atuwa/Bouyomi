@@ -62,7 +62,7 @@ public class Kaikoga implements IModule,IAutoSave{
 		BouyomiConection con=tag.con;
 		String str=tag.getTag("ボロンさせろ");
 		if(str!=null){
-			if(BouyomiProxy.admin.isAdmin(con.userid)){
+			if(tag.isAdmin()){
 				if(str.isEmpty()) str=con.userid;
 				DiscordAPI.chatDefaultHost("了解。"+Counter.getUserName(str)+"の要求としてボロンさせます");
 				hit(con,str);
@@ -70,7 +70,7 @@ public class Kaikoga implements IModule,IAutoSave{
 		}
 		str=tag.getTag("ボロン抹消");
 		if(str!=null){
-			if(BouyomiProxy.admin.isAdmin(con.userid)){
+			if(tag.isAdmin()){
 				if(str.isEmpty()) str=con.userid;
 				String old=kaikogaDB.remove(str);
 				if(old!=null) DiscordAPI.chatDefaultHost("了解。"+Counter.getUserName(str)+"のボロンを抹消します");
@@ -79,7 +79,7 @@ public class Kaikoga implements IModule,IAutoSave{
 		}
 		str=tag.getTag("ボロン減算");
 		if(str!=null){
-			if(BouyomiProxy.admin.isAdmin(con.userid)){
+			if(tag.isAdmin()){
 				String c=kaikogaDB.get(str);
 				String n;
 				if(c==null){
