@@ -18,8 +18,8 @@ import bouyomi.Tag;
 public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 
 	private String[] cerelon= {"Intel Celeron B820","Intel Celeron G4920","Intel Celeron J4005",
-			"Intel Celeron N4100","Intel Celeron N3450","Intel Celeron 3755U","Intel Celeron 2980U",
-			"Intel Celeron 1037U","Intel Celeron B840","Intel Celeron B710"};
+			"Intel Celeron N4100","Intel Celeron N3450","Intel Celeron 3755U","Intel Celeron Dual-Core",
+			"Intel Celeron D","Intel Celeron M","Intel Celeron B710"};
 
 	private String file="Celeron.txt";
 	private Random rundom=new SecureRandom();

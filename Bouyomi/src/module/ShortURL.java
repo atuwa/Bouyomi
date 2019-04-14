@@ -46,7 +46,7 @@ public class ShortURL implements IModule{
 			}
 			String json=res.toString("utf-8");
 			if(json.isEmpty()) {
-				System.out.println("短縮エラー"+json);
+				System.out.println("短縮エラー");
 				return;
 			}
 			String ret=null;
