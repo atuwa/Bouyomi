@@ -1,7 +1,6 @@
 package bouyomi;
 
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 //こけえもんのローマ字を翻訳する
 public class Japanese{
@@ -31,26 +30,29 @@ public class Japanese{
 		map.put("lya","ゃ");map.put("li","ぃ");map.put("lu","ぅ");map.put("le","ぇ");map.put("lo","ぉ");
 		map.put("xa","ぁ");map.put("xi","ぃ");map.put("xu","ぅ");map.put("xe","ぇ");map.put("xo","ぉ");
 
-		map.put("kya","きゃ");map.put("kyu","きゅ");map.put("kyo","きょ");
-		map.put("sya","しゃ");map.put("syu","しゅ");map.put("syo","しょ");
-		map.put("tya","ちゃ");map.put("tyu","ちゅ");map.put("tyo","ちょ");
-		map.put("nya","にゃ");map.put("nyu","にゅ");map.put("nyo","にょ");
-		map.put("hya","ひゃ");map.put("hyu","ひゅ");map.put("hyo","ひょ");
-		map.put("mya","みゃ");map.put("myu","みゅ");map.put("myo","みょ");
-		map.put("rya","りゃ");map.put("ryu","りゅ");map.put("ryo","りょ");
-		map.put("gya","ぎゃ");map.put("gyu","ぎゅ");map.put("gyo","ぎょ");
+		map.put("kya","きゃ");map.put("kyi","きぃ");map.put("kyu","きゅ");map.put("kye","きぇ");map.put("kyo","きょ");
+		map.put("sya","しゃ");map.put("syi","しぃ");map.put("syu","しゅ");map.put("sye","しぇ");map.put("syo","しょ");
+		map.put("tya","ちゃ");map.put("tyi","ちぃ");map.put("tyu","ちゅ");map.put("tye","ちぇ");map.put("tyo","ちょ");
+		map.put("nya","にゃ");map.put("nyi","にぃ");map.put("nyu","にゅ");map.put("nye","にぇ");map.put("nyo","にょ");
+		map.put("hya","ひゃ");map.put("hyi","ひぃ");map.put("hyu","ひゅ");map.put("hye","ひぇ");map.put("hyo","ひょ");
+		map.put("mya","みゃ");map.put("myi","みぃ");map.put("myu","みゅ");map.put("mye","みぇ");map.put("myo","みょ");
+		map.put("rya","りゃ");map.put("ryi","りぃ");map.put("ryu","りゅ");map.put("rye","りぇ");map.put("ryo","りょ");
+		map.put("gya","ぎゃ");map.put("gyi","ぎぃ");map.put("gyu","ぎゅ");map.put("gye","ぎぇ");map.put("gyo","ぎょ");
 		map.put("za","ざ");map.put("zi","じ");map.put("zu","ず");map.put("ze","ぜ");map.put("zo","ぞ");
 		map.put("ja","じゃ");map.put("ji","じ");map.put("ju","じゅ");map.put("je","じぇ");map.put("jo","じょ");
 		map.put("jya","じゃ");map.put("jyi","じぃ");map.put("jyu","じゅ");map.put("jye","じぇ");map.put("jyo","じょ");
 		map.put("zya","じゃ");map.put("zyi","じぃ");map.put("zyu","じゅ");map.put("zye","じぇ");map.put("zyo","じょ");
 		map.put("da","だ");map.put("di","ぢ");map.put("du","づ");map.put("de","で");map.put("do","ど");
-		map.put("ga","が");map.put("gi","ぐ");map.put("ge","げ");map.put("go","ご");
+		map.put("ga","が");map.put("gi","ぎ");map.put("gu","ぐ");map.put("ge","げ");map.put("go","ご");
 		map.put("ba","ば");map.put("bi","び");map.put("bu","ぶ");map.put("be","べ");map.put("bo","ぼ");
 		map.put("pa","ぱ");map.put("pi","ぴ");map.put("pu","ぷ");map.put("pe","ぺ");map.put("po","ぽ");
 		map.put("fa","ふぁ");map.put("fi","ふぃ");map.put("fu","ふ");map.put("fe","ふぇ");map.put("fo","ふぉ");
 		map.put("byi","びゃ");map.put("byi","びぃ");map.put("byu","びゅ");map.put("bye","びぇ");map.put("byo","びょ");
 		map.put("sha","しゃ");map.put("shi","し");map.put("shu","しゅ");map.put("she","しぇ");map.put("sho","しょ");
 		map.put("vyu","ヴゅ");
+
+		map.put("pha","ぴゃ");map.put("phi","ぴぃ");map.put("phu","ぴゅ");map.put("phe","ぴぇ");map.put("pho","ぴょ");
+		map.put("tha","てゃ");map.put("thi","てぃ");map.put("thu","てゅ");map.put("the","てぇ");map.put("tho","てょ");
 
 		map.put("nn","ん");map.put("n","ん");map.put(".","。");map.put(",","、");map.put("~","～");
 
@@ -106,7 +108,7 @@ public class Japanese{
 		}
 		String r=result.toString();
 		if(isTrans(r))return false;
-		if(Pattern.compile("[a-z]").matcher(r).find())return false;
+		//if(Pattern.compile("[a-z]").matcher(r).find())return false;
 		chat_server.chat("/"+r);
 		return true;
 	}
