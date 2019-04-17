@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
@@ -42,11 +44,27 @@ public class Tag{
 		if(tag!=null) {
 			Pass.exit(tag);
 		}
+		tag=getTag("自動停止時間");
+		if(tag!=null) {
+			if(isAdmin()){
+				if(tag.isEmpty()) {
+					TubeAPI.stopTime=480000;
+				}else try {
+					TubeAPI.stopTime=Integer.parseInt(tag);
+				}catch(NumberFormatException nfe) {
+					StringWriter sw=new StringWriter();
+					nfe.printStackTrace(new PrintWriter(sw));
+					DiscordAPI.chatDefaultHost(sw.toString());
+				}
+				DiscordAPI.chatDefaultHost("自動停止時間を"+TubeAPI.stopTime+"msにしました");
+			}else DiscordAPI.chatDefaultHost("権限がありません");
+		}
 		music();
 		if(video_host!=null) {//再生サーバが設定されている時
 			video();
 		}
 		Question.tag(this,con);
+		if(module!=null)module.postcall(this);
 	}
 	public void music() {
 		String tag=getTag("音楽再生");

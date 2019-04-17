@@ -110,6 +110,11 @@ public class TubeAPI{
 		return false;
 	}
 	public static void checkTitle() {
+		try{
+			Thread.sleep(1000);
+		}catch(InterruptedException e){
+			e.printStackTrace();
+		}
 		for(int i=0;i<5;i++) {
 			try{
 				Thread.sleep(500);
@@ -265,11 +270,11 @@ public class TubeAPI{
 	public static synchronized String statusAllJson() {
 		StringBuilder sb=new StringBuilder(64);//
 		sb.append("{\n");
-		sb.append("\t\"lastPlay\":\"").append(lastPlay).append("\"\n");
-		sb.append("\t\"stopTime\":").append(stopTime).append("\n");
-		sb.append("\t\"DefaultVol\":").append(DefaultVol).append("\n");
-		sb.append("\t\"Vol\":").append(VOL).append("\n");
-		sb.append("\t\"lastPlayDate\":").append(lastPlayDate).append("\n");
+		sb.append("\"lastPlay\":\"").append(lastPlay).append("\",\n");
+		sb.append("\"stopTime\":").append(stopTime).append(",\n");
+		sb.append("\"DefaultVol\":").append(DefaultVol).append(",\n");
+		sb.append("\"Vol\":").append(VOL).append(",\n");
+		sb.append("\"lastPlayDate\":").append(lastPlayDate).append("\n");
 		sb.append("}\n");
 		return sb.toString();
 	}

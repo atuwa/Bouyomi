@@ -67,4 +67,10 @@ public class ModuleLoader{
 			m.call(t);
 		}
 	}
+	public void postcall(Tag t) {
+		if(modules.isEmpty())return;
+		for(IModule m:modules){
+			m.postcall(t);
+		}
+	}
 }

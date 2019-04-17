@@ -194,6 +194,8 @@ public class BouyomiConection implements Runnable{
 						r="動画";
 					}else if(g.endsWith(".wav")||g.endsWith(".mp3")){
 						r="音楽";
+					}else if(g.endsWith(".zip")||g.endsWith(".gz")||g.endsWith(".7z")||g.endsWith(".lzh")){
+						r="圧縮ファイル";
 					}else{
 						int li=g.lastIndexOf('.');
 						if(li>=0&&li+1<g.length()){
