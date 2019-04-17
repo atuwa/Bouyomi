@@ -36,6 +36,7 @@ public class BouyomiProxy{
 	public static ModuleLoader module;
 	public static SaveProxyData logger;
 	public static Admin admin;
+	public static SaveProxyData study_log;
 	//main関数、スタート地点
 	public static void main(String[] args) throws IOException{
 		InputStreamReader isr=new InputStreamReader(System.in);
@@ -243,6 +244,7 @@ public class BouyomiProxy{
 			e.printStackTrace();
 		}
 		Pass.read();
+		study_log=new SaveProxyData("教育者.txt");
 		if(module!=null) {
 			module.load(modulePath);
 			if(!module.isActive())module=null;

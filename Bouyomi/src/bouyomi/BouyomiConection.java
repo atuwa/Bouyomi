@@ -10,7 +10,9 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -228,6 +230,8 @@ public class BouyomiConection implements Runnable{
 		if(text.indexOf("教育(")>=0||text.indexOf("教育（")>=0){//教育機能を使おうとした時
 			System.out.println(text);//ログに残す
 			System.out.println(user);
+			String d=new SimpleDateFormat("yyyy/MM/dd HH時mm分ss秒").format(new Date());
+			study_log.log(user+"\t"+d+"\t"+text);
 		}else if(text.indexOf("忘却(")>=0||text.indexOf("忘却（")>=0){//忘却機能を使おうとした時
 			System.out.println(text);//ログに残す
 			System.out.println(user);

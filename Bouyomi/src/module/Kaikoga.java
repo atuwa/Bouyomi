@@ -38,7 +38,7 @@ public class Kaikoga implements IModule,IAutoSave{
 			@Override
 			public void update() {
 				kakuritu=rundom.nextInt(10)+1;
-				DiscordAPI.chatDefaultHost("カイコガボロン率が"+kakuritu+"%に変更されました");
+				DiscordAPI.chatDefaultHost("カイコガボロン率が"+(kakuritu/10F)+"%に変更されました");
 			}
 			@Override
 			public void init() {
@@ -47,7 +47,7 @@ public class Kaikoga implements IModule,IAutoSave{
 			@Override
 			public void read(DataInputStream dis) throws IOException {
 				kakuritu=(int) dis.readLong();
-				System.out.println("起動時のボロン率"+kakuritu);
+				System.out.println("起動時のボロン率"+(kakuritu/10F));
 			}
 			@Override
 			public void write(DataOutputStream dos) throws IOException {
@@ -101,12 +101,12 @@ public class Kaikoga implements IModule,IAutoSave{
 		}
 		str=tag.getTag("ボロン率");
 		if(str!=null) {
-			DiscordAPI.chatDefaultHost("現在のボロン率は"+kakuritu+"%です");
+			DiscordAPI.chatDefaultHost("現在のボロン率は"+(kakuritu/10F)+"%です");
 		}
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
-			int r=rundom.nextInt(100)+1;//当選率可変
-			String s=(r<=kakuritu ? "ボロン (" : r<=(kakuritu+10) ? "おしい(" : "はずれ (")+r+(con.user==null ? ")/*" : ")/*抽選者："+con.user+" ");
-			s+="確率"+kakuritu+"%";
+			int r=rundom.nextInt(1000)+1;//当選率可変
+			String s=(r<=kakuritu ? "ボロン (" : r<=(kakuritu*1.5) ? "おしい(" : "はずれ (")+r+(con.user==null ? ")/*" : ")/*抽選者："+con.user+" ");
+			s+="確率"+(kakuritu/10F)+"%";
 			if(!con.mute)DiscordAPI.chatDefaultHost(s);
 			System.out.println(s);
 			if(r<=kakuritu) hit(con,con.userid);

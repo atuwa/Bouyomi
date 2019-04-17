@@ -17,7 +17,7 @@ import bouyomi.Tag;
 
 public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 
-	private String[] cerelon= {"Intel Celeron B820","Intel Celeron G4920","Intel Celeron J4005",
+	private String[] celeron= {"Intel Celeron B820","Intel Celeron G4920","Intel Celeron J4005",
 			"Intel Celeron N4100","Intel Celeron N3450","Intel Celeron 3755U","Intel Celeron Dual-Core",
 			"Intel Celeron D","Intel Celeron M","Intel Celeron B710"};
 
@@ -34,6 +34,14 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+		ArrayList<String> c=new ArrayList<String>();
+		try {
+			BouyomiProxy.load(c,"celeron.celeron.txt");
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+		for(String s:celeron)c.add(s);
+		celeron=c.toArray(new String[c.size()]);
 		hc=list.hashCode();
 		init();
 	}
@@ -66,8 +74,8 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 			String c;
 			if(r<=now*10) {
 				int index=r-1;
-				while(index>=cerelon.length)index-=cerelon.length;
-				c="あたり "+r+"/*"+cerelon[index];
+				while(index>=celeron.length)index-=celeron.length;
+				c="あたり "+r+"/*"+celeron[index];
 			}else c="はずれ "+r+"/*"+get(r-now);
 			if(tag.con.user!=null)c+=" 抽選者："+tag.con.user;
 			c+=" 確率"+now+"%";
@@ -89,6 +97,10 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 					DiscordAPI.chatDefaultHost("変更できませんでした");
 				}
 			}else DiscordAPI.chatDefaultHost("権限がありません");
+		}
+		p=tag.getTag("Celeron率");
+		if(p!=null) {
+			DiscordAPI.chatDefaultHost("現在のCeleron率は"+now+"%です");
 		}
 	}
 	@Override

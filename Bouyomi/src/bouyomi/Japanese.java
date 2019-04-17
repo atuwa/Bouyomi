@@ -1,6 +1,7 @@
 package bouyomi;
 
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 //こけえもんのローマ字を翻訳する
 public class Japanese{
@@ -108,7 +109,7 @@ public class Japanese{
 		}
 		String r=result.toString();
 		if(isTrans(r))return false;
-		//if(Pattern.compile("[a-z]").matcher(r).find())return false;
+		if(Pattern.compile("[a-z]").matcher(r).find())return false;
 		chat_server.chat("/"+r);
 		return true;
 	}
