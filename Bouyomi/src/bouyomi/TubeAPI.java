@@ -270,13 +270,24 @@ public class TubeAPI{
 	public static synchronized String statusAllJson() {
 		StringBuilder sb=new StringBuilder(64);//
 		sb.append("{\n");
-		sb.append("\"lastPlay\":\"").append(lastPlay).append("\",\n");
+		String last;
+		if(lastPlay!=null)last="\""+lastPlay+"\"";
+		else last=lastPlay;
+		sb.append("\"lastPlay\":").append(last).append(",\n");
 		sb.append("\"stopTime\":").append(stopTime).append(",\n");
 		sb.append("\"DefaultVol\":").append(DefaultVol).append(",\n");
 		sb.append("\"Vol\":").append(VOL).append(",\n");
-		sb.append("\"lastPlayDate\":").append(lastPlayDate).append("\n");
+		sb.append("\"lastPlayDate\":").append(lastPlayDate).append(",\n");
+		String title=getTitle();
+		if(title!=null)title="\""+title+"\"";
+		sb.append("\"lastPlayTitle\":").append(title).append("\n");
 		sb.append("}\n");
 		return sb.toString();
+	}
+	public static String getTitle() {
+		String s=getLine("GETtitle=0");
+		if(s==null||s.isEmpty()||s.equals(lastPlay))return null;
+		return s;
 	}
 	/*//新しいの。上手いこと動かない
 	public static String extract(String url,String name) {

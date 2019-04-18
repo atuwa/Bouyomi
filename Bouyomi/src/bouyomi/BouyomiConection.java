@@ -343,6 +343,7 @@ public class BouyomiConection implements Runnable{
 			else tag=new Tag(this);
 			if(fb=='/'||fb=='\\'||(text!=null&&text.indexOf("```")==0)){//最初の文字がスラッシュの時は終了
 				//System.out.println("スラッシュで始まる");
+				//System.out.println(text);
 				mute=true;
 				if(text!=null){
 					if(text!=null&&text.indexOf("```")==0) text=text.substring(3);

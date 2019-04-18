@@ -47,9 +47,8 @@ public class Tag{
 		tag=getTag("自動停止時間");
 		if(tag!=null) {
 			if(isAdmin()){
-				if(tag.isEmpty()) {
-					TubeAPI.stopTime=480000;
-				}else try {
+				if(tag.isEmpty())TubeAPI.stopTime=480000;
+				else try {
 					TubeAPI.stopTime=Integer.parseInt(tag);
 				}catch(NumberFormatException nfe) {
 					StringWriter sw=new StringWriter();
@@ -141,9 +140,9 @@ public class Tag{
 		}
 		tag=getTag("動画タイトル");
 		if(tag!=null) {
-			String s=getLine("GETtitle=0");
+			String s=getTitle();
 			if(con.mute)System.out.println(s);
-			else if(s==null||s.isEmpty()) {
+			else if(s==null) {
 				DiscordAPI.chatDefaultHost("/動画タイトルが取得できませんでした");
 			}else DiscordAPI.chatDefaultHost("/動画タイトル："+s);
 		}
@@ -292,7 +291,7 @@ public class Tag{
 			}
 			if(con.text.isEmpty())return;
 		}
-		tag=getTag("VideoStatus");
+		tag=getTag("VideoStatus","動画情報");
 		if(tag!=null) {
 			//con.text="";
 			DiscordAPI.chatDefaultHost(statusAllJson());
