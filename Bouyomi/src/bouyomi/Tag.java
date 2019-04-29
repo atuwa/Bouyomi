@@ -375,6 +375,7 @@ public class Tag{
 	/**タグ取得*/
 	public String getTag(String key) {
 		if(con.text.length()<1)return null;
+		if(con.text.equals(key))return "";
 		int index=con.text.indexOf(key+"(");
 		if(index<0)index=con.text.indexOf(key+"（");
 		if(index<0)return null;//タグを含まない時

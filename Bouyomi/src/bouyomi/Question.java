@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 /**アンケート機能*/
 public class Question extends Thread{
+	private static Object lock=new Object();
 	//TODO 集計結果を多い順に並べ替え
 	public static Question now;
 	public long startTime=System.currentTimeMillis();
@@ -38,6 +39,16 @@ public class Question extends Thread{
 				e.printStackTrace();
 			}
 		}
+	}
+	public void addKey(String k) {
+		int index=questionnaireList.indexOf(k);
+		if(index>=0) {
+			DiscordAPI.chatDefaultHost(index+" : "+k+" が登録済です");
+			return;
+		}
+		questionnaire=Arrays.copyOf(questionnaire,questionnaire.length+1);
+		questionnaireList.add(k);
+		DiscordAPI.chatDefaultHost((questionnaire.length-1)+" : "+k+" を追加しました");
 	}
 	public void start(String tag,BouyomiConection bc) {
 		String[] keys;
@@ -120,44 +131,62 @@ public class Question extends Thread{
 	public static void tag(Tag tm,BouyomiConection bc) {
 		if(DiscordAPI.service_host==null)return;//Discord投票システムが設定されてない時はアンケート機能を無効
 		String text=bc.text;
-		if(now!=null)now.add(bc);
+		synchronized(lock) {
+			if(now!=null)now.add(bc);
+		}
 		String tag=tm.getTag("アンケート");
 		if(tag!=null){
-			if(now!=null)bc.addTask.add("実行中のアンケートを終了してください");
-			else {
-				now=new Question();
-				now.start(tag,bc);
-				now.start();
+			synchronized(lock) {
+				if(now!=null)bc.addTask.add("実行中のアンケートを終了してください");
+				else {
+					now=new Question();
+					now.start(tag,bc);
+					now.start();
+				}
 			}
 		}
 		tag=tm.getTag("締切時間","自動集計");
-		if(tag!=null&&now!=null) {
-			if(tag.isEmpty()){
-				long e=now.endTime-System.currentTimeMillis();
-				e=e/1000;
-				DiscordAPI.chatDefaultHost(e+"秒後に集計します");
-			}
-			try{
-				int i=Integer.parseInt(tag);
-				if(i<0) {
-					now.endTime=-1;
-					tm.con.addTask.add("自動で集計しません");
-				}else {
-					tm.con.addTask.add(i+"分後に集計します");
-					i=i*60000;
-					now.endTime=System.currentTimeMillis()+i;
+		if(tag!=null) {
+			synchronized(lock) {
+				if(now==null);
+				else if(tag.isEmpty()){
+					long e=now.endTime-System.currentTimeMillis();
+					e=e/1000;
+					DiscordAPI.chatDefaultHost(e+"秒後に集計します");
+				}else try{
+					int i=Integer.parseInt(tag);
+					if(i<0) {
+						now.endTime=-1;
+						tm.con.addTask.add("自動で集計しません");
+					}else {
+						tm.con.addTask.add(i+"分後に集計します");
+						i=i*60000;
+						now.endTime=System.currentTimeMillis()+i;
+					}
+				}catch(NumberFormatException nfe) {
+					tm.con.addTask.add("数字だけいれて");
 				}
-			}catch(NumberFormatException nfe) {
-				tm.con.addTask.add("数字だけいれて");
 			}
 		}
 		tag=tm.getTag("集計");
 		if(tag!=null) {
-			if(now==null) {
-				bc.addTask.add("アンケートが実施されていません");
-			}else {
-				now.end(tag,bc);
-				now=null;
+			synchronized(lock) {
+				if(now==null) {
+					bc.addTask.add("アンケートが実施されていません");
+				}else {
+					now.end(tag,bc);
+					now=null;
+				}
+			}
+		}
+		tag=tm.getTag("アンケート追加");
+		if(tag!=null) {
+			synchronized(lock) {
+				if(now==null) {
+					bc.addTask.add("アンケートが実施されていません");
+				}else {
+					now.addKey(tag);
+				}
 			}
 		}
 		if(text.indexOf("アンケート中?")>=0||text.indexOf("アンケート中？")>=0

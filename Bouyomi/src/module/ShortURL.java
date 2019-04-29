@@ -23,6 +23,7 @@ public class ShortURL implements IModule{
 
 	@Override
 	public void call(Tag tag){
+		if(DiscordAPI.service_host==null)return;
 		String url=tag.getTag("URL短縮","ＵＲＬ短縮");
 		int mode=0;
 		if(url==null) {
@@ -87,6 +88,21 @@ public class ShortURL implements IModule{
 	        Object obj = get(json, code);
 	        if (obj instanceof Object[]) {
 	            return (Object[]) obj;
+	        }if (obj instanceof Map) {
+                java.util.Map<?,?> map = (java.util.Map<?,?>) obj;
+                Set<?> entrySet = map.entrySet();
+                Object[] arr = new Object[entrySet.size()];
+                int n = 0;
+                for (Object objValue : map.values()) {
+                    if (objValue instanceof String) {
+                        String sValue = (String) objValue;
+                        arr[n] = sValue;
+                    } else {
+                        arr[n] = objValue;//map.get(obj);
+                    }
+                    n++;
+                }
+                return arr;
 	        } else {
 	            return null;
 	        }
@@ -110,7 +126,7 @@ public class ShortURL implements IModule{
 	                            String sValue = (String) objValue;
 	                            arr[n] = sValue;
 	                        } else {
-	                            arr[n] = map.get(obj);
+	                            arr[n] = objValue;//map.get(obj);
 	                        }
 	                        n++;
 	                    }

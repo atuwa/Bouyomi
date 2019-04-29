@@ -233,7 +233,7 @@ public class BouyomiConection implements Runnable{
 			System.out.println(text);//ログに残す
 			System.out.println(user);
 			String d=new SimpleDateFormat("yyyy/MM/dd HH時mm分ss秒").format(new Date());
-			study_log.log(user+"\t"+d+"\t"+text);
+			study_log.log(userid+"\t"+user+"\t"+d+"\t"+text);
 		}else if(text.indexOf("忘却(")>=0||text.indexOf("忘却（")>=0){//忘却機能を使おうとした時
 			System.out.println(text);//ログに残す
 			System.out.println(user);

@@ -340,6 +340,7 @@ public class BouyomiProxy{
 			osw.close();
 		}
 	}
+	private static int send_errors;
 	/**棒読みちゃんに送信する*/
 	public synchronized static void send(int port,byte[] data){
 		Socket soc=null;
@@ -349,8 +350,10 @@ public class BouyomiProxy{
 			OutputStream os=soc.getOutputStream();
 			//System.out.println("棒読みちゃんに接続完了");
 			os.write(data);
+			send_errors=0;
 		}catch(ConnectException e) {
-			System.out.println("棒読みちゃんに接続できません");
+			send_errors++;
+			if(send_errors>5)System.out.println("棒読みちゃんに接続できません");
 		}catch(UnknownHostException e){
 			e.printStackTrace();
 		}catch(IOException e){

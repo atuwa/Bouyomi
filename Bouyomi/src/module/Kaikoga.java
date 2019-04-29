@@ -25,6 +25,7 @@ public class Kaikoga implements IModule,IAutoSave{
 	//k=id v=count
 	private ListMap<String, String> kaikogaDB=new ListMap<String, String>();
 	private int lastWriteHashCode;
+	/**当選率はこの値/10*/
 	private int kakuritu;
 	private Random rundom=new SecureRandom();
 	public Kaikoga(){
@@ -37,12 +38,12 @@ public class Kaikoga implements IModule,IAutoSave{
 		IDailyUpdate update=new IDailyUpdate(){
 			@Override
 			public void update() {
-				kakuritu=rundom.nextInt(10)+1;
+				kakuritu=rundom.nextInt(45)+1+5;
 				DiscordAPI.chatDefaultHost("カイコガボロン率が"+(kakuritu/10F)+"%に変更されました");
 			}
 			@Override
 			public void init() {
-				kakuritu=rundom.nextInt(10)+1;
+				kakuritu=rundom.nextInt(45)+1+5;
 			}
 			@Override
 			public void read(DataInputStream dis) throws IOException {
@@ -99,9 +100,28 @@ public class Kaikoga implements IModule,IAutoSave{
 				}
 			}else con.addTask.add("権限がありません");
 		}
+		str=tag.getTag("ボロン率再設定");
+		if(str!=null) {
+			if(tag.isAdmin()) {
+				IDailyUpdate u=DailyUpdate.updater.target.get("KaikogaKakuritu");
+				if(u!=null)u.update();
+			}else DiscordAPI.chatDefaultHost("権限がありません");
+		}
 		str=tag.getTag("ボロン率");
 		if(str!=null) {
-			DiscordAPI.chatDefaultHost("現在のボロン率は"+(kakuritu/10F)+"%です");
+			if(str.isEmpty()) {
+				DiscordAPI.chatDefaultHost("現在のボロン率は"+(kakuritu/10F)+"%です");
+			}else if(tag.isAdmin()) {
+				try{
+					kakuritu=(int)(Float.parseFloat(str)*10);
+					DiscordAPI.chatDefaultHost("カイコガボロン率を"+(kakuritu/10F)+"%に変更しました");
+				}catch(NumberFormatException nfe) {
+
+				}
+			}else DiscordAPI.chatDefaultHost("権限がありません");
+		}
+		str=tag.getTag("ボロン率");
+		if(str!=null) {
 		}
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
 			int r=rundom.nextInt(1000)+1;//当選率可変
@@ -147,7 +167,7 @@ public class Kaikoga implements IModule,IAutoSave{
 		DecimalFormat fo=new DecimalFormat("##0.00%");
 		StringBuilder sb=new StringBuilder("ボロンした合計");
 		sb.append(all).append("回/*\n");
-		if(s!=null) {
+		if(s!=null&&!s.isEmpty()) {
 			String v=null;
 			int i=-1;
 			for(int in=0;in<kaikogaDB.rawList().size();in++) {

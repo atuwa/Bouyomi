@@ -76,7 +76,11 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 				int index=r-1;
 				while(index>=celeron.length)index-=celeron.length;
 				c="あたり "+r+"/*"+celeron[index];
-			}else c="はずれ "+r+"/*"+get(r-now);
+			}else {
+				if(r<=now*20)c="おしい";
+				else c="はずれ ";
+				c+=r+"/*"+get(r-now);
+			}
 			if(tag.con.user!=null)c+=" 抽選者："+tag.con.user;
 			c+=" 確率"+now+"%";
 			System.out.println(c);
