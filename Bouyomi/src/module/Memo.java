@@ -25,7 +25,11 @@ public class Memo implements IModule,IAutoSave{
 		String t=tag.getTag("memo");
 		String u=tag.con.userid;
 		if(t==null||u==null)return;
-		if(t.length()>100) {
+		if(t.equals("消去")) {
+			data.remove(u);
+			saved=false;
+			tag.con.addTask.add("メモを消去しました");
+		}else if(t.length()>100) {
 			DiscordAPI.chatDefaultHost("100文字制限を超えています");
 		}else if(t.isEmpty()) {
 			StringBuilder sb=new StringBuilder(tag.con.user);

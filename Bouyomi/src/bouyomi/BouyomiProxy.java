@@ -292,7 +292,10 @@ public class BouyomiProxy{
 				String line=br.readLine();
 				if(line==null)break;
 				int tab=line.indexOf('\t');
-				if(tab<0||tab+1>line.length())continue;
+				if(tab<0||tab+1>line.length()) {
+					map.put(line,"");//タブがない時ORフォーマットがおかしいときは行をキーにして値を0文字に
+					continue;
+				}
 				String key=line.substring(0,tab);
 				String val=line.substring(tab+1);
 				System.out.println("k="+key+" v="+val);
