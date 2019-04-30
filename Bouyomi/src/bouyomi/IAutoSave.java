@@ -35,6 +35,7 @@ public interface IAutoSave{
 				synchronized(list){
 					for(IAutoSave a:list)a.shutdownHook();
 				}
+				DailyUpdate.updater.write();
 			}
 		});
 	}

@@ -29,6 +29,7 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 		public Files(String file) throws IOException{
 			this.file=file;
 			BouyomiProxy.load(list,file);
+			saved=true;
 			now=Math.abs(rundom.nextInt());//初期値
 			//System.out.println(get()+"("+now+")で初期化");
 		}
@@ -118,8 +119,10 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 		for(Files e:files.values()){
 			String p=tag.getTag(e.name+"登録");
 			if(p!=null) {
-				if(e.add(p))tag.con.addTask.add("登録成功");
-				else tag.con.addTask.add("登録失敗");
+				if(!p.isEmpty()&&e.add(p)) {
+					System.out.println(p+"を"+e.name+"に登録");
+					tag.con.addTask.add("登録成功");
+				}else tag.con.addTask.add("登録失敗");
 			}
 			p=tag.getTag(e.name+"削除");
 			if(p!=null) {

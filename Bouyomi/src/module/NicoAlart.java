@@ -20,7 +20,7 @@ import bouyomi.DiscordAPI;
 import bouyomi.IAutoSave;
 import bouyomi.IModule;
 import bouyomi.Tag;
-import module.ShortURL.JsonUtil;
+import bouyomi.Util.JsonUtil;
 
 public class NicoAlart implements IModule,IAutoSave, Runnable{
 	private Thread thread;
