@@ -14,6 +14,7 @@ import bouyomi.DiscordAPI;
 import bouyomi.IAutoSave;
 import bouyomi.IModule;
 import bouyomi.Tag;
+import bouyomi.Util;
 
 public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 
@@ -81,9 +82,12 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 				else c="はずれ ";
 				c+=r+"/*"+get(r-now);
 			}
-			if(tag.con.user!=null)c+=" 抽選者："+tag.con.user;
+			System.out.println(c+" 確率"+now+"%");
+			if(tag.con.user!=null) {
+				c=Util.IDtoMention(tag.con.userid)+c;
+				//c+=" 抽選者："+tag.con.user;
+			}
 			c+=" 確率"+now+"%";
-			System.out.println(c);
 			if(!tag.con.mute)DiscordAPI.chatDefaultHost(c);
 		}
 		String p=tag.getTag("Celeron率変更");

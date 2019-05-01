@@ -257,8 +257,8 @@ public class BouyomiConection implements Runnable{
 				addTask.add("要望リストに記録できませんでした");//失敗した事を追加で言う
 			}
 		}
-		if(text.indexOf("@")>=0){//忘却機能を使おうとした時
-			System.out.println(text);//ログに残す
+		if(text.indexOf("@")>=0){//@がある時はメンション抽出
+			//System.out.println(text);//ログに残す
 			//DiscordAPI.chatDefaultHost(text);
 			Matcher m=Pattern.compile("<@!?[0-9]++>").matcher(text);
 			StringBuffer sb = new StringBuffer();
