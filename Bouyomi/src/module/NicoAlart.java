@@ -195,6 +195,8 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+		lastWriteHashCode=shortcutDB.hashCode();
+		lastWriteHashCodeA=alarted.hashCode();
 		while(true) {
 			try{
 				check(1003067);

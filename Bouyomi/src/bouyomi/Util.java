@@ -8,7 +8,9 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 public class Util{
-
+	public static String IDtoMention(String id) {
+		return new StringBuilder("<@!").append(id).append("> ").toString();
+	}
 	/**<a href="https://qiita.com/oyahiroki/items/006b3511fc4136d02ad1">ここから持ってきた</a>*/
 	public static class JsonUtil{
 	    public static Object[] getAsArray(String json, String code) {

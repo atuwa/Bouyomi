@@ -18,6 +18,7 @@ import bouyomi.IModule;
 import bouyomi.ListMap;
 import bouyomi.ListMap.Value;
 import bouyomi.Tag;
+import bouyomi.Util;
 
 /** おまけ機能 */
 public class Kaikoga implements IModule,IAutoSave{
@@ -125,9 +126,9 @@ public class Kaikoga implements IModule,IAutoSave{
 		}
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
 			int r=rundom.nextInt(1000)+1;//当選率可変
-			String s=(r<=kakuritu ? "ボロン (" : r<=(kakuritu*1.5) ? "おしい(" : "はずれ (")+r+(con.user==null ? ")/*" : ")/*抽選者："+con.user+" ");
+			String s=(r<=kakuritu ? "ボロン (" : r<=(kakuritu*1.5) ? "おしい(" : "はずれ (")+r+")/*";
 			s+="確率"+(kakuritu/10F)+"%";
-			if(!con.mute)DiscordAPI.chatDefaultHost(s);
+			if(!con.mute)DiscordAPI.chatDefaultHost(Util.IDtoMention(con.userid)+s);
 			System.out.println(s);
 			if(r<=kakuritu) hit(con,con.userid);
 			//if(r<5)con.addTask.add("おしい");

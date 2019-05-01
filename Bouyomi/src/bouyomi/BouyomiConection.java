@@ -38,6 +38,9 @@ public class BouyomiConection implements Runnable{
 	private ByteArrayOutputStream baos;
 	public boolean mute;
 	private String readText;
+	/**ユーザIDが入ってる<br>
+	 * ニックネームが必要な時はCounter.getUserName(id)を使う*/
+	public ArrayList<String> mentions=new ArrayList<String>();
 	private void read() throws IOException{
 		InputStream is=soc.getInputStream();//Discord取得ソフトから読み込むストリーム
 		int ch1=is.read();//コマンドバイトを取得
@@ -253,6 +256,21 @@ public class BouyomiConection implements Runnable{
 				e.printStackTrace();
 				addTask.add("要望リストに記録できませんでした");//失敗した事を追加で言う
 			}
+		}
+		if(text.indexOf("@")>=0){//忘却機能を使おうとした時
+			System.out.println(text);//ログに残す
+			//DiscordAPI.chatDefaultHost(text);
+			Matcher m=Pattern.compile("<@!?[0-9]++>").matcher(text);
+			StringBuffer sb = new StringBuffer();
+			while(m.find()) {
+				m.appendReplacement(sb, "");
+				Matcher m2=Pattern.compile("[0-9]++").matcher(m.group());
+				m2.find();
+				mentions.add(m2.group());
+			}
+			m.appendTail(sb);
+			text=sb.toString();
+			//for(String s:mentions)System.out.println("メンションID="+s+"&ニックネーム="+Counter.getUserName(s));
 		}
 		BOT.call(this);
 		//text=Dic.ReplaceStudy(text);

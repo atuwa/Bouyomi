@@ -31,6 +31,7 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 			BouyomiProxy.load(list,file);
 			saved=true;
 			now=Math.abs(rundom.nextInt());//初期値
+			save=false;
 			//System.out.println(get()+"("+now+")で初期化");
 		}
 		/**@return 追加したらtrue 既にあればfalse*/
@@ -50,8 +51,9 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 		}
 		/**今日の*/
 		public String get() {
-			while(now>=list.size())now-=list.size();
-			return list.get(now);
+			int index=now;
+			while(index>=list.size())index-=list.size();
+			return list.get(index);
 		}
 		public void save(String file) {
 			if(saved)return;//保存済の場合はスキップ
@@ -65,6 +67,7 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 		}
 		public void update() {
 			now=Math.abs(rundom.nextInt());
+			save=false;
 			//System.out.println(get()+"("+now+")で更新");
 		}
 	}
@@ -73,6 +76,8 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 	private Random rundom=new SecureRandom();
 	/**k=ファイル v=現在のランダム値*/
 	private HashMap<String,String> rundoms=new HashMap<String,String>();
+	/**今日のIndexを保存したか*/
+	protected boolean save;
 	public Rundom() {
 		DailyUpdate.Ragister("module.Rundom",this);
 		//行区切りでファイルを書く
@@ -102,6 +107,7 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 					e.printStackTrace();
 				}
 			}
+			save=true;
 		}catch(IOException e1){
 			//超適当な例外処理
 			e1.printStackTrace();
@@ -150,8 +156,10 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 			v.save(e.getKey());
 			rundoms.put(v.file,Integer.toString(v.now));
 		}
+		if(save)return;
 		try{
 			BouyomiProxy.save(rundoms,"rundoms.txt");
+			save=true;
 		}catch(IOException e1){
 			e1.printStackTrace();
 		}

@@ -319,10 +319,18 @@ public class Tag{
 			}
 			tag=getTag("ユーザID","ユーザＩＤ");
 			if(tag!=null) {
-				System.out.println("ID取得「"+con.user+"」のID="+con.userid);
-				if(con.mute);
-				else if(con.userid==null)DiscordAPI.chatDefaultHost("取得失敗");
-				else DiscordAPI.chatDefaultHost("/"+con.userid);
+				if(!tag.isEmpty()) {
+					String id=Counter.getUserID(tag);
+					System.out.println("ID取得「"+tag+"」のID="+id);
+					if(con.mute);
+					else if(id==null)DiscordAPI.chatDefaultHost("取得失敗");
+					else DiscordAPI.chatDefaultHost("/"+id);
+				}else {
+					System.out.println("ID取得「"+con.user+"」のID="+con.userid);
+					if(con.mute);
+					else if(con.userid==null)DiscordAPI.chatDefaultHost("取得失敗");
+					else DiscordAPI.chatDefaultHost("/"+con.userid);
+				}
 			}
 		}
 	}

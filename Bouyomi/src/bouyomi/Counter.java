@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -413,6 +414,12 @@ public class Counter{
 		CountData cd=usercount.get(id);
 		if(cd==null)return null;
 		return cd.name;
+	}
+	public static String getUserID(String id) {
+		for(Entry<String, CountData> e:usercount.entrySet()) {
+			if(id.equals(e.getValue().name))return e.getKey();
+		}
+		return null;
 	}
 	public static interface ICountEvent{
 		public static final ArrayList<ICountEvent> list=new ArrayList<ICountEvent>();
