@@ -7,6 +7,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 
 import bouyomi.Counter.ICountEvent;
+import bouyomi.IModule.BouyomiEvent;
 
 public class ModuleLoader{
 	public ArrayList<IModule> modules=new ArrayList<IModule>();
@@ -71,6 +72,12 @@ public class ModuleLoader{
 		if(modules.isEmpty())return;
 		for(IModule m:modules){
 			m.postcall(t);
+		}
+	}
+	public void event(BouyomiEvent e){
+		if(modules.isEmpty())return;
+		for(IModule m:modules){
+			m.event(e);
 		}
 	}
 }

@@ -3,6 +3,7 @@ package module;
 import bouyomi.DiscordAPI;
 import bouyomi.IModule;
 import bouyomi.Tag;
+import bouyomi.TubeAPI.PlayVideoTitleEvent;
 import bouyomi.Util;
 
 public class Sample implements IModule{
@@ -19,6 +20,20 @@ public class Sample implements IModule{
 		if(s!=null) {//タグが無い時はnull
 			String m=Util.IDtoMention(tag.con.userid);//この書き込みをしたユーザIDからメンションを生成
 			DiscordAPI.chatDefaultHost(m+s.length());//メンションとタグの内容を連結して投稿
+		}
+	}
+	@Override
+	public void event(BouyomiEvent o) {
+		/*
+		if(o instanceof PlayVideoEvent) {
+			PlayVideoEvent e=(PlayVideoEvent)o;
+			System.out.println("動画再生を検出"+e.videoID);
+		}
+		*/
+		if(o instanceof PlayVideoTitleEvent) {
+			PlayVideoTitleEvent e=(PlayVideoTitleEvent)o;
+			//System.out.println("動画タイトルを取得："+e.title);
+			if(e.title.contains("オカリン"))DiscordAPI.chatDefaultHost("動画停止");
 		}
 	}
 }

@@ -27,6 +27,12 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 	private int lastWriteHashCode,lastWriteHashCodeA;
 	private HashMap<String,String> shortcutDB=new HashMap<String,String>();
 	private HashMap<String,String> alarted=new HashMap<String,String>();
+	public static class NicoLiveEvent implements BouyomiEvent{
+		public Live[] live;
+		private NicoLiveEvent(Live[] lv) {
+			live=lv;
+		}
+	}
 	public NicoAlart(){
 		thread=new Thread(this,"定期ニコニコ生放送コミュニティ検索");
 		thread.start();
@@ -215,6 +221,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		if(lives.length>0) {
 			String last=alarted.get(Integer.toString(id));
 			if(!(lives[0].contentId.equals(last))) {
+				BouyomiProxy.module.event(new NicoLiveEvent(lives));
 				StringBuilder sb=new StringBuilder("生放送 ");
 				sb.append(lives[0].title);
 				sb.append(" が開始されました/*");
@@ -227,11 +234,10 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		}
 	}
 	public static void main(String[] args) throws IOException {
-		NicoAlart a=new NicoAlart();
-		Live[] l=a.getLives(null,1124081);
+		Live[] l=getLives(null,1124081);
 		for(Live lv:l)System.out.println(lv);
 	}
-	public Live[] getLives(String q,int... id) throws IOException {
+	public static Live[] getLives(String q,int... id) throws IOException {
 		//System.out.print("q="+q+" コミュニティ="+id[0]+"で検索実行...");
 		String js=getLiveJSON(q,id);
 		Object[] o=JsonUtil.getAsArray(js,"data");
@@ -275,7 +281,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 			return sb.toString();
 		}
 	}
-	public String getLiveJSON(String q,int... communityId) throws IOException {
+	public static String getLiveJSON(String q,int... communityId) throws IOException {
 		String url=getParm(q,communityId);
 		URL url0=new URL("https://api.search.nicovideo.jp/api/v2/live/contents/search"+url);
 		URLConnection uc=url0.openConnection();
@@ -291,7 +297,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		}
 		return res.toString("utf-8");
 	}
-	private String getParm(String q,int... communityId) {
+	private static String getParm(String q,int... communityId) {
 		if(q==null)q="	ゲーム OR 描いてみた OR リスナーは外部記憶装置 OR 通知用";
 		try{
 			q=URLEncoder.encode(q,"utf-8");

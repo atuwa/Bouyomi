@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import bouyomi.IModule.BouyomiEvent;
+
 public class TubeAPI{
 
 	public static boolean nowPlayVideo;
@@ -33,7 +35,18 @@ public class TubeAPI{
 	private static ExecutorService pool=new ThreadPoolExecutor(0,10,60L,TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
 	protected static int stopTime=480000;
-
+	public static class PlayVideoEvent implements BouyomiEvent{
+		public String videoID;
+		public PlayVideoEvent(String videoID){
+			this.videoID=videoID;
+		}
+	}
+	public static class PlayVideoTitleEvent implements BouyomiEvent{
+		public String title;
+		public PlayVideoTitleEvent(String s){
+			title=s;
+		}
+	}
 	public static synchronized boolean playTube(BouyomiConection bc,String videoID) {
 		if(videoID.indexOf('<')>=0||videoID.indexOf('>')>=0||videoID.indexOf('?')>=0)return false;
 		if(System.currentTimeMillis()-lastPlayDate<5000) {
@@ -63,6 +76,7 @@ public class TubeAPI{
 			//System.out.println(url.toString());
 			url.openStream().close();
 			lastPlay=videoID;
+			BouyomiProxy.module.event(new PlayVideoEvent(videoID));
 			if(bc!=null&&bc.user!=null&&!bc.user.isEmpty())lastPlayUser=bc.user;
 			else lastPlayUser=null;
 			if(playHistory.size()>=maxHistory){
@@ -123,6 +137,7 @@ public class TubeAPI{
 			}
 			String s=getLine("GETtitle=0");
 			if(s!=null&&!s.isEmpty()&&!s.equals(lastPlay)) {
+				BouyomiProxy.module.event(new PlayVideoTitleEvent(s));
 				System.out.println("動画タイトル："+s);
 				DiscordAPI.chatDefaultHost("/動画タイトル："+s);
 				break;

@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import bouyomi.IModule.BouyomiEvent;
+
 public class BouyomiConection implements Runnable{
 
 	/** このインスタンスの接続先 */
@@ -170,6 +172,15 @@ public class BouyomiConection implements Runnable{
 			text=sb.toString();
 		}
 	}
+	public static class LongSentenceEvent implements BouyomiEvent{
+		public String text;
+		public BouyomiConection con;
+		public String Overwrite="長文省略";
+		public LongSentenceEvent(BouyomiConection bc) {
+			con=bc;
+			text=bc.text;
+		}
+	}
 	private void replace() throws IOException{
 		//System.out.println("len="+len);
 		//text=text.replaceAll("file://[\\x21-\\x7F]++","ファイル");
@@ -263,8 +274,10 @@ public class BouyomiConection implements Runnable{
 		text=text.replaceAll("[0-9]{8,}+","数字省略");
 		ContinuationOmitted();//文字データが取得できてメッセージが書き換えられていない時
 		if(text.length()>=90){//長文省略基準90文字以上
+			LongSentenceEvent e=new LongSentenceEvent(this);
 			System.out.println("長文省略("+text.length()+(user==null?"文字)":"文字)"+user));
-			text="長文省略";
+			BouyomiProxy.module.event(e);
+			text=e.Overwrite;
 			return;
 		}
 	}
@@ -276,14 +289,19 @@ public class BouyomiConection implements Runnable{
 		OutputStreamWriter sw=new OutputStreamWriter(baos2,StandardCharsets.UTF_8);
 		BufferedWriter bw=new BufferedWriter(sw);//文字バッファ
 		char lc=0;//最後に追加した文字
-		char cc=0;//連続カウント(9以下)
+		short cc=0;//連続カウント(9以下)
 		byte comment=0;
 		//int clen=0;
 		HashMap<Character, Short> counter=new HashMap<Character, Short>();
 		if(type==0) counter=null;
+		boolean source=false;
 		for(int i=0;i<text.length();i++){//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
 			if(r=='ゝ'&&i>1) r=text.charAt(i-1);
+			//連続カウントが2以上で次の文字が`の場合source判定
+			if(cc>0&&r=='`'){
+				source=!source;
+			}
 			//連続カウントが9以上で次の文字が最後に書き込まれた文字と一致した場合次へ
 			if(cc>8&&r==lc){
 				counter=null;
@@ -312,7 +330,7 @@ public class BouyomiConection implements Runnable{
 			}
 			*/
 			lc=r;//最後に書き込まれた文字を次に書き込む文字に設定する
-			bw.write(r);//文字バッファに書き込む
+			if(!source)bw.write(r);//文字バッファに書き込む
 		}
 		if(counter!=null){
 			bw.flush();//バッファの内容をすべてバイナリに変換
