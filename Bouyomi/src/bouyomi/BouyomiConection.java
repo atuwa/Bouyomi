@@ -396,7 +396,7 @@ public class BouyomiConection implements Runnable{
 			baos2.writeTo(baos);//メッセージバイナリデータを送信データに追加
 			//System.out.println(baos2.toString("utf-8"));//TODO 読み上げテキストをログ出力
 			//System.out.println("W"+baos.size());
-			if(len>0) send(bouyomi_port,baos.toByteArray());//作ったデータを送信
+			if(len>0&&!mute) send(bouyomi_port,baos.toByteArray());//作ったデータを送信
 			/*
 			if("ちんちんリスト".equals(text)) {
 				if("503113319410827266".equals(userid))DiscordAPI.chatDefaultHost(text);
@@ -443,6 +443,9 @@ public class BouyomiConection implements Runnable{
 			}
 			m.appendTail(sb);
 			text=sb.toString();
+			//System.out.println(text);
+			text=text.trim();
+			if(text.length()>1&&text.charAt(0)=='/')mute=true;
 			//for(String s:mentions)System.out.println("メンションID="+s+"&ニックネーム="+Counter.getUserName(s));
 		}
 		if(text.indexOf("#")>=0){//#がある時はチャンネル抽出
