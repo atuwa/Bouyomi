@@ -18,7 +18,7 @@ public class Sample implements IModule{
 		String s=tag.getTag("サンプルモジュール");//タグ取得
 		if(s!=null) {//タグが無い時はnull
 			String m=Util.IDtoMention(tag.con.userid);//この書き込みをしたユーザIDからメンションを生成
-			DiscordAPI.chatDefaultHost(m+s);//メンションとタグの内容を連結して投稿
+			DiscordAPI.chatDefaultHost(m+s.length());//メンションとタグの内容を連結して投稿
 		}
 	}
 }

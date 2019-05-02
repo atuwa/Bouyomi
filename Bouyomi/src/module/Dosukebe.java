@@ -1,6 +1,7 @@
 package module;
 
 import java.awt.FlowLayout;
+import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -11,6 +12,7 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -23,11 +25,13 @@ import bouyomi.IModule;
 import bouyomi.Tag;
 
 public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
-
+	static {
+		PlayThread.init();
+	}
 	/**もう引いた人*/
 	private ArrayList<String> used=new ArrayList<String>();
 	private Random rundom=new SecureRandom();
-	private static final int min=200,max=1000;//最低2%最大10%
+	private static final int min=1500,max=5000;//最低15%最大50%
 	private int now=rundom.nextInt(max-min)+min;
 	private boolean saved=false;
 	public Dosukebe(){
@@ -58,6 +62,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 	public void update(){
 		now=rundom.nextInt(max-min)+min;
 		used.clear();
+		DiscordAPI.chatDefaultHost("ドスケベ率が"+(now/100F)+"%に変更されました");
 	}
 	public void read(DataInputStream dis)throws IOException{
 		now=dis.readInt();
@@ -72,7 +77,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			if(used.contains(tag.con.userid)) {
 				DiscordAPI.chatDefaultHost("今日は既に引いてます");
 			}else{
-				if(!tag.isAdmin()) {
+				if(!tag.isAdmin()&&!"536401162300162049".equals(tag.con.userid)) {
 					used.add(tag.con.userid);
 					saved=false;
 				}
@@ -84,14 +89,14 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 					play();
 				}else sb.append("却下");
 				sb.append("(").append(rand).append(")");
-				sb.append("確率").append(now/100d).append("%");
+				sb.append("/*確率").append(now/100d).append("%");
 				DiscordAPI.chatDefaultHost(sb.toString());
 			}
 		}
 		String s=tag.getTag("ドスケベ率");
 		if(s!=null) {
 			if(s.isEmpty())DiscordAPI.chatDefaultHost(now/100d+"%");
-			else {
+			else if(tag.isAdmin()){
 				try {
 					String old=Float.toString(now/100f);
 					now=(int) (Float.parseFloat(s)*100);
@@ -108,7 +113,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 		File f=new File(dir,list[rundom.nextInt(list.length)]);
 		try{
 			URL url=f.toURI().toURL();
-			System.out.println("1"+url);
+			//System.out.println("1"+url);
 			synchronized(PlayThread.tasks) {
 				PlayThread.tasks.add(url);
 				DiscordAPI.chatDefaultHost(f.getName());
@@ -125,13 +130,22 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 		private static JLabel label;
 		public PlayThread() {
 			super("PlayThread");
+			//frame.setTitle("Dosukebe");
+		}
+		private static void init(){
 			frame.getContentPane().setLayout(new FlowLayout());
 			label = new JLabel("未再生");
 			frame.getContentPane().add(label);
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			frame.setSize(50,50);
 			frame.setVisible(true);
-			frame.setTitle("待機");
+			File f=new File("Dosukebe.png");
+			if(f.exists())try{
+				BufferedImage image=ImageIO.read(f);
+				frame.setIconImage(image);
+			}catch(IOException e){
+				e.printStackTrace();
+			}
 		}
 		private static void play() {
 			if(thread==null){
@@ -140,6 +154,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			}
 		}
 		public void run() {
+			WAVPlayer.Volume=20;
 			while(true) {
 				URL url;
 				synchronized(tasks){
@@ -148,7 +163,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 				}
 				label.setText("再生中："+url.toString());
 				WAVPlayer.play(url.toString());
-				label.setText("終了");
+				label.setText("終了："+url.toString());
 				boolean end=true;
 				for(int i=0;i<100;i++) {
 					if(tasks.size()>0) {

@@ -40,7 +40,7 @@ public class WAVPlayer extends Thread{
 		//while(true)
 		{
 			loopCount++;
-			//if(loopCount>3)stop=true;
+			if(loopCount>3)stop=true;
 			try {
 				playFrame=0;
 				int bytesRead;

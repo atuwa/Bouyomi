@@ -29,4 +29,5 @@ jar/
 .settings/
 *.list
 *.wav
+*.png
 DailyUpdate

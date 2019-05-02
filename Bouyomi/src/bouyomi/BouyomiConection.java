@@ -257,21 +257,6 @@ public class BouyomiConection implements Runnable{
 				addTask.add("要望リストに記録できませんでした");//失敗した事を追加で言う
 			}
 		}
-		if(text.indexOf("@")>=0){//@がある時はメンション抽出
-			//System.out.println(text);//ログに残す
-			//DiscordAPI.chatDefaultHost(text);
-			Matcher m=Pattern.compile("<@!?[0-9]++>").matcher(text);
-			StringBuffer sb = new StringBuffer();
-			while(m.find()) {
-				m.appendReplacement(sb, "");
-				Matcher m2=Pattern.compile("[0-9]++").matcher(m.group());
-				m2.find();
-				mentions.add(m2.group());
-			}
-			m.appendTail(sb);
-			text=sb.toString();
-			//for(String s:mentions)System.out.println("メンションID="+s+"&ニックネーム="+Counter.getUserName(s));
-		}
 		BOT.call(this);
 		//text=Dic.ReplaceStudy(text);
 		//巨大数処理
@@ -371,6 +356,7 @@ public class BouyomiConection implements Runnable{
 				return;
 			}
 			if(text!=null){
+				mentions();
 				tag.call();
 				replace();
 			}else if(len>=250) text="長文省略";
@@ -423,5 +409,38 @@ public class BouyomiConection implements Runnable{
 			talk(bouyomi_port,sb.toString());//すべて送信
 		}
 		//if(!addTask.toString().isEmpty())talk(bouyomi_port,addTask.toString());//送信
+	}
+	/**メンションを処理*/
+	private void mentions() {
+		if(text.indexOf("@")>=0){//@がある時はメンション抽出
+			//System.out.println(text);//ログに残す
+			//DiscordAPI.chatDefaultHost(text);
+			Matcher m=Pattern.compile("<@!?[0-9]++>").matcher(text);
+			StringBuffer sb = new StringBuffer();
+			while(m.find()) {
+				m.appendReplacement(sb, "");
+				Matcher m2=Pattern.compile("[0-9]++").matcher(m.group());
+				m2.find();
+				mentions.add(m2.group());
+			}
+			m.appendTail(sb);
+			text=sb.toString();
+			//for(String s:mentions)System.out.println("メンションID="+s+"&ニックネーム="+Counter.getUserName(s));
+		}
+		if(text.indexOf("#")>=0){//#がある時はチャンネル抽出
+			//System.out.println(text);//ログに残す
+			//DiscordAPI.chatDefaultHost(text);
+			Matcher m=Pattern.compile("<#[0-9]++>").matcher(text);
+			StringBuffer sb = new StringBuffer();
+			while(m.find()) {
+				m.appendReplacement(sb, "");
+				//Matcher m2=Pattern.compile("[0-9]++").matcher(m.group());
+				//m2.find();
+				//mentions.add(m2.group());
+			}
+			m.appendTail(sb);
+			text=sb.toString();
+			//for(String s:mentions)System.out.println("メンションID="+s+"&ニックネーム="+Counter.getUserName(s));
+		}
 	}
 }
