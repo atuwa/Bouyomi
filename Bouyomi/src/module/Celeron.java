@@ -14,7 +14,6 @@ import bouyomi.DiscordAPI;
 import bouyomi.IAutoSave;
 import bouyomi.IModule;
 import bouyomi.Tag;
-import bouyomi.Util;
 
 public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 
@@ -84,8 +83,8 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 			}
 			System.out.println(c+" 確率"+now+"%");
 			if(tag.con.user!=null) {
-				c=Util.IDtoMention(tag.con.userid)+c;
-				//c+=" 抽選者："+tag.con.user;
+				//c=Util.IDtoMention(tag.con.userid)+c;
+				c+=" 抽選者："+tag.con.user;
 			}
 			c+=" 確率"+now+"%";
 			if(!tag.con.mute)DiscordAPI.chatDefaultHost(c);
