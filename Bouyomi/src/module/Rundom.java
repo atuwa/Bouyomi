@@ -68,6 +68,7 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 		public void update() {
 			now=Math.abs(rundom.nextInt());
 			save=false;
+			DiscordAPI.chatDefaultHost("今日の"+name+"が"+get()+"に変更されました");
 			//System.out.println(get()+"("+now+")で更新");
 		}
 	}
