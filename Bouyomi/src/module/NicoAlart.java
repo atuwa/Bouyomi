@@ -26,7 +26,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 	private Thread thread;
 	private int lastWriteHashCode,lastWriteHashCodeA;
 	private HashMap<String,String> shortcutDB=new HashMap<String,String>();
-	private HashMap<String,String> alarted=new HashMap<String,String>();
+	public static HashMap<String,String> alarted=new HashMap<String,String>();
 	public static class NicoLiveEvent implements BouyomiEvent{
 		public Live[] live;
 		private NicoLiveEvent(Live[] lv) {
@@ -231,6 +231,8 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 				DiscordAPI.chatDefaultHost(s);
 			}
 			alarted.put(Integer.toString(id),lives[0].contentId);
+		}else {
+			alarted.put(Integer.toString(id),"");
 		}
 	}
 	public static void main(String[] args) throws IOException {
