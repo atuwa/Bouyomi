@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import bouyomi.BouyomiConection;
 import bouyomi.BouyomiProxy;
@@ -27,6 +29,7 @@ public class Kaikoga implements IModule,IAutoSave{
 	private int lastWriteHashCode;
 	/**当選率はこの値/10*/
 	private int kakuritu;
+	private int up;
 	private Random rundom=new SecureRandom();
 	public Kaikoga(){
 		try{
@@ -61,6 +64,16 @@ public class Kaikoga implements IModule,IAutoSave{
 	public void call(Tag tag){
 		if(DiscordAPI.service_host==null) return;//Discordに送信できないときはこの機能は動かない
 		BouyomiConection con=tag.con;
+		if(con.text.contains("ボロン")||con.text.contains("ﾎﾞﾛﾝ")) {
+			Matcher m=Pattern.compile("ボロン").matcher(con.text);
+			int co=0;//URLの数
+			boolean result=m.find();
+			do{
+				co++;
+				result=m.find();
+			}while(result);
+			up+=co;
+		}
 		String str=tag.getTag("ボロンさせろ");
 		if(str!=null){
 			if(tag.isAdmin()){
@@ -125,9 +138,13 @@ public class Kaikoga implements IModule,IAutoSave{
 		}
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
 			int r=rundom.nextInt(1000)+1;//当選率可変
-			String s=(r<=kakuritu ? "ボロン (" : r<=(kakuritu*1.5) ? "おしい(" : "はずれ (")+r+")/*";
+			int k=kakuritu;
+			if(up>20)k+=20;
+			else k+=up;
+			up=0;
+			String s=(r<=k ? "ボロン (" : r<=(k*1.5) ? "おしい(" : "はずれ (")+r+")/*";
 			s+="抽選者："+con.user;
-			s+="確率"+(kakuritu/10F)+"%";
+			s+="確率"+(kakuritu/10F)+"+"+((k-kakuritu)/10F)+"%";
 			if(!con.mute) {
 				DiscordAPI.chatDefaultHost(s);
 				//DiscordAPI.chatDefaultHost(Util.IDtoMention(con.userid)+s);

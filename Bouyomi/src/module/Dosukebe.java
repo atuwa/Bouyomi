@@ -93,18 +93,30 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 				DiscordAPI.chatDefaultHost(sb.toString());
 			}
 		}
+		if(tag.con.text.equals("ドスケベストップ")||tag.con.text.equals("ドスケベ停止")){
+			if(WAVPlayer.nowPlay!=null)WAVPlayer.nowPlay.end();
+		}
 		String s=tag.getTag("ドスケベ率");
 		if(s!=null) {
-			if(s.isEmpty())DiscordAPI.chatDefaultHost(now/100d+"%");
+			if(s.isEmpty())DiscordAPI.chatDefaultHost((tag.con.mute?"/":"")+now/100d+"%");
 			else if(tag.isAdmin()){
 				try {
 					String old=Float.toString(now/100f);
 					now=(int) (Float.parseFloat(s)*100);
-					DiscordAPI.chatDefaultHost("ドスケベ率を"+old+"%から"+now/100f+"%に変更しました");
+					DiscordAPI.chatDefaultHost((tag.con.mute?"/":"")+"ドスケベ率を"+old+"%から"+now/100f+"%に変更しました");
 				}catch(NumberFormatException nfe) {
 
 				}
 			}
+		}
+		s=tag.getTag("ドスケベリスト");
+		if(s!=null) {
+			File dir=new File("Dosukebe");
+			String[] list=dir.list();
+			StringBuilder sb=new StringBuilder();
+			if(tag.con.mute)sb.append("/");
+			for(String t:list)sb.append(t).append("\n");
+			DiscordAPI.chatDefaultHost(sb.toString());
 		}
 	}
 	public void play() {
@@ -116,7 +128,6 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			//System.out.println("1"+url);
 			synchronized(PlayThread.tasks) {
 				PlayThread.tasks.add(url);
-				DiscordAPI.chatDefaultHost(f.getName());
 				PlayThread.play();
 			}
 		}catch(MalformedURLException e){
@@ -161,6 +172,8 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 					url=tasks.get(0);
 					tasks.remove(0);
 				}
+				File f=new File(url.getPath());
+				DiscordAPI.chatDefaultHost(f.getName());
 				label.setText("再生中："+url.toString());
 				WAVPlayer.play(url.toString());
 				label.setText("終了："+url.toString());

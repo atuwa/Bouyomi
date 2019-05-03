@@ -70,6 +70,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		}
 		for(Entry<String, String> e:shortcutDB.entrySet()) {
 			if(tag.con.text.equals(e.getKey()+"放送してる？")) {
+				System.out.println(e.getKey()+"放送してる？");
 				try{
 					int id=Integer.parseInt(e.getValue());
 					try{
