@@ -118,6 +118,33 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			for(String t:list)sb.append(t).append("\n");
 			DiscordAPI.chatDefaultHost(sb.toString());
 		}
+		s=tag.getTag("ミュージックスタート");
+		if(s!=null) {
+			if(s.isEmpty()&&!tag.con.text.equals("ミュージックスタート")) {
+				DiscordAPI.chatDefaultHost("パラメータが不正です");
+			}else if(tag.isAdmin()||"536401162300162049".equals(tag.con.userid)) {
+				File dir=new File("Dosukebe");
+				String[] list=dir.list();
+				boolean b=true;
+				for(String t:list) {
+					if(!s.equals(t))continue;
+					File f=new File(dir,t);
+					try{
+						URL url=f.toURI().toURL();
+						//System.out.println("1"+url);
+						synchronized(PlayThread.tasks) {
+							PlayThread.tasks.add(url);
+							PlayThread.play();
+						}
+						b=false;
+						DiscordAPI.chatDefaultHost(s+"を再生します");
+					}catch(MalformedURLException e){
+						e.printStackTrace();
+					}
+				}
+				if(b)DiscordAPI.chatDefaultHost(s+"は存在しません");
+			}else DiscordAPI.chatDefaultHost("権限がありません");
+		}
 	}
 	public void play() {
 		File dir=new File("Dosukebe");
@@ -173,10 +200,13 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 					tasks.remove(0);
 				}
 				File f=new File(url.getPath());
-				DiscordAPI.chatDefaultHost(f.getName());
-				label.setText("再生中："+url.toString());
+				String name=f.getName();
+				DiscordAPI.chatDefaultHost("再生開始："+name);
+				label.setText("再生中："+name);
+				System.out.println("再生開始："+name);
 				WAVPlayer.play(url.toString());
-				label.setText("終了："+url.toString());
+				System.out.println("再生終了");
+				label.setText("終了："+name);
 				boolean end=true;
 				for(int i=0;i<100;i++) {
 					if(tasks.size()>0) {

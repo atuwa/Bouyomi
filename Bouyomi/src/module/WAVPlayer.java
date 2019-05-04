@@ -136,9 +136,7 @@ public class WAVPlayer extends Thread{
 		try{
 			nowPlay=new WAVPlayer(new URL(url));
 			nowPlay.setVol(Volume);
-			System.out.println("再生開始");
 			nowPlay.run();
-			System.out.println("再生終了");
 			return true;
 		}catch(UnsupportedAudioFileException|IOException|LineUnavailableException e){
 			e.printStackTrace();

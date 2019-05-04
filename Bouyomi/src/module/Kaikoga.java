@@ -60,18 +60,27 @@ public class Kaikoga implements IModule,IAutoSave{
 		};
 		DailyUpdate.Ragister("KaikogaKakuritu",update);
 	}
-	@Override
-	public void call(Tag tag){
-		if(DiscordAPI.service_host==null) return;//Discordに送信できないときはこの機能は動かない
-		BouyomiConection con=tag.con;
-		if(con.text.contains("ボロン")||con.text.contains("ﾎﾞﾛﾝ")) {
-			Matcher m=Pattern.compile("ボロン").matcher(con.text);
-			int co=0;//URLの数
-			boolean result=m.find();
+	private int count(String key,String text) {
+		Matcher m=Pattern.compile(key).matcher(text);
+		int co=0;//素振りの数
+		boolean result=m.find();
+		if(result) {
 			do{
 				co++;
 				result=m.find();
 			}while(result);
+		}
+		return co;
+	}
+	@Override
+	public void call(Tag tag){
+		if(DiscordAPI.service_host==null) return;//Discordに送信できないときはこの機能は動かない
+		BouyomiConection con=tag.con;
+		if(con.text.contains("ボロン")||con.text.contains("ﾎﾞﾛﾝ")||con.text.contains("ぼろん")) {
+			int co=count("ボロン", con.text);
+			co+=count("ﾎﾞﾛﾝ", con.text);
+			co+=count("ぼろん", con.text);
+			//DiscordAPI.chatDefaultHost(co+"回の素振り");
 			up+=co;
 		}
 		String str=tag.getTag("ボロンさせろ");
@@ -133,6 +142,14 @@ public class Kaikoga implements IModule,IAutoSave{
 				}
 			}else DiscordAPI.chatDefaultHost("権限がありません");
 		}
+		if(con.text.contains("今素振り何回")||con.text.contains("今素振り何回?")) {
+			int k=kakuritu;
+			if(up>20)k+=20;
+			else k+=up;
+			String s=up+"回/*確率";
+			s+=(kakuritu/10F)+"+"+((k-kakuritu)/10F)+"%";
+			DiscordAPI.chatDefaultHost(s);
+		}
 		str=tag.getTag("ボロン率");
 		if(str!=null) {
 		}
@@ -141,10 +158,11 @@ public class Kaikoga implements IModule,IAutoSave{
 			int k=kakuritu;
 			if(up>20)k+=20;
 			else k+=up;
-			up=0;
 			String s=(r<=k ? "ボロン (" : r<=(k*1.5) ? "おしい(" : "はずれ (")+r+")/*";
 			s+="抽選者："+con.user;
-			s+="確率"+(kakuritu/10F)+"+"+((k-kakuritu)/10F)+"%";
+			s+=" 確率"+(kakuritu/10F)+"+"+((k-kakuritu)/10F)+"%";
+			s+=" "+up+"回の素振り";
+			up=0;
 			if(!con.mute) {
 				DiscordAPI.chatDefaultHost(s);
 				//DiscordAPI.chatDefaultHost(Util.IDtoMention(con.userid)+s);

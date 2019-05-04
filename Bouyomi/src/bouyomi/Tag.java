@@ -317,7 +317,7 @@ public class Tag{
 				else if(s==null)DiscordAPI.chatDefaultHost("取得失敗");
 				else DiscordAPI.chatDefaultHost("/"+s);
 			}
-			tag=getTag("ユーザID","ユーザＩＤ");
+			tag=getTag("ユーザID","ユーザＩＤ","ユーザーＩＤ","ユーザーID");
 			if(tag!=null) {
 				if(!tag.isEmpty()) {
 					String id=Counter.getUserID(tag);
