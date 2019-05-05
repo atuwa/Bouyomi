@@ -158,16 +158,21 @@ public class Kaikoga implements IModule,IAutoSave{
 			int k=kakuritu;
 			if(up>20)k+=20;
 			else k+=up;
-			String s=(r<=k ? "ボロン (" : r<=(k*1.5) ? "おしい(" : "はずれ (")+r+")/*";
-			s+="抽選者："+con.user;
-			s+=" 確率"+(kakuritu/10F)+"+"+((k-kakuritu)/10F)+"%";
-			s+=" "+up+"回の素振り";
+			StringBuilder sb=new StringBuilder();
+			if(r==1)sb.append("燃えた");
+			else if(r<=k+1)sb.append("ボロン");
+			else if(r<=k*1.5)sb.append("おしい");
+			else sb.append("はずれ");
+			sb.append(" (").append(r).append(")/*");
+			sb.append("抽選者：").append(con.user);
+			sb.append(" 確率").append(kakuritu/10F).append("+").append((k-kakuritu)/10F).append("%");
+			sb.append(" ").append(up).append("回の素振り");
 			up=0;
 			if(!con.mute) {
-				DiscordAPI.chatDefaultHost(s);
+				DiscordAPI.chatDefaultHost(sb.toString());
 				//DiscordAPI.chatDefaultHost(Util.IDtoMention(con.userid)+s);
 			}
-			System.out.println(s);
+			System.out.println(sb.toString());
 			if(r<=kakuritu) hit(con,con.userid);
 			//if(r<5)con.addTask.add("おしい");
 		}

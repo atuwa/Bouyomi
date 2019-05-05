@@ -33,7 +33,7 @@ public class Sample implements IModule{
 		if(o instanceof PlayVideoTitleEvent) {
 			PlayVideoTitleEvent e=(PlayVideoTitleEvent)o;
 			//System.out.println("動画タイトルを取得："+e.title);
-			if(e.title.contains("オカリン"))DiscordAPI.chatDefaultHost("動画停止");
+			if(e.title.contains("オカリン"))DiscordAPI.chatDefaultHost("動画停止()/*タイトルに再生禁止ワードが含まれています");
 		}
 	}
 }

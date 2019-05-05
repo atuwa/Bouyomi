@@ -120,8 +120,8 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 		}
 		s=tag.getTag("ミュージックスタート");
 		if(s!=null) {
-			if(s.isEmpty()&&!tag.con.text.equals("ミュージックスタート")) {
-				DiscordAPI.chatDefaultHost("パラメータが不正です");
+			if(s.isEmpty()) {
+				if(!tag.con.text.equals("ミュージックスタート"))DiscordAPI.chatDefaultHost("パラメータが不正です");
 			}else if(tag.isAdmin()||"536401162300162049".equals(tag.con.userid)) {
 				File dir=new File("Dosukebe");
 				String[] list=dir.list();
