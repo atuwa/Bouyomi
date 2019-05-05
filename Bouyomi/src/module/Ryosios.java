@@ -1,5 +1,7 @@
 package module;
 
+import java.util.Random;
+
 import bouyomi.DiscordAPI;
 import bouyomi.IModule;
 import bouyomi.Tag;
@@ -15,14 +17,19 @@ public class Ryosios implements IModule{
 				DiscordAPI.chatDefaultHost("生きてる。良かった");
 				return;
 			}
+			Random r=new Random();
 			String[] list= {"多分息してない/*もしかしたら生きてるかも"
 					,"多分生きてない/*生命維持装置が故障してるかも"
 					,"コンビニ行ってる"
 					,"洋ドラ見てる",
 					"ギャザやってる",
 					"ガリ喰ってる"};
-			int i=new java.util.Random().nextInt(list.length);
-			DiscordAPI.chatDefaultHost(list[i]);
+			if(r.nextInt(100)<5) {
+				DiscordAPI.chatDefaultHost("トイレ行ってる");
+			}else {
+				int i=r.nextInt(list.length);
+				DiscordAPI.chatDefaultHost(list[i]);
+			}
 		}
 	}
 }
