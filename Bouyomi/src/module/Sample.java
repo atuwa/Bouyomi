@@ -22,6 +22,11 @@ public class Sample implements IModule{
 			String m=Util.IDtoMention(tag.con.userid);//この書き込みをしたユーザIDからメンションを生成
 			DiscordAPI.chatDefaultHost(m+s.length());//メンションとタグの内容を連結して投稿
 		}
+		if(tag.con.mentions.contains("539105406107254804")) {
+			if(tag.con.text.contains("働け")||tag.con.text.contains("仕事しろ")) {
+				DiscordAPI.chatDefaultHost("やだ");
+			}
+		}
 	}
 	@Override
 	public void event(BouyomiEvent o) {
