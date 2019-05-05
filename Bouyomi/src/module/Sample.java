@@ -3,6 +3,7 @@ package module;
 import bouyomi.DiscordAPI;
 import bouyomi.IModule;
 import bouyomi.Tag;
+import bouyomi.TubeAPI.PlayVideoEvent;
 import bouyomi.TubeAPI.PlayVideoTitleEvent;
 import bouyomi.Util;
 
@@ -24,15 +25,17 @@ public class Sample implements IModule{
 	}
 	@Override
 	public void event(BouyomiEvent o) {
-		/*
 		if(o instanceof PlayVideoEvent) {
 			PlayVideoEvent e=(PlayVideoEvent)o;
 			System.out.println("動画再生を検出"+e.videoID);
+			if(e.videoID.equals("nico=sm14223749")) {
+				DiscordAPI.chatDefaultHost("動画停止()/*この動画は再生禁止です");
+				return;
+			}
 		}
-		*/
 		if(o instanceof PlayVideoTitleEvent) {
 			PlayVideoTitleEvent e=(PlayVideoTitleEvent)o;
-			//System.out.println("動画タイトルを取得："+e.title);
+			System.out.println("動画タイトルを取得："+e.title);
 			if(e.title.contains("オカリン"))DiscordAPI.chatDefaultHost("動画停止()/*タイトルに再生禁止ワードが含まれています");
 		}
 	}

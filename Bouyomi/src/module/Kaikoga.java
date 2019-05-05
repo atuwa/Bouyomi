@@ -20,6 +20,7 @@ import bouyomi.IModule;
 import bouyomi.ListMap;
 import bouyomi.ListMap.Value;
 import bouyomi.Tag;
+import bouyomi.Util;
 
 /** おまけ機能 */
 public class Kaikoga implements IModule,IAutoSave{
@@ -168,8 +169,11 @@ public class Kaikoga implements IModule,IAutoSave{
 			up=0;
 			if(!con.mute) {
 				DiscordAPI.chatDefaultHost(sb.toString());
-				if(r==1)DiscordAPI.chatDefaultHost("おおおおおおおおおおおおおお燃えたあああああああああああああああああああ/*\n"
+				if(r==1) {
+					DiscordAPI.chatDefaultHost("おおおおおおおおおおおおおお燃えたあああああああああああああああああああ/*\n"
 			+ "https://cdn.discordapp.com/attachments/569063021918552074/574198092471992353/5088f35b064742a3a9b69a7a0806d595.jpg");
+					DiscordAPI.chatDefaultHost(Util.IDtoMention("544529530866368522")+"遂に燃えたぞ");
+				}
 				//DiscordAPI.chatDefaultHost(Util.IDtoMention(con.userid)+s);
 			}
 			System.out.println(sb.toString());
