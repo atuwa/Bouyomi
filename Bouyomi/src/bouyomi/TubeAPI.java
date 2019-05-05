@@ -174,6 +174,10 @@ public class TubeAPI{
 							dis.append("\n/*動画の所有者が、埋め込み動画プレーヤーでの再生を許可していません(参考)");
 							dis.append("\nhttps://atuwa.github.io/TubePlay4e/localserver/test.html で再生可能か確認できます");
 							break;
+						case 2500:
+							dis.append("\n/*動画情報取得がタイムアウトしました");
+							dis.append("\nhttps://atuwa.github.io/TubePlay4e/localserver/test.html で再生可能か確認できます");
+							break;
 					}
 					if(!DiscordAPI.chatDefaultHost(dis.toString())) {
 						BouyomiProxy.talk(BouyomiProxy.proxy_port,"再生エラー"+c);

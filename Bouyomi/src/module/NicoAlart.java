@@ -59,7 +59,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		if(s!=null) {
 			try{
 				int cid=Integer.parseInt(s);
-				String q="	ゲーム OR 描いてみた OR リスナーは外部記憶装置 OR 通知用";
+				String q="ゲーム OR 描いてみた OR リスナーは外部記憶装置 OR 通知用";
 				DiscordAPI.chatDefaultHost("検索URL=https://api.search.nicovideo.jp/api/v2/live/contents/search"+getParm(q,cid));
 				String js=getLiveJSON(q,cid);
 				DiscordAPI.chatDefaultHost(js);

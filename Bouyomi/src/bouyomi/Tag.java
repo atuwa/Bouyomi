@@ -58,6 +58,21 @@ public class Tag{
 				DiscordAPI.chatDefaultHost("自動停止時間を"+TubeAPI.stopTime+"msにしました");
 			}else DiscordAPI.chatDefaultHost("権限がありません");
 		}
+		tag=getTag("ユーザID","ユーザＩＤ","ユーザーＩＤ","ユーザーID");
+		if(tag!=null) {
+			if(!tag.isEmpty()) {
+				String id=Counter.getUserID(tag);
+				System.out.println("ID取得「"+tag+"」のID="+id);
+				if(con.mute);
+				else if(id==null)DiscordAPI.chatDefaultHost("取得失敗");
+				else DiscordAPI.chatDefaultHost("/"+id);
+			}else {
+				System.out.println("ID取得「"+con.user+"」のID="+con.userid);
+				if(con.mute);
+				else if(con.userid==null)DiscordAPI.chatDefaultHost("取得失敗");
+				else DiscordAPI.chatDefaultHost("/"+con.userid);
+			}
+		}
 		music();
 		if(video_host!=null) {//再生サーバが設定されている時
 			video();
@@ -209,7 +224,7 @@ public class Tag{
 			}
 		}
 		tag=getTag("動画停止");
-		if( ( tag!=null&&tag.isEmpty() ) ||"動画停止".equals(con.text)) {//動画停止
+		if(tag!=null){//動画停止
 			if("動画停止".equals(con.text))con.text="";
 			System.out.println("動画停止");//ログに残す
 			if(operation("stop")){
@@ -311,26 +326,15 @@ public class Tag{
 			}
 			tag=getTag("最頻再生者");
 			if(tag!=null) {
-				String s=most(2);
+				String s;
+				if(tag.equals("ID")) {
+					s=most(3);
+					s="ID="+s+"Nick="+Counter.getUserName(s);
+				}else s=most(2);
 				System.out.println(s);
 				if(con.mute);
 				else if(s==null)DiscordAPI.chatDefaultHost("取得失敗");
 				else DiscordAPI.chatDefaultHost("/"+s);
-			}
-			tag=getTag("ユーザID","ユーザＩＤ","ユーザーＩＤ","ユーザーID");
-			if(tag!=null) {
-				if(!tag.isEmpty()) {
-					String id=Counter.getUserID(tag);
-					System.out.println("ID取得「"+tag+"」のID="+id);
-					if(con.mute);
-					else if(id==null)DiscordAPI.chatDefaultHost("取得失敗");
-					else DiscordAPI.chatDefaultHost("/"+id);
-				}else {
-					System.out.println("ID取得「"+con.user+"」のID="+con.userid);
-					if(con.mute);
-					else if(con.userid==null)DiscordAPI.chatDefaultHost("取得失敗");
-					else DiscordAPI.chatDefaultHost("/"+con.userid);
-				}
 			}
 		}
 	}
