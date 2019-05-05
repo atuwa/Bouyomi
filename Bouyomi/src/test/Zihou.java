@@ -1,4 +1,4 @@
-package bouyomi;
+package test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import bouyomi.BouyomiProxy;
 
 /**時報通知*/
 public class Zihou{

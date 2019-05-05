@@ -34,6 +34,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 	private static final int min=1500,max=5000;//最低15%最大50%
 	private int now=rundom.nextInt(max-min)+min;
 	private boolean saved=false;
+	private int up;
 	public Dosukebe(){
 		try{
 			BouyomiProxy.load(used,"Dosukebe.txt");
@@ -83,13 +84,19 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 				}
 				int rand=rundom.nextInt(10000);
 				StringBuilder sb=new StringBuilder();
-				if(rand<now) {
+				int k=now+up;
+				if(k>10000)k=10000;
+				if(rand<k) {
 					//sb.append("後は任せたドスケベ(再生システムは後で実装する)");
 					sb.append("再生開始");
+					up=0;
 					play();
-				}else sb.append("却下");
+				}else {
+					up+=500;
+					sb.append("却下");
+				}
 				sb.append("(").append(rand).append(")");
-				sb.append("/*確率").append(now/100d).append("%");
+				sb.append("/*確率").append(now/100d).append("+").append((k-now)/100d).append("%");
 				DiscordAPI.chatDefaultHost(sb.toString());
 			}
 		}
