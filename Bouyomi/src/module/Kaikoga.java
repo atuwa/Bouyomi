@@ -82,6 +82,7 @@ public class Kaikoga implements IModule,IAutoSave{
 			co+=count("ぼろん", con.text);
 			//DiscordAPI.chatDefaultHost(co+"回の素振り");
 			up+=co;
+			if(up>50)up=Integer.MIN_VALUE;
 		}
 		String str=tag.getTag("ボロンさせろ");
 		if(str!=null){
@@ -150,9 +151,6 @@ public class Kaikoga implements IModule,IAutoSave{
 			s+=(kakuritu/10F)+"+"+((k-kakuritu)/10F)+"%";
 			DiscordAPI.chatDefaultHost(s);
 		}
-		str=tag.getTag("ボロン率");
-		if(str!=null) {
-		}
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
 			int r=rundom.nextInt(1000)+1;//当選率可変
 			int k=kakuritu;
@@ -170,6 +168,8 @@ public class Kaikoga implements IModule,IAutoSave{
 			up=0;
 			if(!con.mute) {
 				DiscordAPI.chatDefaultHost(sb.toString());
+				if(r==1)DiscordAPI.chatDefaultHost("おおおおおおおおおおおおおお燃えたあああああああああああああああああああ/*\n"
+			+ "https://cdn.discordapp.com/attachments/569063021918552074/574198092471992353/5088f35b064742a3a9b69a7a0806d595.jpg");
 				//DiscordAPI.chatDefaultHost(Util.IDtoMention(con.userid)+s);
 			}
 			System.out.println(sb.toString());
