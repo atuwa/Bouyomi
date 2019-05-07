@@ -72,6 +72,8 @@ public class Japanese{
 		//有効、5文字以上、投稿サーバあり、変換可能。を全て満たす時だけ変換
 		if(!active||text.length()<5||chat_server==null||!isTrans(text))return false;
 		if(block>System.currentTimeMillis())return false;
+		text=text.trim();
+		//chat_server.chat("変換前="+text+"文字数="+text.length());
 		StringBuilder result=new StringBuilder();
 		for(int i=0;i<text.length();i++) {
 			char c=text.charAt(i);
@@ -79,7 +81,7 @@ public class Japanese{
 				if(c==text.charAt(i+1)) {
 					if(c=='a'||c=='i'||c=='u'||c=='e'||c=='o'||c=='/'||c=='^');
 					else if(c>=0x30&&c<0x40);
-					else if(c!='n') {
+					else if(c!='n'&&c!=' ') {
 						result.append('っ');
 						continue;
 					}
