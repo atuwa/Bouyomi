@@ -357,6 +357,7 @@ public class BouyomiConection implements Runnable{
 		//System.out.println("接続");
 		//long start=System.nanoTime();//TODO 処理時間計測用
 		try{
+			soc.setSoTimeout(10000);
 			read();//受信処理
 			lastComment=System.currentTimeMillis();
 			Tag tag;
@@ -407,6 +408,8 @@ public class BouyomiConection implements Runnable{
 		}catch(Throwable e){
 			e.printStackTrace();//例外が発生したらログに残す
 			System.out.println("例外の原因="+text);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日HH時mm分");
+			System.out.println("発生時刻="+sdf.format(new Date()));
 		}finally{//切断は確実に
 			try{
 				soc.close();//Discord受信ソフトから切断

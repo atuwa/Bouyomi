@@ -199,9 +199,9 @@ public class Alarm implements IModule,IAutoSave{
 		shutdownHook();
 	}
 	public void shutdownHook() {
-		savedmap=true;
 		try{
 			BouyomiProxy.save(map,"Alarm.txt");
+			savedmap=true;
 		}catch(IOException e){
 			e.printStackTrace();
 		}
