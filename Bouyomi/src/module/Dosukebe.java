@@ -79,7 +79,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 				DiscordAPI.chatDefaultHost("今日は既に引いてます");
 			}else{
 				if(!tag.isAdmin()&&!"536401162300162049".equals(tag.con.userid)) {
-					used.add(tag.con.userid);
+					//used.add(tag.con.userid);
 					saved=false;
 				}
 				int rand=rundom.nextInt(10000);
@@ -105,12 +105,19 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 		}
 		String s=tag.getTag("ドスケベ率");
 		if(s!=null) {
-			if(s.isEmpty())DiscordAPI.chatDefaultHost((tag.con.mute?"/":"")+now/100d+"%");
-			else if(tag.isAdmin()){
+			if(s.isEmpty()) {
+				//DiscordAPI.chatDefaultHost((tag.con.mute?"/":"")+now/100d+"%");
+				StringBuilder sb=new StringBuilder();
+				int k=now+up;
+				if(k>10000)k=10000;
+				if(tag.con.mute)sb.append("/");
+				sb.append(now/100d).append("+").append((k-now)/100d).append("=").append(k/100d).append("%");
+				DiscordAPI.chatDefaultHost(sb.toString());
+			}else if(tag.isAdmin()||"536401162300162049".equals(tag.con.userid)){
 				try {
-					String old=Float.toString(now/100f);
-					now=(int) (Float.parseFloat(s)*100);
-					DiscordAPI.chatDefaultHost((tag.con.mute?"/":"")+"ドスケベ率を"+old+"%から"+now/100f+"%に変更しました");
+					String old=Double.toString(now/100D);
+					now=(int) (Double.parseDouble(s)*100D);
+					DiscordAPI.chatDefaultHost((tag.con.mute?"/":"")+"ドスケベ率を"+old+"%から"+now/100D+"%に変更しました");
 				}catch(NumberFormatException nfe) {
 
 				}
