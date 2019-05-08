@@ -26,6 +26,11 @@ public class ShortURL implements IModule{
 			mode=1;
 			if(url==null)return;
 		}
+		if(url.isEmpty()) {
+			if(mode==1)DiscordAPI.chatDefaultHost("https://nazr.in/");
+			else DiscordAPI.chatDefaultHost("https://kisu.me/");
+			return;
+		}
 		try{
 			//String url="https://nicovideo.jp/watch/sm20285108";
 			InputStream is=null;

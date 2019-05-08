@@ -5,8 +5,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
+import bouyomi.BouyomiConection;
 import bouyomi.BouyomiProxy;
 import bouyomi.DailyUpdate;
 import bouyomi.DailyUpdate.IDailyUpdate;
@@ -23,10 +25,14 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 
 	private String file="Celeron.txt";
 	private Random rundom=new SecureRandom();
-	private int now;
+	protected int now;
+	/**もう引いた人*/
+	private HashMap<String,String> used=new HashMap<String,String>();
 	//はずれ
 	private ArrayList<String> list=new ArrayList<String>();
 	private int hc;
+
+	private boolean saved;
 	public Celeron() {
 		DailyUpdate.Ragister("Celeron",this);
 		try{
@@ -44,9 +50,16 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 		celeron=c.toArray(new String[c.size()]);
 		hc=list.hashCode();
 		init();
+		try{
+			BouyomiProxy.load(used,"CeleronUp.txt");
+			saved=true;
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 	@Override
 	public void update() {
+		used.clear();
 		now=rundom.nextInt(10)+1;
 		DiscordAPI.chatDefaultHost("Celeron率が"+now+"%に変更されました");
 	}
@@ -109,17 +122,91 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 		if(p!=null) {
 			DiscordAPI.chatDefaultHost("現在のCeleron率は"+now+"%です");
 		}
+		if(tag.con.userid!=null&&tag.con.mentions.contains("539105406107254804")) {
+			agete(tag.con);
+		}
+	}
+	private void agete(BouyomiConection con) {
+		//System.out.println(tag.con.text);
+		if(con.text.equals("Celeron率上げて")) {
+			if(used.containsKey(con.userid)) {
+				String v=used.get(con.userid);
+				if(v.isEmpty()) {
+					DiscordAPI.chatDefaultHost("ちょっと待って");
+				}else if(Boolean.valueOf(v)){
+					DiscordAPI.chatDefaultHost("今日は上げたでしょ");
+				}else DiscordAPI.chatDefaultHost("今日は上げないよ");
+				if(!BouyomiProxy.admin.isAdmin(con.userid))return;
+			}
+			saved=false;
+			used.put(con.userid,"");
+			if(DiscordAPI.chatDefaultHost("うーん...")) {
+				new up(con.userid).start();
+			}
+		}
+	}
+	private class up extends Thread{
+		private final String userid;
+		public up(String user) {
+			super("Celeron率上げて");
+			userid=user;
+		}
+		public void run() {
+			try{
+				Thread.sleep(3000);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+			Random r=new Random();
+			int i=30;
+			if(r.nextInt(100)<10){
+				DiscordAPI.chatDefaultHost("うーん...");
+				try{
+					Thread.sleep(2000);
+				}catch(InterruptedException e){
+					e.printStackTrace();
+				}
+				i+=20;
+			}
+			if(r.nextInt(100)>i){
+				used.put(userid,"false");
+				DiscordAPI.chatDefaultHost("上げない");
+				return;
+			}
+			int n=r.nextInt(4)+1;
+			for(IModule m:BouyomiProxy.module.modules) {
+				if(m instanceof Celeron) {
+					((Celeron)m).now+=n;
+					DiscordAPI.chatDefaultHost(n+"%上げた");
+					used.put(userid,"true");
+					break;
+				}
+			}
+		}
 	}
 	@Override
 	public void autoSave() throws IOException{
+		saveused();
 		int nhc=list.hashCode();
 		if(hc==nhc)return;
 		hc=nhc;
-		shutdownHook();
+		saveCelerons();
 	}
 	public void shutdownHook() {
+		saveused();
+		saveCelerons();
+	}
+	public void saveCelerons(){
 		try{
 			BouyomiProxy.save(list,file);
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+	}
+	public void saveused() {
+		if(!saved)try{
+			BouyomiProxy.save(used,"Dosukebe.txt");
+			saved=true;
 		}catch(IOException e){
 			e.printStackTrace();
 		}
