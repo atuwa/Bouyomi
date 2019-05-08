@@ -60,7 +60,7 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 				}
 			}else tag.con.addTask.add("数値を指定してください");
 		}
-		パラメータ=tag.getTag("いちご値","");
+		パラメータ=tag.getTag("いちご値");
 		if(パラメータ!=null&&tag.isAdmin()) {
 			try{
 				合計距離=Integer.parseInt(パラメータ);

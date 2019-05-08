@@ -135,6 +135,7 @@ public class Tag{
 		String tag=getTag("動画再生");
 		if(tag!=null) {//動画再生
 			//System.out.println(text);//ログに残す
+			//DiscordAPI.chatDefaultHost("パラメータ="+tag);
 			if(tag.isEmpty()) {
 				if(operation("play")){
 					String em="つづきを再生します。";
@@ -387,7 +388,10 @@ public class Tag{
 	/**タグ取得*/
 	public String getTag(String key) {
 		if(con.text.length()<1)return null;
-		if(con.text.equals(key))return "";
+		if(con.text.equals(key)) {
+			//DiscordAPI.chatDefaultHost(key+"タグを検出しました");
+			return "";
+		}
 		int index=con.text.indexOf(key+"(");
 		if(index<0)index=con.text.indexOf(key+"（");
 		if(index<0)return null;//タグを含まない時
@@ -398,11 +402,13 @@ public class Tag{
 		if(ki<index+key.length()+1)return null;//閉じカッコの位置がおかしい時
 		if(ki==index+key.length()+1) {
 			removeTag(key,"");
+			//DiscordAPI.chatDefaultHost(key+"タグを検出しました");
 			return "";//0文字
 		}
 		String tag=con.text.substring(index+key.length()+1,ki);
 		//System.out.println("タグ取得k="+key+"v="+tag);
 		removeTag(key,tag);
+		//DiscordAPI.chatDefaultHost(key+"タグを検出しました");
 		return isTagTrim?tag.trim():tag;
 	}
 	public void removeTag(String tagName,String val) {

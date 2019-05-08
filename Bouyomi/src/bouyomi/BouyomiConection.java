@@ -364,6 +364,7 @@ public class BouyomiConection implements Runnable{
 			soc.setSoTimeout(10000);
 			read();//受信処理
 			lastComment=System.currentTimeMillis();
+			//if(!userid.equals("544529530866368522"))return;
 			Tag tag;
 			if(text==null) tag=null;
 			else tag=new Tag(this);
