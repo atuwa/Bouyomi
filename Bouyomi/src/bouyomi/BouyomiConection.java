@@ -86,18 +86,8 @@ public class BouyomiConection implements Runnable{
 		}
 		//ここで変数lenはバイト数になる
 		len=((ch1<<0)+(ch2<<8)+(ch3<<16)+(ch4<<24));//文字数データから数値に
-		fb=(char) is.read();//最初の文字を取得
-		baos2=new ByteArrayOutputStream();//メッセージバイナリ書き込み先
-		baos2.write(fb);//最初の文字をメッセージバイナリバッファに
 		this.len=len;
-		for(int i=1;i<len;i++){//メッセージデータ取得
-			int j=is.read();
-			if(j<0){//すべてのメッセージを取得できない時
-				System.out.println("DataRead");
-				throw new IOException("DataRead");//例外を出して終了
-			}
-			baos2.write(j);
-		}
+		readMessage(is);
 		if(d[7]==0) text=baos2.toString("utf-8");//UTF-8でデコード
 		else if(d[7]==1) text=baos2.toString("utf-16");//UTF-16でデコード
 		//System.out.println(text);
@@ -119,6 +109,20 @@ public class BouyomiConection implements Runnable{
 			userid=readString(is);
 			user=readString(is);
 			if(logger!=null) logger.log(user+"\t"+text);
+		}
+	}
+	private void readMessage(InputStream is) throws IOException {
+		baos2=new ByteArrayOutputStream();//メッセージバイナリ書き込み先
+		if(len<1)return;
+		fb=(char) is.read();//最初の文字を取得
+		baos2.write(fb);//最初の文字をメッセージバイナリバッファに
+		for(int i=1;i<len;i++){//メッセージデータ取得
+			int j=is.read();
+			if(j<0){//すべてのメッセージを取得できない時
+				System.out.println("DataRead");
+				throw new IOException("DataRead");//例外を出して終了
+			}
+			baos2.write(j);
 		}
 	}
 	private String readString(InputStream is) throws IOException{
