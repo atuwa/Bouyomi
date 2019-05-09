@@ -31,7 +31,11 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 	@Override
 	public void call(Tag tag){
 		if(tag.con.text.equals("痩せろデブ")) {
-			new 抽選(tag).呼び出し();
+			if("534060228099178537".equals(tag.con.userid)||tag.isAdmin()) {
+				new 抽選(tag).呼び出し();
+			}else if(今日引いた人達.contains(tag.con.userid)) {
+				DiscordAPI.chatDefaultHost("今日はもう引いたでしょ");
+			}else new 抽選(tag).呼び出し();
 		}
 		if(tag.con.text.equals("今何メートル")||tag.con.text.toLowerCase().equals("今何m")) {
 			DiscordAPI.chatDefaultHost(合計距離+"m");
@@ -61,8 +65,10 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 			}else tag.con.addTask.add("数値を指定してください");
 		}
 		パラメータ=tag.getTag("いちご値");
-		if(パラメータ!=null&&tag.isAdmin()) {
-			try{
+		if(パラメータ!=null) {
+			if(パラメータ.isEmpty()) {
+				DiscordAPI.chatDefaultHost(Integer.toString(合計距離).toUpperCase());
+			}else if(tag.isAdmin())	try{
 				合計距離=Integer.parseInt(パラメータ);
 				DiscordAPI.chatDefaultHost("残り"+合計距離+"m("+合計距離/1000f+"km)");
 			}catch(NumberFormatException nfe) {}
@@ -77,12 +83,20 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 		public void 呼び出し() {
 			今日引いた人達.add(tag.con.userid);
 			ランダム値=ランダム生成源.nextInt(1000);
-			if(ランダム値>300)やだ();
-			else 行く();
+			if(ランダム値<10)むしゃむしゃ();
+			else if(ランダム値<360)行く();
+			else やだ();
+		}
+		private void むしゃむしゃ(){
+			//単位はメートルで
+			int 距離=ランダム生成源.nextInt(350)+50;
+			DiscordAPI.chatDefaultHost(距離+"m減った("+ランダム値+")/*抽選者："+tag.con.user);
+			合計距離=合計距離-距離;
+			保存済=false;
 		}
 		private void 行く(){
 			//単位はメートルで
-			int 距離=ランダム生成源.nextInt(1000)+500;
+			int 距離=ランダム生成源.nextInt(800)+200;
 			DiscordAPI.chatDefaultHost(距離+"m行く("+ランダム値+")/*抽選者："+tag.con.user);
 			合計距離=合計距離+距離;
 			保存済=false;
