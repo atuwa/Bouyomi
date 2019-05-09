@@ -159,6 +159,16 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 				if(b)DiscordAPI.chatDefaultHost(s+"は存在しません");
 			}else DiscordAPI.chatDefaultHost("権限がありません");
 		}
+		s=tag.getTag("ドスケベ再生待ち");
+		if(s!=null) {
+			StringBuilder sb=new StringBuilder("/");
+			for(URL u:PlayThread.tasks) {
+				File f=new File(u.getPath());
+				String name=f.getName();
+				sb.append("\n").append(name);
+			}
+			DiscordAPI.chatDefaultHost(sb.toString());
+		}
 	}
 	public void play() {
 		File dir=new File("Dosukebe");
@@ -215,7 +225,14 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 				}
 				File f=new File(url.getPath());
 				String name=f.getName();
-				DiscordAPI.chatDefaultHost("再生開始："+name);
+				StringBuilder startmes=new StringBuilder("再生開始：");
+				startmes.append(name);
+				if(PlayThread.tasks.size()>0) {
+					startmes.append("/*残り");
+					startmes.append(PlayThread.tasks.size());
+					startmes.append("曲");
+				}
+				DiscordAPI.chatDefaultHost(startmes.toString());
 				label.setText("再生中："+name);
 				System.out.println("再生開始："+name);
 				WAVPlayer.play(url.toString());
