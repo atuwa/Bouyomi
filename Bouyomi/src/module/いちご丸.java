@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import bouyomi.BouyomiProxy;
+import bouyomi.DailyUpdate;
 import bouyomi.DailyUpdate.IDailyUpdate;
 import bouyomi.DiscordAPI;
 import bouyomi.IAutoSave;
@@ -23,10 +24,12 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 		try{
 			BouyomiProxy.load(今日引いた人達,"いちご丸.txt");
 			合計距離=Integer.parseInt(今日引いた人達.get(0),16);
+			今日引いた人達.remove(0);
 			保存済=true;
 		}catch(IOException|NumberFormatException e){
 			e.printStackTrace();
 		}
+		DailyUpdate.Ragister("いちご丸",this);
 	}
 	@Override
 	public void call(Tag tag){
