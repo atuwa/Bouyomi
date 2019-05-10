@@ -21,7 +21,9 @@ public class Ping implements IModule{
 		}
 		if(tag.con.text.equals("pong")&&ping) {
 			ping=false;
-			DiscordAPI.chatDefaultHost(System.currentTimeMillis()-t+"ms");
+			String s=System.currentTimeMillis()-t+"ms";
+			System.out.println("ping"+s);
+			DiscordAPI.chatDefaultHost(s);
 		}
 	}
 }
