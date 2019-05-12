@@ -214,14 +214,24 @@ public class BouyomiProxy{
 		}.start();
 		IAutoSave.thread();
 		DailyUpdate.init();
+		try{
+			load(Config,"config.txt");
+			if("無効".equals(Config.get("平仮名変換"))){
+				Japanese.active=false;
+			}
+			if(Config.containsKey("初期音量")) {
+				try{
+					TubeAPI.DefaultVol=Integer.parseInt(Config.get("初期音量"));
+				}catch(NumberFormatException e) {
+
+				}
+			}
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 		Runtime.getRuntime().addShutdownHook(new Thread("save") {
 			public void run() {
 				BOT.saveBOT();
-				try{
-					save(Config,"config.txt");
-				}catch(IOException e){
-					e.printStackTrace();
-				}
 			}
 		});
 		IAutoSave.Register(new IAutoSave() {
@@ -246,21 +256,6 @@ public class BouyomiProxy{
 		BOT.loadBOT();
 		Counter.init();
 		admin=new Admin();
-		try{
-			load(Config,"config.txt");
-			if("無効".equals(Config.get("平仮名変換"))){
-				Japanese.active=false;
-			}
-			if(Config.containsKey("初期音量")) {
-				try{
-					TubeAPI.DefaultVol=Integer.parseInt(Config.get("初期音量"));
-				}catch(NumberFormatException e) {
-
-				}
-			}
-		}catch(IOException e){
-			e.printStackTrace();
-		}
 		Pass.read();
 		study_log=new SaveProxyData("教育者.txt");
 		if(module!=null) {
