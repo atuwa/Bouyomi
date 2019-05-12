@@ -33,6 +33,12 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 			live=lv;
 		}
 	}
+	public static class CheckLiveEvent implements BouyomiEvent{
+		public Live[] live;
+		private CheckLiveEvent(Live[] lv) {
+			live=lv;
+		}
+	}
 	public NicoAlart(){
 		thread=new Thread(this,"定期ニコニコ生放送コミュニティ検索");
 		thread.start();
@@ -207,6 +213,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		while(true) {
 			try{
 				check(1003067);
+				autoSave();
 			}catch(IOException e1){
 				e1.printStackTrace();
 			}
@@ -250,6 +257,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 			Map<String, Object> map=(Map<String,Object>)o[i];
 			live[i]=new Live(map);
 		}
+		BouyomiProxy.module.event(new CheckLiveEvent(live));
 		//System.out.println(live.length+"件です");
 		return live;
 	}
