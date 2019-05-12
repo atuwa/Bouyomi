@@ -43,6 +43,12 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			e.printStackTrace();
 		}
 		DailyUpdate.Ragister("Dosukebe",this);
+		String s=BouyomiProxy.Config.get("ドスケベ音量");
+		if(s!=null&&!s.isEmpty())try{
+			WAVPlayer.Volume=Float.parseFloat(s);
+		}catch(NumberFormatException nfe) {
+
+		}
 	}
 	@Override
 	public void autoSave() throws IOException{
@@ -80,7 +86,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			}else{
 				if(!tag.isAdmin()&&!"536401162300162049".equals(tag.con.userid)) {
 					//used.add(tag.con.userid);
-					saved=false;
+					//saved=false;
 				}
 				int rand=rundom.nextInt(10000);
 				StringBuilder sb=new StringBuilder();
@@ -97,7 +103,9 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 				}
 				sb.append("(").append(rand).append(")");
 				sb.append("/*確率").append(now/100d).append("+").append((k-now)/100d).append("%");
-				DiscordAPI.chatDefaultHost(sb.toString());
+				String s=sb.toString();
+				System.out.println(s);
+				DiscordAPI.chatDefaultHost(s);
 			}
 		}
 		if(tag.con.text.equals("ドスケベストップ")||tag.con.text.equals("ドスケベ停止")){
@@ -169,6 +177,40 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			}
 			DiscordAPI.chatDefaultHost(sb.toString());
 		}
+		s=tag.getTag("ドスケベ音量");
+		if(s!=null) {
+			if(s.isEmpty()) {
+				DiscordAPI.chatDefaultHost("ドスケベ音量は"+WAVPlayer.Volume+"です");
+			}else volume(s);
+		}
+	}
+	private void volume(String tag) {
+		try{
+			float Nvol=-1;
+			switch(tag.charAt(0)){
+				case '＋':
+				case '－':
+				case '+':
+				case '-':
+					tag=tag.replace('＋','+');
+					tag=tag.replace('－','-');
+					Nvol=WAVPlayer.Volume;//+記号で始まる時今の音量を取得
+			}
+			float vol=Float.parseFloat(tag);//要求された音量
+			if(Nvol>=0)vol=Nvol+vol;//音量が取得させていたらそれに指定された音量を足す
+			if(vol>100)vol=100;//音量が100以上の時100にする
+			else if(vol<0)vol=0;//音量が0以下の時0にする
+			System.out.println("ドスケベ音量"+vol);//ログに残す
+			WAVPlayer.Volume=vol;//再生時に使う音量をこれにする
+			WAVPlayer.setVolume(vol);
+			BouyomiProxy.Config.put("ドスケベ音量",Float.toString(vol));
+			StringBuffer sb=new StringBuffer("ドスケベ音量を");
+			sb.append(vol);
+			sb.append("にしました");
+			DiscordAPI.chatDefaultHost(sb.toString());
+		}catch(NumberFormatException e) {
+			DiscordAPI.chatDefaultHost("数値を解析できません");
+		}
 	}
 	public void play() {
 		File dir=new File("Dosukebe");
@@ -216,7 +258,6 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 			}
 		}
 		public void run() {
-			WAVPlayer.Volume=20;
 			while(true) {
 				URL url;
 				synchronized(tasks){
