@@ -224,6 +224,24 @@ public class BouyomiProxy{
 				}
 			}
 		});
+		IAutoSave.Register(new IAutoSave() {
+			private int hash=Config.hashCode();
+			@Override
+			public void autoSave() throws IOException{
+				int hc=Config.hashCode();
+				if(hash==hc)return;
+				hash=hc;
+				shutdownHook();
+			}
+			@Override
+			public void shutdownHook() {
+				try{
+					save(Config,"config.txt");
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}
+		});
 		TubeAPI.setAutoStop();
 		BOT.loadBOT();
 		Counter.init();

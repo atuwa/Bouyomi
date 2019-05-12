@@ -18,7 +18,7 @@ public interface IAutoSave{
 							for(IAutoSave a:list) {
 								try{
 									a.autoSave();
-								}catch(IOException e){
+								}catch(Throwable e){
 									e.printStackTrace();
 								}
 							}
@@ -33,7 +33,13 @@ public interface IAutoSave{
 			@Override
 			public void run() {
 				synchronized(list){
-					for(IAutoSave a:list)a.shutdownHook();
+					for(IAutoSave a:list) {
+						try{
+							a.shutdownHook();
+						}catch(Throwable t) {
+							t.printStackTrace();
+						}
+					}
 				}
 				DailyUpdate.updater.write();
 			}
