@@ -2,6 +2,7 @@ package module;
 
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,7 +45,8 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 			DiscordAPI.chatDefaultHost(tag.con.mute?"/":""+合計距離+"m");
 		}
 		if(tag.con.text.equals("今何キロメートル")||tag.con.text.toLowerCase().equals("今何km")) {
-			DiscordAPI.chatDefaultHost(tag.con.mute?"/":""+合計距離/1000f+"km");
+	        DecimalFormat df = new DecimalFormat("#,##0.0");
+			DiscordAPI.chatDefaultHost(tag.con.mute?"/":""+df.format(合計距離/1000D)+"km");
 		}
 		String パラメータ=tag.getTag("ちゃんと歩いたよ");
 		if(パラメータ!=null) {
@@ -52,7 +54,7 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 			if(!キロ指定)キロ指定=パラメータ.contains("キロ");
 			if(!キロ指定)キロ指定=パラメータ.contains("㌔");
 			if(!キロ指定)キロ指定=パラメータ.contains("ｷﾛ");
-			Matcher m=Pattern.compile("[0-9]++").matcher(パラメータ);
+			Matcher m=Pattern.compile("[0-9０-９]++").matcher(パラメータ);
 			if(m.find()){
 				String 数値抽出文字列=m.group();
 				int 指定値=Integer.parseInt(数値抽出文字列);
@@ -64,7 +66,8 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 					System.out.println("いちご丸が"+指定値+"m歩いて残り"+合計距離+"m");
 					if(合計距離<-2000)合計距離=-2000;
 					保存済=false;
-					DiscordAPI.chatDefaultHost(tag.con.mute?"/残り":"残り"+合計距離+"m("+合計距離/1000f+"km)");
+			        DecimalFormat df = new DecimalFormat("#,##0.0");
+					DiscordAPI.chatDefaultHost(tag.con.mute?"/残り":"残り"+合計距離+"m("+df.format(合計距離/1000D)+"km)");
 				}
 			}else tag.con.addTask.add("数値を指定してください");
 		}
@@ -74,7 +77,8 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 				DiscordAPI.chatDefaultHost(tag.con.mute?"/":""+Integer.toString(合計距離));
 			}else if(tag.isAdmin())	try{
 				合計距離=Integer.parseInt(パラメータ);
-				DiscordAPI.chatDefaultHost(tag.con.mute?"/残り":"残り"+合計距離+"m("+合計距離/1000f+"km)");
+		        DecimalFormat df = new DecimalFormat("#,##0.0");
+				DiscordAPI.chatDefaultHost(tag.con.mute?"/残り":"残り"+合計距離+"m("+df.format(合計距離/1000D)+"km)");
 			}catch(NumberFormatException nfe) {}
 		}
 	}
@@ -95,7 +99,7 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 			//単位はメートルで
 			int 距離=ランダム生成源.nextInt(350)+50;
 			String s=距離+"m減った("+ランダム値+")/*抽選者："+tag.con.user;
-			System.out.println("いちご丸："+s);
+			System.out.println(s);
 			if(tag.con.mute)s="/"+s;
 			DiscordAPI.chatDefaultHost(s);
 			合計距離=合計距離-距離;
@@ -103,9 +107,9 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 		}
 		private void 行く(){
 			//単位はメートルで
-			int 距離=ランダム生成源.nextInt(700)+100;
+			int 距離=ランダム生成源.nextInt(400)+100;
 			String s=距離+"m行く("+ランダム値+")/*抽選者："+tag.con.user;
-			System.out.println("いちご丸："+s);
+			System.out.println(s);
 			if(tag.con.mute)s="/"+s;
 			DiscordAPI.chatDefaultHost(s);
 			合計距離=合計距離+距離;
@@ -113,7 +117,7 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 		}
 		private void やだ(){
 			String s="行かない("+ランダム値+")/*抽選者："+tag.con.user;
-			System.out.println("いちご丸："+s);
+			System.out.println(s);
 			if(tag.con.mute)s="/"+s;
 			DiscordAPI.chatDefaultHost(s);
 		}
@@ -124,10 +128,12 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 	}
 	public void shutdownHook() {
 		if(保存済)return;
+		@SuppressWarnings("unchecked")
+		ArrayList<String> コピー=(ArrayList<String>) 今日引いた人達.clone();
 		String 距離文字列=Integer.toHexString(合計距離);
-		今日引いた人達.add(0,距離文字列);
+		コピー.add(0,距離文字列);
 		try{
-			BouyomiProxy.save(今日引いた人達,"いちご丸.txt");
+			BouyomiProxy.save(コピー,"いちご丸.txt");
 			保存済=true;
 		}catch(IOException e){
 			e.printStackTrace();
