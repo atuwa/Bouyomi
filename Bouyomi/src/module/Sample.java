@@ -1,5 +1,9 @@
 package module;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Random;
+
 import bouyomi.DiscordAPI;
 import bouyomi.IModule;
 import bouyomi.Tag;
@@ -26,6 +30,47 @@ public class Sample implements IModule{
 		if(tag.con.mentions.contains("539105406107254804")) {
 			if(tag.con.text.equals("働け")||tag.con.text.equals("仕事しろ")) {
 				DiscordAPI.chatDefaultHost("やだ");
+			}
+		}
+		String seedS=tag.getTag("ランダム文字列");
+		if(seedS!=null) {
+			String[] parm=seedS.isEmpty()?null:seedS.split(",");
+			long seedN=0;
+			if(parm!=null&&parm.length>1)try{
+				seedN=Long.parseLong(parm[1]);
+			}catch(NumberFormatException nfe) {
+				char[] ca=parm[1].toCharArray();
+				for(char c:ca)seedN+=c;
+			}
+			int len=10;
+			if(parm!=null)try{
+				len=Integer.parseInt(parm[0]);
+			}catch(NumberFormatException nfe) {
+
+			}
+			Random r;
+			if(seedN==0)r=new Random();
+			else r=new Random(seedN);
+			StringBuilder sb=new StringBuilder("/");
+			for(int i=0;i<len;i++) {
+				sb.append((char)r.nextInt(65514));
+			}
+			DiscordAPI.chatDefaultHost(sb.toString());
+		}
+		String org=tag.getTag("文字化け");
+		if(org!=null) {
+			try{
+				byte[] b=org.getBytes(StandardCharsets.UTF_8);
+				StringBuilder sb=new StringBuilder("/Shift-JIS\n```");
+				String result=new String(b,"shift-jis");
+				sb.append(result);
+				sb.append("```\nEUC-JP\n```");
+				result=new String(b,"euc-jp");
+				sb.append(result);
+				sb.append("```");
+				DiscordAPI.chatDefaultHost(sb.toString());
+			}catch(UnsupportedEncodingException e){
+				e.printStackTrace();
 			}
 		}
 	}
