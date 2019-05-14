@@ -77,7 +77,6 @@ public class Tag{
 		if(video_host!=null) {//再生サーバが設定されている時
 			video();
 		}
-		Question.tag(this,con);
 		if(module!=null)module.postcall(this);
 	}
 	public void music() {
