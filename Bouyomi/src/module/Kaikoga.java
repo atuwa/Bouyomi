@@ -30,7 +30,7 @@ public class Kaikoga implements IModule,IAutoSave{
 	private int lastWriteHashCode;
 	/**当選率はこの値/10*/
 	private int kakuritu;
-	private int up;
+	private int up,upKaikoga;
 	private Random rundom=new SecureRandom();
 	public Kaikoga(){
 		try{
@@ -38,6 +38,12 @@ public class Kaikoga implements IModule,IAutoSave{
 			lastWriteHashCode=kaikogaDB.hashCode();
 		}catch(IOException e){
 			e.printStackTrace();
+		}
+		String s=BouyomiProxy.Config.get("カイコガ本人ボーナス");
+		try{
+			upKaikoga=Integer.parseInt(s);
+		}catch(NumberFormatException nfe) {
+			nfe.printStackTrace();
 		}
 		IDailyUpdate update=new IDailyUpdate(){
 			@Override
@@ -145,16 +151,13 @@ public class Kaikoga implements IModule,IAutoSave{
 			}else DiscordAPI.chatDefaultHost("権限がありません");
 		}
 		if(con.text.contains("今素振り何回")||con.text.contains("今素振り何回?")) {
-			int k=kakuritu;
-			if(up>20)k+=20;
-			else k+=up;
-			String s=up+"回/*確率";
-			s+=(kakuritu/10F)+"+"+((k-kakuritu)/10F)+"%";
-			DiscordAPI.chatDefaultHost(s);
+			StringBuilder sb=new StringBuilder(up+"回/*確率");
+			kakuritu(sb);
+			DiscordAPI.chatDefaultHost(sb.toString());
 		}
 		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
 			int r=rundom.nextInt(1000)+1;//当選率可変
-			int k=kakuritu;
+			int k=kakuritu+upKaikoga;
 			if(up>20)k+=20;
 			else k+=up;
 			StringBuilder sb=new StringBuilder();
@@ -164,7 +167,8 @@ public class Kaikoga implements IModule,IAutoSave{
 			else sb.append("はずれ");
 			sb.append(" (").append(r).append(")/*");
 			sb.append("抽選者：").append(con.user);
-			sb.append(" 確率").append(kakuritu/10F).append("+").append((k-kakuritu)/10F).append("%");
+			sb.append(" 確率");
+			kakuritu(sb);
 			sb.append(" ").append(up).append("回の素振り");
 			up=0;
 			if(!con.mute) {
@@ -177,7 +181,7 @@ public class Kaikoga implements IModule,IAutoSave{
 				//DiscordAPI.chatDefaultHost(Util.IDtoMention(con.userid)+s);
 			}
 			System.out.println(sb.toString());
-			if(r<=kakuritu) hit(con,con.userid);
+			if(r<=k+1) hit(con,con.userid);
 			//if(r<5)con.addTask.add("おしい");
 		}
 		String t=tag.getTag("カイコガランキング");
@@ -186,6 +190,30 @@ public class Kaikoga implements IModule,IAutoSave{
 			if(con.mute)System.out.println(s);
 			else DiscordAPI.chatDefaultHost(s);
 		}
+		if("534060196767465485".equals(con.userid)){
+			str=tag.getTag("本人ボーナス");
+			if(str!=null) {
+				if(str.isEmpty())DiscordAPI.chatDefaultHost(upKaikoga/10F+"%");
+				else try{
+					upKaikoga=(int) (Double.parseDouble(str)*10D);
+					if(upKaikoga>100)upKaikoga=100;
+					BouyomiProxy.Config.put("カイコガ本人ボーナス",Integer.toString(upKaikoga));
+					DiscordAPI.chatDefaultHost("本人ボーナスを"+upKaikoga/10F+"%に設定");
+				}catch(NumberFormatException nfe) {
+
+				}
+			}
+		}
+	}
+	private void kakuritu(StringBuilder sb){
+		int k=kakuritu;
+		if(up>20)k+=20;
+		else k+=up;
+		sb.append(kakuritu/10F);
+		sb.append("+").append((k-kakuritu)/10F);
+		if(upKaikoga>0)sb.append("+").append(upKaikoga/10F);
+		sb.append("=").append((k+upKaikoga)/10F);
+		sb.append("%");
 	}
 	private void hit(BouyomiConection con,String id){
 		con.addTask.add("おめでとう当たったよ");

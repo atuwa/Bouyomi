@@ -65,7 +65,7 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 	}
 	@Override
 	public void init() {
-		now=rundom.nextInt(10);
+		now=rundom.nextInt(10)+1;
 	}
 	@Override
 	public void read(DataInputStream dis) throws IOException {
