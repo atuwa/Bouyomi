@@ -54,16 +54,17 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 			if(!キロ指定)キロ指定=パラメータ.contains("キロ");
 			if(!キロ指定)キロ指定=パラメータ.contains("㌔");
 			if(!キロ指定)キロ指定=パラメータ.contains("ｷﾛ");
-			Matcher m=Pattern.compile("[0-9０-９]++").matcher(パラメータ);
+			Matcher m=Pattern.compile("[0-9０-９]++.?[0-9０-９]*+").matcher(パラメータ);
 			if(m.find()){
 				String 数値抽出文字列=m.group();
-				int 指定値=Integer.parseInt(数値抽出文字列);
+				double 指定値=Double.parseDouble(数値抽出文字列);
 				if(キロ指定)指定値*=1000;
 				if(指定値>20000) {
 					DiscordAPI.chatDefaultHost("指定ミスってない？("+指定値+"m)");
 				}else {
-					合計距離=合計距離-指定値;
-					System.out.println("いちご丸が"+指定値+"m歩いて残り"+合計距離+"m");
+					int 元の距離=合計距離;
+					合計距離=(int) (合計距離-指定値);
+					System.out.println("いちご丸が"+(元の距離-合計距離)+"m歩いて残り"+合計距離+"m");
 					if(合計距離<-2000)合計距離=-2000;
 					保存済=false;
 			        DecimalFormat df = new DecimalFormat("#,##0.0");
