@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import bouyomi.BouyomiProxy;
+import bouyomi.Counter;
 import bouyomi.DiscordAPI;
 import bouyomi.IAutoSave;
 import bouyomi.IModule;
@@ -22,9 +23,20 @@ public class Memo implements IModule,IAutoSave{
 	}
 	@Override
 	public void call(Tag tag){
-		String t=tag.getTag("memo");
 		String u=tag.con.userid;
-		if(t==null||u==null)return;
+		if(u==null)return;
+		if(tag.isAdmin()) {
+			String del=tag.getTag("メモ抹消");
+			if(del!=null) {
+				data.put(del,"メモは管理者により抹消されました");
+				saved=false;
+				DiscordAPI.chatDefaultHost(Counter.getUserName(del)+"のメモを抹消しました");
+			}
+		}
+		String get=tag.getTag("メモ取得");
+		if(get!=null)getMemo(tag, u);
+		String t=tag.getTag("memo");
+		if(t==null)return;
 		if(t.equals("消去")) {
 			data.remove(u);
 			saved=false;
@@ -32,16 +44,19 @@ public class Memo implements IModule,IAutoSave{
 		}else if(t.length()>100) {
 			DiscordAPI.chatDefaultHost("100文字制限を超えています");
 		}else if(t.isEmpty()) {
-			StringBuilder sb=new StringBuilder(tag.con.user);
-			sb.append("(").append(tag.con.userid).append(")");
-			sb.append(" のメモ：\n/*");
-			sb.append(data.getOrDefault(u,"null"));
-			DiscordAPI.chatDefaultHost(sb.toString());
+			getMemo(tag, u);
 		}else {
 			data.put(u,t);
 			saved=false;
 			tag.con.addTask.add("メモしました");
 		}
+	}
+	private void getMemo(Tag tag,String u){
+		StringBuilder sb=new StringBuilder(tag.con.user);
+		sb.append("(").append(tag.con.userid).append(")");
+		sb.append(" のメモ：\n/*");
+		sb.append(data.getOrDefault(u,"null"));
+		DiscordAPI.chatDefaultHost(sb.toString());
 	}
 	@Override
 	public void autoSave(){
