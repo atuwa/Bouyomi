@@ -9,6 +9,7 @@ import bouyomi.BouyomiConection;
 import bouyomi.DiscordAPI;
 import bouyomi.IModule;
 import bouyomi.Tag;
+import bouyomi.Util;
 
 public class QuestionModule implements IModule{
 
@@ -74,6 +75,23 @@ public class QuestionModule implements IModule{
 					bc.addTask.add("アンケートが実施されていません");
 				}else {
 					now.addKey(tag);
+				}
+			}
+		}
+		if(tm.con.text.equals("どれに投票したっけ")) {
+			if(now==null) {
+				bc.addTask.add("アンケートが実施されていません");
+			}else {
+				now.target(bc);
+			}
+		}
+		tag=tm.getTag("アンケート中間結果");
+		if(tag!=null) {
+			synchronized(lock) {
+				if(now==null) {
+					bc.addTask.add("アンケートが実施されていません");
+				}else {
+					now.chat();
 				}
 			}
 		}
@@ -158,8 +176,8 @@ public class QuestionModule implements IModule{
 				}else bc.addTask.add("開始したけどディスコードに接続できません");
 			}
 		}
-		public synchronized void end(String tag,BouyomiConection bc) {
-			end=true;
+		/**結果通知*/
+		public synchronized void chat() {
 			StringBuilder result=new StringBuilder("アンケート名").append(questionnaireName);
 			long all=0;
 			for(int i=0;i<questionnaire.length;i++)all+=questionnaire[i];
@@ -186,7 +204,11 @@ public class QuestionModule implements IModule{
 				result.append("\n");
 			}
 			result.append("でした。");
-			if(!tag.equals("内容破棄"))DiscordAPI.chatDefaultHost(result.toString());
+			DiscordAPI.chatDefaultHost(result.toString());
+		}
+		public synchronized void end(String tag,BouyomiConection bc) {
+			end=true;
+			if(!tag.equals("内容破棄"))chat();
 			bc.addTask.add("アンケートを終了");
 			questionnaireName=null;
 			questionnaireList.clear();
@@ -199,6 +221,21 @@ public class QuestionModule implements IModule{
 			}catch(NumberFormatException nfe) {//失敗した時
 				int i=questionnaireList.indexOf(bc.text);//キーワードからIndexを取得
 				questionnaire(bc, i);//そのIndexに投票。キーワードがない時は後ではじかれる
+			}
+		}
+		public void target(BouyomiConection con) {
+			if(con.userid==null)return;
+			StringBuilder sb=new StringBuilder();
+			if(con.userid!=null)sb.append(Util.IDtoMention(con.userid));
+			String user=con.userid==null?con.user:con.userid;
+			if(questionnaireUserList.containsKey(user)) {//ユーザが投票済の時
+				Integer k=questionnaireUserList.get(user);//ユーザの投票先(index)
+				sb.append(questionnaireList.get(k));
+				sb.append("に投票してます");
+				DiscordAPI.chatDefaultHost(sb.toString());
+			}else {
+				sb.append("投票してません");
+				DiscordAPI.chatDefaultHost(sb.toString());
 			}
 		}
 		private void questionnaire(BouyomiConection con,int index) {
