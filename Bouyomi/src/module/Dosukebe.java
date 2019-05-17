@@ -180,7 +180,7 @@ public class Dosukebe implements IModule,IDailyUpdate,IAutoSave{
 		s=tag.getTag("ドスケベ音量");
 		if(s!=null) {
 			if(s.isEmpty()) {
-				DiscordAPI.chatDefaultHost("ドスケベ音量は"+WAVPlayer.Volume+"です");
+				DiscordAPI.chatDefaultHost(tag.con.mute?"/":""+"ドスケベ音量は"+WAVPlayer.Volume+"です");
 			}else volume(s);
 		}
 	}

@@ -1,9 +1,15 @@
 package module;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,7 +70,11 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 				}else {
 					int 元の距離=合計距離;
 					合計距離=(int) (合計距離-指定値);
-					System.out.println("いちご丸が"+(元の距離-合計距離)+"m歩いて残り"+合計距離+"m");
+					StringBuilder システムメッセージ=new StringBuilder("いちご丸が");
+					システムメッセージ.append(元の距離-合計距離).append("m歩いて残り");
+					システムメッセージ.append(合計距離).append("m");
+					運動ログ(システムメッセージ.toString());
+					System.out.println(システムメッセージ);
 					if(合計距離<-2000)合計距離=-2000;
 					保存済=false;
 			        DecimalFormat df = new DecimalFormat("#,##0.0");
@@ -81,6 +91,27 @@ public class いちご丸 implements IModule,IAutoSave,IDailyUpdate{
 		        DecimalFormat df = new DecimalFormat("#,##0.0");
 				DiscordAPI.chatDefaultHost(tag.con.mute?"/残り":"残り"+合計距離+"m("+df.format(合計距離/1000D)+"km)");
 			}catch(NumberFormatException nfe) {}
+		}
+	}
+	private void 運動ログ(String ログテキスト) {
+		SimpleDateFormat 日付フォーマットするやつ = new SimpleDateFormat("yyyy年MM月dd日HH時mm分");
+		String 日付時刻=日付フォーマットするやつ.format(new Date());
+		try{
+			FileOutputStream fos=new FileOutputStream("いちご丸.log",true);//追加モードで開く
+			BufferedOutputStream ログ出力先=new BufferedOutputStream(fos);
+			try{
+				ログ出力先.write((日付時刻+"\t"+ログテキスト+"\t"+System.currentTimeMillis()+"\n").getBytes(StandardCharsets.UTF_8));
+			}catch(Exception e) {
+				e.printStackTrace();
+			}finally {
+				try{
+					ログ出力先.close();
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}
+		}catch(FileNotFoundException e){
+			e.printStackTrace();
 		}
 	}
 	private class 抽選{
