@@ -206,7 +206,7 @@ public class Celeron implements IModule,IDailyUpdate,IAutoSave{
 	}
 	public void saveused() {
 		if(!saved)try{
-			BouyomiProxy.save(used,"Dosukebe.txt");
+			BouyomiProxy.save(used,"CeleronUp.txt");
 			saved=true;
 		}catch(IOException e){
 			e.printStackTrace();

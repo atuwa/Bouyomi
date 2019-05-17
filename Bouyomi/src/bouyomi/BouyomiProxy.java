@@ -268,14 +268,22 @@ public class BouyomiProxy{
 		//スレッドプールを用意(最低1スレッド維持、空きスレッド60秒維持)
 		ExecutorService pool=new ThreadPoolExecutor(1, Integer.MAX_VALUE,60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>());
+		int threads=0;
 		while(true){//無限ループ
+			threads++;
 			try{
+				if(threads>3)System.err.println("警告：実行中のメッセージスレッドが"+threads+"件です");
 				Socket s=ss.accept();//サーバ受付
 				BouyomiConection r=new BouyomiConection(s);//接続単位でインスタンス生成
 				pool.execute(r);//スレッドプールで実行する
 			}catch(IOException e){//例外は無視
-
+				try{
+					Thread.sleep(100);
+				}catch(InterruptedException e1){
+					e1.printStackTrace();
+				}
 			}
+			threads--;
 		}
 	}
 	public static void load(List<String> list,String path) throws IOException {
