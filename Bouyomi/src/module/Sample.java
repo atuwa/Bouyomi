@@ -1,5 +1,7 @@
 package module;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
@@ -72,6 +74,35 @@ public class Sample implements IModule{
 			}catch(UnsupportedEncodingException e){
 				e.printStackTrace();
 			}
+		}
+		org=tag.getTag("16進数E");
+		if(org!=null) {
+			byte[] ba=org.getBytes(StandardCharsets.UTF_8);
+			StringBuilder sb=new StringBuilder("/");
+			for(byte b:ba) {
+				int i=b&0x000000FF;
+				String hex=Integer.toHexString(i);
+				if(hex.length()<2)sb.append("0");
+				sb.append(hex);
+			}
+			DiscordAPI.chatDefaultHost(sb.toString());
+		}
+		org=tag.getTag("16進数D");
+		if(org!=null) {
+			StringReader r=new StringReader(org);
+			byte[] ba=new byte[org.length()/2];
+			char[] cbuf=new char[2];
+			for(int i=0;i<ba.length;i++) {
+				try{
+					int rl=r.read(cbuf);
+					if(rl<0)break;
+					ba[i]=(byte) (Integer.parseInt(String.valueOf(cbuf),16)&0xFF);
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}
+			String d=new String(ba,StandardCharsets.UTF_8);
+			DiscordAPI.chatDefaultHost(d);
 		}
 	}
 	@Override
