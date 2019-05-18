@@ -25,11 +25,11 @@ import bouyomi.Util.JsonUtil;
 public class NicoAlart implements IModule,IAutoSave, Runnable{
 	private Thread thread;
 	private int lastWriteHashCode,lastWriteHashCodeA;
-	private HashMap<String,String> shortcutDB=new HashMap<String,String>();
+	public static final HashMap<String,String> shortcutDB=new HashMap<String,String>();
 	public static HashMap<String,String> alarted=new HashMap<String,String>();
 	public static class NicoLiveEvent implements BouyomiEvent{
 		public Live[] live;
-		private NicoLiveEvent(Live[] lv) {
+		public NicoLiveEvent(Live[] lv) {
 			live=lv;
 		}
 	}
@@ -154,6 +154,19 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 			if(miss)DiscordAPI.chatDefaultHost("わかんにゃい！");
 		}
 	}
+	public static int getCo(String org) {
+		Matcher m=Pattern.compile("co[0-9]++").matcher(org);
+		if(m.find()) {
+			m=Pattern.compile("[0-9]++").matcher(m.group());
+			m.find();
+			try {
+				return Integer.parseInt(m.group());
+			}catch(NumberFormatException nfe) {
+
+			}
+		}
+		return -1;
+	}
 	@Override
 	public void autoSave(){
 		int hc=shortcutDB.hashCode();
@@ -266,10 +279,12 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		public String contentId;
 		/**説明*/
 		public String description;
+		public String communityId;
 		public Live(Map<String,Object> map) {
 			description=map.get("description").toString();
 			contentId=map.get("contentId").toString();
 			title=map.get("title").toString();
+			communityId=map.get("communityId").toString();
 			//for(Entry<String, Object> e:map.entrySet())System.out.println(e.getKey()+"="+e.getValue());
 		}
 		@Override
@@ -320,7 +335,7 @@ public class NicoAlart implements IModule,IAutoSave, Runnable{
 		sb.append("&targets=tags");
 		sb.append("&_sort=-viewCounter");
 		sb.append("&_context=AtuwaBouyomiProxy");
-		sb.append("&fields=contentId,title,description");
+		sb.append("&fields=contentId,title,description,communityId");
 		sb.append("&filters[liveStatus][0]=onair");
 		for(int i=0;i<communityId.length;i++) {
 			sb.append("&filters[communityId][");

@@ -102,7 +102,7 @@ public class Sample implements IModule{
 				}
 			}
 			String d=new String(ba,StandardCharsets.UTF_8);
-			DiscordAPI.chatDefaultHost(d);
+			DiscordAPI.chatDefaultHost(Util.IDtoMention(tag.con.userid)+"\n"+d);
 		}
 	}
 	@Override
