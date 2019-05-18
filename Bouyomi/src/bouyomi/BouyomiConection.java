@@ -301,7 +301,7 @@ public class BouyomiConection implements Runnable{
 		boolean source=false;
 		for(int i=0;i<text.length();i++){//文字データを1文字ずつ読み込む
 			char r=text.charAt(i);//現在位置の文字を取得
-			if(r=='ゝ'&&i>1) r=text.charAt(i-1);
+			if((r=='ゝ'||r=='ゞ')&&i>0)r=text.charAt(i-1);
 			//連続カウントが2以上で次の文字が`の場合source判定
 			if(cc>0&&r=='`'){
 				source=!source;
