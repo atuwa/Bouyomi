@@ -34,7 +34,7 @@ public class Memo implements IModule,IAutoSave{
 			}
 		}
 		String get=tag.getTag("メモ取得");
-		if(get!=null)getMemo(tag, u);
+		if(get!=null)getMemo(tag,get);
 		String t=tag.getTag("memo");
 		if(t==null)return;
 		if(t.equals("消去")) {
@@ -52,8 +52,10 @@ public class Memo implements IModule,IAutoSave{
 		}
 	}
 	private void getMemo(Tag tag,String u){
-		StringBuilder sb=new StringBuilder(tag.con.user);
-		sb.append("(").append(tag.con.userid).append(")");
+		String name=Counter.getUserName(u);
+		if(name==null)return;
+		StringBuilder sb=new StringBuilder(name);
+		sb.append("(").append(u).append(")");
 		sb.append(" のメモ：\n/*");
 		sb.append(data.getOrDefault(u,"null"));
 		DiscordAPI.chatDefaultHost(sb.toString());
