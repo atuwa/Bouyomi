@@ -274,7 +274,7 @@ public class BouyomiProxy{
 			try{
 				if(threads>3)System.err.println("警告：実行中のメッセージスレッドが"+threads+"件です");
 				Socket s=ss.accept();//サーバ受付
-				BouyomiConection r=new BouyomiConection(s);//接続単位でインスタンス生成
+				BouyomiConection r=new BouyomiTCPConection(s);//接続単位でインスタンス生成
 				pool.execute(r);//スレッドプールで実行する
 			}catch(IOException e){//例外は無視
 				try{
