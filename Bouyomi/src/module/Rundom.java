@@ -124,14 +124,14 @@ public class Rundom implements IModule,IDailyUpdate,IAutoSave{
 	@Override
 	public void call(Tag tag){
 		for(Files e:files.values()){
-			String p=tag.getTag(e.name+"登録");
+			String p=tag.getTag("今日の"+e.name+"登録");
 			if(p!=null) {
 				if(!p.isEmpty()&&e.add(p)) {
 					System.out.println(p+"を"+e.name+"に登録");
 					tag.con.addTask.add("登録成功");
 				}else tag.con.addTask.add("登録失敗");
 			}
-			p=tag.getTag(e.name+"削除");
+			p=tag.getTag("今日の"+e.name+"削除");
 			if(p!=null) {
 				if(e.remove(p))tag.con.addTask.add("削除成功");
 				else tag.con.addTask.add("削除失敗");

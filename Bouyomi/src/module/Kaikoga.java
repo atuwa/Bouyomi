@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
+import java.util.Comparator;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -155,7 +156,8 @@ public class Kaikoga implements IModule,IAutoSave{
 			kakuritu(sb);
 			DiscordAPI.chatDefaultHost(sb.toString());
 		}
-		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")||con.text.equals("グレートカイコガ")){
+		if(con.text.equals("グレートカイコガ２")||con.text.equals("グレートカイコガ2")
+				||con.text.equals("グレートカイコガ")||con.text.equals("greatKaikoga")||con.text.equals("GreatKaikoga")){
 			int r=rundom.nextInt(1000)+1;//当選率可変
 			int k=kakuritu+upKaikoga;
 			if(up>20)k+=20;
@@ -230,7 +232,15 @@ public class Kaikoga implements IModule,IAutoSave{
 		kaikogaDB.put(id,n);
 	}
 	public String rank(String s){
-		kaikogaDB.sortValue(null);
+		Comparator<Value<String,String>> c0=new Comparator<Value<String,String>>(){
+			@Override
+			public int compare(Value<String, String> o1,Value<String, String> o2){
+				int n1=Integer.parseInt(o2.getValue());
+				int n2=Integer.parseInt(o1.getValue());
+				return Integer.compare(n1,n2);
+			}
+		};
+		kaikogaDB.rawList().sort(c0);
 		long all=0;
 		for(Value<String, String> v:kaikogaDB.rawList()){
 			try{
